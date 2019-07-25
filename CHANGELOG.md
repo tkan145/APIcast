@@ -6,13 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-### Added
-
-- Introduce possibility of specifying policy order restrictions in their schemas. APIcast now shows a warning when those restrictions are not respected [#1088](https://github.com/3scale/APIcast/pull/1088), [THREESCALE-2896](https://issues.jboss.org/browse/THREESCALE-2896)
+## [3.6.0-rc2] - 2019-07-25
 
 ### Fixed
 
-- Fix typos on JWT claim policy jsonschema [THREESCALE-3046](https://issues.jboss.org/browse/THREESCALE-3046)
+- Fix typos on JWT claim policy jsonschema [PR #1095](https://github.com/3scale/APIcast/pull/1095), [THREESCALE-3046](https://issues.jboss.org/browse/THREESCALE-3046)
 
 ## [3.6.0-rc1] - 2019-07-04
 
@@ -655,7 +653,7 @@ expressed might change in future releases.
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.6.0-rc1...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.6.0-rc2...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -693,3 +691,4 @@ expressed might change in future releases.
 [3.5.1]: https://github.com/3scale/apicast/compare/v3.5.0...v3.5.1
 [3.6.0-beta1]: https://github.com/3scale/apicast/compare/v3.5.1...v3.6.0-beta1
 [3.6.0-rc1]: https://github.com/3scale/apicast/compare/v3.6.0-beta1...v3.6.0-rc1
+[3.6.0-rc2]: https://github.com/3scale/apicast/compare/v3.6.0-rc1...v3.6.0-rc2

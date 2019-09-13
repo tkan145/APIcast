@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [3.7.0-beta1]- 2019-09-13
 
 ### Added
 
@@ -718,3 +718,4 @@ expressed might change in future releases.
 [3.6.0-rc1]: https://github.com/3scale/apicast/compare/v3.6.0-beta1...v3.6.0-rc1
 [3.6.0-rc2]: https://github.com/3scale/apicast/compare/v3.6.0-rc1...v3.6.0-rc2
 [3.6.0]: https://github.com/3scale/apicast/compare/v3.6.0-rc2...v3.6.0
+[3.7.0-beta1]: https://github.com/3scale/apicast/compare/v3.6.0...v3.7.0-beta1

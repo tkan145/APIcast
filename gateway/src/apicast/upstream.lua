@@ -7,17 +7,14 @@
 --- upstream:call(context)
 
 local setmetatable = setmetatable
-local tonumber = tonumber
 local str_format = string.format
 
 local resty_resolver = require('resty.resolver')
 local resty_url = require('resty.url')
-local core_base = require('resty.core.base')
+local url_helper = require('resty.url_helper')
+
 local http_proxy = require('apicast.http_proxy')
-local str_find = string.find
-local str_sub = string.sub
 local format = string.format
-local new_tab = core_base.new_tab
 
 local _M = {
 
@@ -31,45 +28,13 @@ local mt = {
     __index = _M
 }
 
-local function split_path(path)
-    if not path then return end
-
-    local start = str_find(path, '?', 1, true)
-
-    if start then
-        return str_sub(path, 1, start - 1), str_sub(path, start + 1)
-    else
-        return path
-    end
-end
-
-local function parse_url(url)
-    local parsed, err = resty_url.split(url)
-
-    if err then return nil, err end
-
-    local uri = new_tab(0, 6)
-
-    uri.scheme = parsed[1]
-    uri.user = parsed[2]
-    uri.password = parsed[3]
-    uri.host = parsed[4]
-    uri.port = tonumber(parsed[5])
-
-    uri.path, uri.query = split_path(parsed[6])
-
-    return uri
-end
-
-
 --- Create new Upstream instance.
 --- @tparam string url
 --- @treturn Upstream|nil upstream instance
 --- @treturn nil|string error when upstream can't be initialized
 --- @static
 function _M.new(url)
-    local uri, err = parse_url(url)
-
+    local uri, err = url_helper.parse_url(url)
     if err then
         return nil, 'invalid upstream'
     end
@@ -146,6 +111,24 @@ end
 
 function _M:use_host_header(host)
     self.host = host
+end
+
+function _M:set_path(path)
+    self.uri.path, self.uri.query = url_helper.split_path(path)
+end
+
+function _M:append_path(path)
+    local tmp_path, tmp_query = url_helper.split_path(path)
+    if not self.uri.path then
+      self.uri.path = "/"
+    end
+    self.uri.path = resty_url.join(self.uri.path, tmp_path)
+
+    -- If query is already present, do not need to add more.
+    if tmp_query and tmp_query ~= "" then
+        return
+    end
+    self.uri.query = tmp_query
 end
 
 --- Rewrite request Host header to what is provided in the argument or in the URL.

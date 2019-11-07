@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Return 404 back if the upstream is not defined [THREESCALE-3775](https://issues.jboss.org/browse/THREESCALE-3775) [PR #1129](https://github.com/3scale/APIcast/pull/1129)
 
 ## [3.7.0-beta2]- 2019-10-16
+- Fix exception if api_backend is null [THREESCALE-3869](https://issues.jboss.org/browse/THREESCALE-3869) [PR #1136](https://github.com/3scale/APIcast/pull/1136)
 
 ### Added
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## [3.7.0-beta1]- 2019-09-13
+## [Unreleased]
 
 ### Added
 

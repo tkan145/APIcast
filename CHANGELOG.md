@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [3.8.0-alpha1] - 2019-01-31
+## [3.8.0-alpha2] - 2019-02-18
 
 ### Fixed:
 
 - Check status is bigger than zero on caching policy [THREESCALE-4471](https://issues.jboss.org/browse/THREESCALE-4471) [PR #1163](https://github.com/3scale/APIcast/pull/1163)
 
-## [3.7.0-alpha1]
+
+## [3.8.0-alpha1] - 2019-01-31
 
 ### Added
 
@@ -737,7 +738,7 @@ expressed might change in future releases.
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.8.0-alpha1...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.8.0-alpha2...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -783,3 +784,4 @@ expressed might change in future releases.
 [3.7.0-cr2]: https://github.com/3scale/apicast/compare/v3.7.0-cr1...v3.7.0-cr2
 [3.7.0]: https://github.com/3scale/apicast/compare/v3.7.0-cr2...v3.7.0
 [3.8.0-alpha1]: https://github.com/3scale/apicast/compare/v3.7.0...v3.8.0-alpha1
+[3.8.0-alpha2]: https://github.com/3scale/apicast/compare/v3.8.0-alpha1...v3.8.0-alpha2

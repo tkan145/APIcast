@@ -51,6 +51,43 @@
             "break": {
               "description": "when set to true, if the command rewrote the URL, it will be the last one applied",
               "type": "boolean"
+            },
+            "methods": {
+              "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "oneOf": [
+                  {
+                    "enum": ["GET"],
+                    "title": "GET"
+                  },
+                  {
+                    "enum": ["POST"],
+                    "title": "POST"
+                  },
+                  {
+                    "enum": ["PUT"],
+                    "title": "PUT"
+                  },
+                  {
+                    "enum": ["PATCH"],
+                    "title": "PATCH"
+                  },
+                  {
+                    "enum": ["DELETE"],
+                    "title": "DELETE"
+                  },
+                  {
+                    "enum": ["HEAD"],
+                    "title": "HEAD"
+                  },
+                  {
+                    "enum": ["OPTIONS"],
+                    "title": "OPTIONS"
+                  }
+                ]
+              }
             }
           },
           "required": ["op", "regex", "replace"]
@@ -106,6 +143,57 @@
                 }
               ],
               "default": "plain"
+            }
+          },
+          "methods": {
+            "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "oneOf": [
+                {
+                  "enum": [
+                    "GET"
+                  ],
+                  "title": "GET"
+                },
+                {
+                  "enum": [
+                    "POST"
+                  ],
+                  "title": "POST"
+                },
+                {
+                  "enum": [
+                    "PUT"
+                  ],
+                  "title": "PUT"
+                },
+                {
+                  "enum": [
+                    "PATCH"
+                  ],
+                  "title": "PATCH"
+                },
+                {
+                  "enum": [
+                    "DELETE"
+                  ],
+                  "title": "DELETE"
+                },
+                {
+                  "enum": [
+                    "HEAD"
+                  ],
+                  "title": "HEAD"
+                },
+                {
+                  "enum": [
+                    "OPTIONS"
+                  ],
+                  "title": "OPTIONS"
+                }
+              ]
             }
           }
         },

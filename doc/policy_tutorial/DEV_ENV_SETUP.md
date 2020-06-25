@@ -1,47 +1,47 @@
 # Setting up the development environment
 
-As was clear from the introduction, APIcast policies are created in the Lua programming language. So we need to setup an environment to do some Lua programming. Also, an actual APIcast server would be very nice to perform some local tests.
+You need to configure an environment to work with Lua because APIcast policies are created in the Lua programming language. Additionally, you can use an actual APIcast server to perform local tests.
 
-Luckily APIcast makes it very easy to setup a development environment for APIcast using Docker and Docker Compose.
+Following simple steps, you can set up a development environment for APIcast using Docker and Docker Compose.
 
 ### prerequisites
 This means both Docker and Docker compose must be installed.
 
 The version of Docker I currently use is:
 
-    Docker version 19.03.8
+   * Docker version 19.03.8. You can find instructions for installing Docker in the Docker [website](https://docs.docker.com/get-docker/).
 
 Instructions for installing Docker can be found on the Docker [website](https://docs.docker.com/get-docker/).
 
 With Docker compose version:
 
-    docker-compose version 1.25.4
+   * `docker-compose` version 1.25.4. You can find instructions for installing `docker-compose` in the Docker [website](https://docs.docker.com/compose/install/).
 
 Instructions for installing Docker-compose can also be found on the Docker [website](https://docs.docker.com/compose/install/).
 
 ### Setting up the development image
-Now that we have both Docker and Docker-compose installed we an setup the APIcast development image.
+After you have installed both Docker and `docker-compose`, you can configure the APIcast development image.
 
-Firstly the APIcast git repostitory must be cloned so we can start the development of our policy. Since we are going to base our policy on the latest 3scale release we are switching to the stable branch of APIcast.
+. Clone the APIcast git repository. Use the stable branch of APIcast to base the policy on the latest 3scale release. 
 
 ```shell
 git clone https://github.com/3scale/apicast.git
 ```
 
-when done switch to a stable branch, I am using 3.8
+. Switch to a stable branch. In this case, the example uses version `3.8`: 
 ```shell
 cd apicast/
 git checkout 3.8-stable
 ```
 
-To start the APIcast containers using Docker-compose we can use the Make file provided by 3scale. In the APIcast directory simply execute the command:
+. To start the APIcast containers using `docker-compose`,  use the *make* file provided by 3scale. Run this command in the APIcast directory:
 ```shell
 make development
 ```
 
 ![make-development](img/make-development.png)
 
-The Docker container starts in the foreground with a bash session. The first thing we need to do inside the container is installing all the dependencies.
+. The Docker container starts in the foreground with a bash session. The next step is to install all the dependencies inside the container, using a *make* command:
 
 This can also be done using a Make command, which again must be issued **inside** the container.
 ```shell
@@ -49,20 +49,22 @@ make dependencies
 ```
 It will now download and install a plethora of dependencies inside the container.
 
-The output will be very long, but if everything went well you should be greeted with an output that looks something like this:
++
+* The output will be very long. After a successful completion of the installation of all the dependencies, you will see a message similar to this:
++
 
 ![make-dependencies](img/make-dependencies.png)
 
 Now as a final verification we can run some APIcast unit tests to see if we are up and running and ready to start the development of our policy.
 
-To run the Lua unit tests run the following command **inside** the container:
+. To run the Lua unit tests use this command **inside** the container:
 
 ```shell
 make busted
 ```
 ![make-busted](img/make-busted.png)
 
-Now that we can successfully run unit tests we can start our policy development!
+After confirming that the unit tests run successfully, you can start the policy development.
 
 The project’s source code will be available in the container and sync’ed with your local apicast directory, so you can edit files in your preferred environment and still be able to run whatever you need inside the Docker container.
 

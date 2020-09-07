@@ -24,7 +24,7 @@ APIcast is using [source-to-image](https://github.com/openshift/source-to-image)
 You'll need to have source-to-image installed and available on your system.
 
 The builder image used is [s2i-openresty](https://github.com/3scale/s2i-openresty).
-It is not a very light builder image as it builds on heavy openshift base images.
+It builds on heavy OpenShift base images.
 In the future, we would like to utilize s2i extended build and use a very minimal runtime image.
 
 ## Build process

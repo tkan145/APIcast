@@ -136,7 +136,7 @@ return require('my_stuff')
 
 And actually implement everything in `my_stuff.lua`. This makes the policy file easier to find by humans.
 
-Let's say the policy needs some 3rd party dependency. Those can be put anywhere in the policy structure and will be available. Try to imagine it as UNIX `chroot`. So for example `require('vendor/dependency')` will load `APICAST_DIR/policies/my_stuff/1.0/vendor/dependency.lua` when loading your policy.
+If the policy requires third-party dependencies. Those can be put anywhere in the policy structure and will be available. Imagine it as UNIX `chroot`. So for example `require('vendor/dependency')` will load `APICAST_DIR/policies/my_stuff/1.0/vendor/dependency.lua` when loading your policy.
 
 The policy has access to only code it provides and shared code in `APICAST_DIR/src/`.
 

@@ -9,7 +9,7 @@ APIcast is released as [Docker image](https://docs.docker.com/engine/tutorials/d
 ## Dependencies
 
 APIcast uses LuaRocks to install dependencies. LuaRocks have to be properly configured,
-so it installs dependencies into the correct path where OpenResty can see them. In the Docker image, rocks are installed into the application folder.
+installs dependencies into the correct path where OpenResty can see them. For Docker images, LuaRocks is installed into the application folder.
 Then this folder is added to the load path by `luarocks path`. 
 
 Lua Dependencies are defined in [`apicast-VERSION.rockspec`](https://github.com/3scale/apicast/blob/50daf279b3cf2da80b20ad473ec820d7a364b688/apicast-0.1-0.rockspec) file.

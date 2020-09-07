@@ -1,6 +1,6 @@
 # Build process and components
 
-APIcast is [OpenResty](https://openresty.org/en/) application. It consists of two parts: nginx configuration and lua files.
+APIcast is an application based on [OpenResty](https://openresty.org/en/). APIcast consists of two parts: NGINX configuration and Lua files.
 
 ## Release
 

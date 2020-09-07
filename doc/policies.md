@@ -49,7 +49,7 @@ described to see what it should run on each phase:
 - post_action: do nothing. Neither policy A nor B describes what to do.
 - log: do nothing. Neither policy A nor B describes what to do.
 
-Notice that we did not indicate what APIcast does in the `init` and the
+Notice that there is not a description of what APIcast does in the `init` and the
 `init_worker` phases. The reason is that those two are not executed in every
 request. `init` is executed when APIcast boots, and `init_worker` when each
 of its workers starts.

@@ -117,7 +117,7 @@ And builtin ones also on:
 
 * `APICAST_DIR/src/apicast/policy/${name}/`
 
-All files in the policy directory are namespaced, so you can vendor dependencies.  Consider the following structure:
+All files in the policy directory are namespaced, so you can move the dependencies to the `/vendor' directory.  Consider the following structure:
 
 ```
 APICAST_DIR/policies/my_stuff/1.0/

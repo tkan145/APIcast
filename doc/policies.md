@@ -36,18 +36,21 @@ The way policy chains work is as follows: suppose that we have a policy A that
 describes what to do in the `rewrite` and `header_filter` phases and a policy B
 that describes what to run in `access` and `header_filter`. Assume also that
 when describing the chain, we indicate that policy A should be run before
-policy B. When APIcast receives an HTTP request, it will check the policy chain
-described to see what it should run on each phase:
-- rewrite: execute the function policy A provides for this phase.
-- access: execute the function policy B provides for this phase.
-- content: do nothing. Neither policy A nor B describes what to do.
-- balancer: do nothing. Neither policy A nor B describes what to do.
-- header_filter: execute first the function policy A provides for this phase
-  and then the function policy B provides for this phase. Remember that policy
-  chains define an order, and we specified that policy A comes before policy B.
-- body_filter: do nothing. Neither policy A nor B describes what to do.
-- post_action: do nothing. Neither policy A nor B describes what to do.
-- log: do nothing. Neither policy A nor B describes what to do.
+policy B. 
+When APIcast receives an HTTP request, it will check the policy chain
+perform the tasks outlined in the following table:
+
+| Phase    | APIcast tasks                                           |
+|----------|---------------------------------------------------------|
+| rewrite  | Executes the function policy A provides for this phase. |
+| access   | Executes the function policy B provides for this phase. |
+| content  | None. Neither policy A nor B  describes what to do.     |
+| balancer | None. Neither policy A nor B  describes what to do.     |
+| header_filter  | Executes the function policy A provides for this phase and then the function policy B provides for this phase. Policy chains define an order, and we specified that policy A comes before policy B |
+| body_filter   | None. Neither policy A nor B  describes what to do. |
+| post_action  | None. Neither policy A nor B  describes what to do.     |
+| log | None. Neither policy A nor B  describes what to do.     |
+
 
 Notice that there is not a description of what APIcast does in the `init` and the
 `init_worker` phases. The reason is that those two are not executed in every

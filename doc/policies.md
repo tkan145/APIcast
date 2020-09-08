@@ -38,7 +38,7 @@ that describes what to run in `access` and `header_filter`. Assume also that
 when describing the chain, we indicate that policy A should be run before
 policy B. 
 When APIcast receives an HTTP request, it will check the policy chain
-perform the tasks outlined in the following table:
+and perform the tasks outlined in the following table:
 
 | Phase    | APIcast tasks                                           |
 |----------|---------------------------------------------------------|

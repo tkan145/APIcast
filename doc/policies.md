@@ -1,7 +1,7 @@
 # APIcast policies
 
 The behavior of APIcast is customizable via policies. A policy basically tells
-APIcast what it should do in each of the nginx phases. This document details
+APIcast what it should do in each of the NGINX phases. This document details
 how policies work and how you can write your own and integrate them into
 APIcast.
 

@@ -33,9 +33,9 @@ nginx_metric_errors_total 0
 # HELP openresty_shdict_capacity OpenResty shared dictionary capacity
 # TYPE openresty_shdict_capacity gauge
 openresty_shdict_capacity{dict="api_keys"} 10485760
-openresty_shdict_capacity{dict="batched_reports"} 1048576
+openresty_shdict_capacity{dict="batched_reports"} 20971520
 openresty_shdict_capacity{dict="batched_reports_locks"} 1048576
-openresty_shdict_capacity{dict="cached_auths"} 1048576
+openresty_shdict_capacity{dict="cached_auths"} 20971520
 openresty_shdict_capacity{dict="configuration"} 10485760
 openresty_shdict_capacity{dict="init"} 16384
 openresty_shdict_capacity{dict="limiter"} 1048576
@@ -45,9 +45,9 @@ openresty_shdict_capacity{dict="rate_limit_headers"} 20971520
 # HELP openresty_shdict_free_space OpenResty shared dictionary free space
 # TYPE openresty_shdict_free_space gauge
 openresty_shdict_free_space{dict="api_keys"} 10412032
-openresty_shdict_free_space{dict="batched_reports"} 1032192
+openresty_shdict_free_space{dict="batched_reports"} 20840448
 openresty_shdict_free_space{dict="batched_reports_locks"} 1032192
-openresty_shdict_free_space{dict="cached_auths"} 1032192
+openresty_shdict_free_space{dict="cached_auths"} 20840448
 openresty_shdict_free_space{dict="configuration"} 10412032
 openresty_shdict_free_space{dict="init"} 4096
 openresty_shdict_free_space{dict="limiter"} 1032192

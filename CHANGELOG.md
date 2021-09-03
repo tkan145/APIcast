@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [Unreleased]
+## [3.11.0] 2021-09-03
 
 ### Fixed
 
@@ -27,7 +27,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed URL encoding on set-path [PR #1297](https://github.com/3scale/APIcast/pull/1297) [THREESCALE-5117](https://issues.redhat.com/browse/THREESCALE-5117)
 - Fixed trailing slash on routing policy [PR #1298](https://github.com/3scale/APIcast/pull/1298) [THREESCALE-7146](https://issues.redhat.com/browse/THREESCALE-7146)
 - Fixed race condition on caching mode [PR #1259](https://github.com/3scale/APIcast/pull/1259) [THREESCALE-4464](https://issues.redhat.com/browse/THREESCALE-4464)
-
+- Fixed Nginx filter issues on jsonschema [PR #1302](https://github.com/3scale/APIcast/pull/1302) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
+- Fixed issues with OIDC filters [PR #1304](https://github.com/3scale/APIcast/pull/1304) [PR #1306](https://github.com/3scale/APIcast/pull/1306) [THREESCALE-6042](https://issues.redhat.com/browse/THREESCALE-6042)
+- Fixed issues with OIDC filters [PR #1304](https://github.com/3scale/APIcast/pull/1304) [THREESCALE-6042](https://issues.redhat.com/browse/THREESCALE-6042)
+- Fixed issues with Upstream MTLS certs [PR #1307](https://github.com/3scale/APIcast/pull/1307) [THREESCALE-7508](https://issues.redhat.com/browse/THREESCALE-7508)
 
 ### Added
 
@@ -928,3 +931,4 @@ expressed might change in future releases.
 [3.10.0-alpha2]: https://github.com/3scale/apicast/compare/v3.10.0-alpha1..v3.10.0-alpha2
 [3.10.0-beta1]: https://github.com/3scale/apicast/compare/v3.10.0-alpha2..v3.10.0-beta1
 [3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0
+[3.11.0]: https://github.com/3scale/apicast/compare/v3.10.0..v3.11.0

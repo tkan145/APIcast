@@ -54,7 +54,7 @@ components are the following ones:
   OIDC config for all services, there are a few kinds of loader:
     - file: for using local file and THREESCALE_CONFIG_FILE
     - remote_v1: this is what we used in the past, to load all the config from
-      system and spec.json, using THREESCALE_CONFIG_FILE.
+      system and spec.json, using THREESCALE_PORTAL_ENDPOINT.
     - remote_v2: this is the best way, will retrieve the config by each service,
       and auto-discover the oidc information, this uses
       THREESCALE_PORTAL_ENDPOINT env variable

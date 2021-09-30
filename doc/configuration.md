@@ -43,3 +43,28 @@ Can survive restart. Still needs some other method to act as cache.
 3scale hosts thousands of gateways for its customers and needs a reasonable way to share resources between them. Multi-tenant deployment of this proxy is the preferred way.
 
 TODO: figure out how to store/load the configuration in multi-tenant way
+
+
+## How config is loaded:
+
+On APICast there are three main components regarding configuration, the
+components are the following ones:
+
+- configuration_loader: this is a object that retrieve the configuration and the
+  OIDC config for all services, there are a few kinds of loader:
+    - file: for using local file and THREESCALE_CONFIG_FILE
+    - remote_v1: this is what we used in the past, to load all the config from
+      system and spec.json, using THREESCALE_CONFIG_FILE.
+    - remote_v2: this is the best way, will retrieve the config by each service,
+      and auto-discover the oidc information, this uses
+      THREESCALE_PORTAL_ENDPOINT env variable
+- configuration_store: this is the object that stores the configuration into
+  the Openresty cache to be used in different phases.
+- policy/load-configuration: by default this policy is always loaded, as
+  first.It has the same behaviour as any policy, given the following scenario:
+    - init phase: started the configuration_store
+    - init_worker phase: retrieved the config using configuration_loader and send the
+      configuration_store object, so can save the config retrieved.
+    - rewrite phase: look for the service for the request host, and set the
+      service config on that request.
+

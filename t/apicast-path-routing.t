@@ -1,6 +1,8 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
+$ENV{APICAST_HTTPS_RANDOM_PORT} = Test::APIcast::get_random_port();
+
 run_tests();
 
 __DATA__
@@ -368,5 +370,101 @@ Host: one
 ]
 --- error_code eval
 [200, 404]
+--- no_error_log
+[error]
+
+=== TEST 6: Multiple requests that reuse the same TCP connection with path routing. 
+Routing must work as expected to the right service
+--- env eval
+(
+  'APICAST_HTTPS_PORT' => $ENV{APICAST_HTTPS_RANDOM_PORT},
+  'APICAST_PATH_ROUTING' => '1',
+  'HTTP_KEEPALIVE_TIMEOUT' => '5'
+)
+--- backend
+location /transactions/authrep.xml {
+  content_by_lua_block {
+    ngx.exit(200)
+  }
+}
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/foo/",
+        "hosts": [
+          "127.0.0.1"
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/one",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "backend_version": 1,
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/bar/",
+        "hosts": [
+          "127.0.0.1"
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/two",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+location ~ /api-backend(/.+) {
+  echo 'yay, api backend: $1';
+}
+--- test
+content_by_lua_block {
+  local http = require("resty.http")
+  local resty_env = require 'resty.env'
+  
+  local https_port = resty_env.get('APICAST_HTTPS_PORT')
+  local uri_one = "https://127.0.0.1:".. https_port .."/one?user_key=foo"
+  local uri_two = "https://127.0.0.1:".. https_port .."/two?user_key=foo"
+  
+  local httpc = http.new()
+  local res1, err1 = httpc:request_uri(uri_one, {
+    method = "GET",
+    ssl_verify = false,
+    version = 1.1
+  })
+  assert(res1, "Request failed: "..(err1 or ""))
+  assert(string.find(res1.body, "/foo/one"), "Expected .*/foo/one, got: "..(res1.body or ""))
+  
+  local res2, err2 = httpc:request_uri(uri_two, {
+    method = "GET",
+    ssl_verify = false, 
+    version = 1.1
+  })
+  assert(res2, "Request failed: "..(err2 or ""))
+  --check for incorrect routing THREESCALE-8000:
+  assert(not string.find(res2.body, "/foo/two"), "Expected != .*/foo/two, got: "..(res2.body or "")) 
+  assert(string.find(res2.body, "/bar/two"), "Expected .*/bar/two, got: "..(res2.body or ""))
+  httpc:close()
+}
 --- no_error_log
 [error]

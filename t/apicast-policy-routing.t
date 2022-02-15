@@ -3,6 +3,8 @@ use Test::APIcast::Blackbox 'no_plan';
 
 our $rsa = `cat t/fixtures/rsa.pem`;
 
+$ENV{APICAST_HTTPS_RANDOM_PORT} = Test::APIcast::get_random_port();
+
 run_tests();
 
 __DATA__
@@ -2470,5 +2472,105 @@ operations is an empty array instead of nil
 ["/foo+foo\n", "/foo+foo\n", "/foo/foo\n", "/foo%20foo\n"]
 --- error_code eval
 [200, 200, 200, 200]
+--- no_error_log
+[error]
+
+
+=== TEST 36: Multiple requests that reuse the same TCP connection. 
+Routing must work as expected to the right backend
+--- env eval
+(
+    'APICAST_HTTPS_PORT' => $ENV{APICAST_HTTPS_RANDOM_PORT},
+    'HTTP_KEEPALIVE_TIMEOUT' => '5'
+)
+--- backend
+location /transactions/authrep.xml {
+  content_by_lua_block {
+    ngx.exit(200)
+  }
+}
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "proxy": {
+        "hosts": [
+          "127.0.0.1"
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/foo/",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "==",
+                        "value": "/one"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/bar/",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "==",
+                        "value": "/two"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+location ~ /api-backend(/.+) {
+  echo 'yay, api backend: $1';
+}
+--- test
+content_by_lua_block {
+  local http = require "resty.http"
+  local resty_env = require 'resty.env'
+
+  local https_port = resty_env.get('APICAST_HTTPS_PORT')
+  local uri_one = "https://127.0.0.1:".. https_port .."/one?user_key=foo"
+  local uri_two = "https://127.0.0.1:".. https_port .."/two?user_key=foo"
+
+  local httpc = http.new()
+  local res1, err1 = httpc:request_uri(uri_one, {
+      method = "GET",
+      ssl_verify = false,
+      version = 1.1
+  })
+  assert(res1, "Request failed"..(err1 or ""))
+  assert(string.find(res1.body, "/foo/one"), "Expected: /foo/one, got: "..(res1.body or ""))
+
+  local res2, err2 = httpc:request_uri(uri_two, {
+    method = "GET",
+    ssl_verify = false, 
+    version = 1.1
+  })
+  assert(res2, "Request failed"..(err2 or ""))
+  --check for incorrect routing THREESCALE-8007:
+  assert(not string.find(res2.body, "/foo/two"), "Expected != .*/foo/two, got: "..(res2.body or "")) 
+  assert(string.find(res2.body, "/bar/two"), "Expected: /bar/two, got: "..(res2.body or ""))
+  httpc:close()
+}
 --- no_error_log
 [error]

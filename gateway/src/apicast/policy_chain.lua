@@ -67,6 +67,7 @@ end
 
 
 local DEFAULT_POLICIES = {
+    'apicast.policy.clear_context',
     'apicast.policy.load_configuration',
     'apicast.policy.find_service',
     'apicast.policy.local_chain',

@@ -373,8 +373,8 @@ Host: one
 --- no_error_log
 [error]
 
-=== TEST 6: Multiple requests that reuse the same TCP connection with path routing. 
-Routing must work as expected to the right service
+=== TEST 6: APIcast must choose correct Product
+based on current configuration & request parameters
 --- env eval
 (
   'APICAST_HTTPS_PORT' => $ENV{APICAST_HTTPS_RANDOM_PORT},
@@ -443,25 +443,37 @@ content_by_lua_block {
   local resty_env = require 'resty.env'
   
   local https_port = resty_env.get('APICAST_HTTPS_PORT')
-  local uri_one = "https://127.0.0.1:".. https_port .."/one?user_key=foo"
-  local uri_two = "https://127.0.0.1:".. https_port .."/two?user_key=foo"
-  
   local httpc = http.new()
-  local res1, err1 = httpc:request_uri(uri_one, {
-    method = "GET",
-    ssl_verify = false,
-    version = 1.1
+  httpc:connect("127.0.0.1", https_port)
+  httpc:ssl_handshake(nil, "127.0.0.1", false)
+
+  local responses, err = httpc:request_pipeline({
+    {
+      method = "GET",
+      path = "/one",
+      version = 1.1,
+      ssl_verify = false,
+      query = "?user_key=foo"
+    },
+    {
+      method = "GET",
+      path = "/two",
+      version = 1.1,
+      ssl_verify = false,
+      query = "?user_key=foo"
+    }
   })
-  assert(res1, "Request failed: "..(err1 or ""))
+  
+  local res1 = responses[1]
+  res1.body = responses[1]:read_body()
+  local res2 = responses[2]
+  res2.body = responses[2]:read_body()
+
+  assert(res1 and res1.status, "Request failed: "..(err or ""))
   assert(string.find(res1.body, "/foo/one"), "Expected .*/foo/one, got: "..(res1.body or ""))
   
-  local res2, err2 = httpc:request_uri(uri_two, {
-    method = "GET",
-    ssl_verify = false, 
-    version = 1.1
-  })
-  assert(res2, "Request failed: "..(err2 or ""))
-  --check for incorrect routing THREESCALE-8000:
+  assert(res2, "Request failed: "..(err or ""))
+  --Check if incorrect routing as reported in THREESCALE-8000 is happening:
   assert(not string.find(res2.body, "/foo/two"), "Expected != .*/foo/two, got: "..(res2.body or "")) 
   assert(string.find(res2.body, "/bar/two"), "Expected .*/bar/two, got: "..(res2.body or ""))
   httpc:close()

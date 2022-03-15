@@ -20,7 +20,7 @@ not defined in this test.
   'APICAST_LOAD_SERVICES_WHEN_NEEDED' => 'true',
 )
 --- upstream env
-location = /admin/api/services/proxy/configs/production.json {
+location = /admin/api/account/proxy_configs/production.json {
   content_by_lua_block {
     expected = "host=localhost"
     require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))

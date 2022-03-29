@@ -498,7 +498,7 @@ init_by_lua_block {
       {
         issuer = "https://example.com/auth/realms/apicast",
         config = { id_token_signing_alg_values_supported = { "RS256" } },
-        keys = { somekid = { pem = require('fixtures.rsa').pub } },
+        keys = { somekid = { pem = require('fixtures.rsa').pub, alg = 'RS256' } },
       }
     },
     services = {

@@ -248,13 +248,13 @@ to_json({
     service_id => 24,
     issuer => 'https://example.com/auth/realms/apicast_zero',
     config => { id_token_signing_alg_values_supported => [ 'RS256' ] },
-    keys => { somekid => { pem => $::public_key } },
+    keys => { somekid => { pem => $::public_key, alg => 'RS256' } },
   },
   {
     service_id => 42,
     issuer => 'https://example.com/auth/realms/apicast_one',
     config => { id_token_signing_alg_values_supported => [ 'RS256' ] },
-    keys => { somekid => { pem => $::public_key } },
+    keys => { somekid => { pem => $::public_key, alg => 'RS256' } },
   }]
 });
 --- upstream

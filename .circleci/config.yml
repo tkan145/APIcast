@@ -261,7 +261,7 @@ jobs:
 
   prove:
     executor: openresty
-    resource_class: large
+    resource_class: medium+
     parallelism: 3
     steps:
       - attach-workspace

@@ -246,7 +246,7 @@ Content-Length: 17
 
 
 === TEST 5: Request body size smaller than the limit
---- timeout: 5s
+--- timeout: 25s
 --- backend
   location /transactions/authrep.xml {
     content_by_lua_block {

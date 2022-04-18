@@ -72,8 +72,6 @@ local function _connect_proxy_https(httpc, request, host, port)
 end
 
 local function connect_proxy(httpc, request, skip_https_connect)
-    -- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
-    -- https://httpwg.org/specs/rfc7231.html#CONNECT for the CONNECT method
     local uri = request.uri
     local proxy_uri = request.proxy
 
@@ -95,11 +93,9 @@ local function connect_proxy(httpc, request, skip_https_connect)
     ngx.log(ngx.DEBUG, 'connection to ', proxy_uri.host, ':', proxy_uri.port, ' established',
         ', pool: ', options.pool, ' reused times: ', httpc:get_reused_times())
 
-    ngx.log(ngx.DEBUG, 'targeting server ', uri.host, ':', uri.port)
-
     if uri.scheme == 'http' then
         -- http proxy needs absolute URL as the request path
-        request.path = format('%s://%s:%s%s', uri.scheme, uri.host, uri.port, uri.path or '/')
+        request.path = format('%s://%s:%s%s', uri.scheme, uri.host, uri.port, uri.path or request.path or '/')
         return httpc
     elseif uri.scheme == 'https' and skip_https_connect then
         request.path = format('%s://%s:%s%s', uri.scheme, uri.host, uri.port, request.path or '/')

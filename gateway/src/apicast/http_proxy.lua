@@ -58,6 +58,7 @@ function _M.resolve(uri)
     return ip, port
 end
 
+-- #TODO: This local function is no longer called as of PR#1323 and should be removed
 local function resolve(uri)
     local host = uri.host
     local port = uri.port
@@ -70,12 +71,12 @@ local function resolve(uri)
 end
 
 local function absolute_url(uri)
-    local host, port = resolve(uri)
-
+-- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
+-- https://httpwg.org/specs/rfc7231.html#CONNECT
     return format('%s://%s:%s%s',
             uri.scheme,
-            host,
-            port,
+            uri.host,
+            uri.port,
             uri.path or '/'
     )
 end

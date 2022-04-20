@@ -15,7 +15,7 @@ $ENV{'LARGE_BODY'} = large_body();
 
 require("policies.pl");
 
-repeat_each(1);
+repeat_each(3);
 
 run_tests();
 

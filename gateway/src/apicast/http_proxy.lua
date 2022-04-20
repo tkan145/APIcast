@@ -71,7 +71,8 @@ local function resolve(uri)
 end
 
 local function absolute_url(uri)
-
+-- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
+-- https://httpwg.org/specs/rfc7231.html#CONNECT
     return format('%s://%s:%s%s',
             uri.scheme,
             uri.host,
@@ -159,9 +160,16 @@ end
 function _M.request(upstream, proxy_uri)
     local uri = upstream.uri
 
-    if uri.scheme == 'http' then
+    if uri.scheme == 'http' then -- rewrite the request to use http_proxy
+        local err
+        local host = upstream:set_host_header()
+        upstream:use_host_header(host)
+        upstream.servers, err = resolve_servers(proxy_uri)
+        if err then
+          ngx.log(ngx.WARN, "HTTP proxy is set, but no servers have been resolved, err: ", err)
+        end
+        upstream.uri.path = absolute_url(uri)
         upstream:rewrite_request()
-        forward_https_request(proxy_uri, uri, upstream.skip_https_connect)
         return
     elseif uri.scheme == 'https' then
         upstream:rewrite_request()

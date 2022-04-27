@@ -1,6 +1,8 @@
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 .DEFAULT_GOAL := help
-
 DOCKER_COMPOSE = docker-compose
+DOCKER ?= $(shell which podman 2> /dev/null || which docker 2> /dev/null || echo "docker")
 S2I = script/s2i
 REGISTRY ?= quay.io/3scale
 export TEST_NGINX_BINARY ?= openresty
@@ -16,8 +18,8 @@ OPENRESTY_VERSION ?= master
 BUILDER_IMAGE ?= quay.io/3scale/s2i-openresty-centos7:$(OPENRESTY_VERSION)
 RUNTIME_IMAGE ?= $(BUILDER_IMAGE)-runtime
 
-DEVEL_IMAGE ?= apicast-development
-DEVEL_DOCKERFILE ?= Dockerfile-development
+DEVEL_IMAGE ?= apicast-development:latest
+DEVEL_DOCKERFILE ?= Dockerfile.devel
 
 DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
 DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
@@ -63,6 +65,15 @@ endif
 export COMPOSE_PROJECT_NAME
 
 .PHONY: benchmark lua_modules
+
+.PHONY: dev-build
+dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
+dev-build: export LUAROCKS_VERSION?=2.3.0
+dev-build:
+	$(DOCKER) build -t $(DEVEL_IMAGE) \
+		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
+		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
+		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)
 
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove builder-image test-builder-image prove-docker runtime-image test-runtime-image
@@ -208,6 +219,7 @@ endif
 development: .docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache
 development: ## Run bash inside the development image
 	@echo "Running on $(os)"
+	@$(DOCKER) history -q $(DEVEL_IMAGE) 2> /dev/null >&2 || $(MAKE) -C $(PROJECT_PATH) -f $(MKFILE_PATH) dev-build
 	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d
 	@ # https://github.com/moby/moby/issues/33794#issuecomment-312873988 for fixing the terminal width
 	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash

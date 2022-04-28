@@ -85,7 +85,7 @@ To install the dependencies inside the container run:
 make dependencies
 ```
 
-To run the unit tests inside the container:
+To run the [unit tests](/doc/unittests.md) inside the container:
 ```shell
 make busted
 ```

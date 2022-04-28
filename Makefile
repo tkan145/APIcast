@@ -217,13 +217,13 @@ test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any d
 	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm test sh -c 'sleep 5 && curl --fail http://gateway:8090/status/live'
 
-.docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache :
+$(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :
 	mkdir -p $@
 
 ifeq ($(origin USER),environment)
 development: USER := $(shell id -u $(USER))
 endif
-development: .docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache
+development: $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache
 development: ## Run bash inside the development image
 	@echo "Running on $(os)"
 	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d

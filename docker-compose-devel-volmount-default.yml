@@ -5,6 +5,5 @@ services:
     pid: "host"
     volumes:
       - .:/opt/app-root/src/
-      - .docker/cpanm:/opt/app-root/src/.cpanm
       - /sys/kernel/debug:/sys/kernel/debug
       - /lib/modules:/lib/module

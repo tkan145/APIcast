@@ -12,5 +12,4 @@ tmp/benchmark/
 .cache/
 .cpanm
 /vendor/cache
-/.docker
 /tmp/

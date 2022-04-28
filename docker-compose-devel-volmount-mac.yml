@@ -3,4 +3,3 @@ services:
   development:
     volumes:
       - .:/opt/app-root/src/:cached
-      - .docker/cpanm:/opt/app-root/src/.cpanm:delegated

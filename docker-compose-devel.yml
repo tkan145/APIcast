@@ -2,7 +2,7 @@
 version: '2.2'
 services:
   development:
-    image: ${IMAGE:-apicast-development:latest}
+    image: ${IMAGE:-quay.io/3scale/apicast-ci:openresty-1.19.3}
     depends_on:
       - redis
     working_dir: /opt/app-root/src/

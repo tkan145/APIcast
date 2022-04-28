@@ -66,6 +66,13 @@ export COMPOSE_PROJECT_NAME
 
 .PHONY: benchmark lua_modules
 
+# The development image is also used in CI (circleCI) as the 'openresty' executor
+# When the development image changes, make sure to:
+# * build a new development image:
+#     make dev-build DEVEL_IMAGE=quay.io/3scale/apicast-ci:openresty-1.19.3
+# * push to quay.io/3scale/apicast-ci with a fixed tag (avoid floating tags)
+#     docker push quay.io/3scale/apicast-ci:openresty-1.19.3
+# * update .circleci/config.yaml openresty executor with the image URL
 .PHONY: dev-build
 dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
 dev-build: export LUAROCKS_VERSION?=2.3.0
@@ -219,7 +226,6 @@ endif
 development: .docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache
 development: ## Run bash inside the development image
 	@echo "Running on $(os)"
-	@$(DOCKER) history -q $(DEVEL_IMAGE) 2> /dev/null >&2 || $(MAKE) -C $(PROJECT_PATH) -f $(MKFILE_PATH) dev-build
 	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d
 	@ # https://github.com/moby/moby/issues/33794#issuecomment-312873988 for fixing the terminal width
 	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash

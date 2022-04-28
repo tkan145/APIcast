@@ -90,7 +90,7 @@ To run the [unit tests](/doc/unittests.md) inside the container:
 make busted
 ```
 
-To run the integration tests inside the container:
+To run the [integration tests](/doc/integration-tests.md) inside the container:
 ```shell
 make prove
 ```

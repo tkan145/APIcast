@@ -2,6 +2,8 @@
 
 [busted](https://github.com/Olivine-Labs/busted) is the framework used for the unit tests.
 
+### Run unit tests
+
 Using Docker you just need to run:
 ```shell
 make development

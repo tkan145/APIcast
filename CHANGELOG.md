@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed issue with resolving target server hostnames to IPs when forwarding requests through http/s proxy [PR #1323](https://github.com/3scale/APIcast/pull/1323) [THREESCALE-7967](https://issues.redhat.com/browse/THREESCALE-7967)
 - Fixed dirty context [PR #1328](https://github.com/3scale/APIcast/pull/1328) [THREESCALE-8000](https://issues.redhat.com/browse/THREESCALE-8000) [THREESCALE-8007](https://issues.redhat.com/browse/THREESCALE-8007) [THREESCALE-8252](https://issues.redhat.com/browse/THREESCALE-8252)
 - Fixed dirty context (part 2 of PR #1328) when tls termination policy is in the policy chain [PR #1333](https://github.com/3scale/APIcast/pull/1333)
+- Fixed NGINX filters policy error [PR #1339](https://github.com/3scale/APIcast/pull/1339) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
 
 ### Added
 

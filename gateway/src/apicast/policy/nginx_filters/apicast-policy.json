@@ -30,7 +30,8 @@
             },
             "append": {
               "type": "boolean",
-              "title": "Append header to upstream"
+              "title": "Append header to upstream",
+              "default": false
             }
           },
           "required": [

@@ -40,7 +40,7 @@ If you want to test when the `Backend` header is not present, the condition is a
 
 ## Numeric operations
 
-These are harder, by default, all the values on liquid are strings, so we need
+Numeric operations require additional steps. By default, all the values on liquid are strings, so you need
 to get any integer before do any operation. We can use `minus` or `plus`
 filters using 0, and do something like this:
 

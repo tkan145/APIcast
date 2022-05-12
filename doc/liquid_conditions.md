@@ -23,7 +23,7 @@ Condition passes if the  'Backend' header is sent and it's staging
 }
 ```
 
-If want to test when the header is not present, the condition will be like this:
+If you want to test when the `Backend` header is not present, the condition is as follows:
 
 ```
 "condition":{

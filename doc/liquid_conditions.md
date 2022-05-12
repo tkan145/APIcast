@@ -62,6 +62,6 @@ filters along with `0` (zero), and apply the following configuration:
 @TODO: default filter should be added too.
 
 
-## Another examples:
+## Additional examples:
 
 [How to send different headers according to the Application Plan](https://access.redhat.com/solutions/3925031)

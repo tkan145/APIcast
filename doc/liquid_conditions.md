@@ -1,6 +1,6 @@
 # Liquid conditions examples
 
-When using liquid, a lot of things can be achieved, and here are some examples
+You can use Liquid to configure conditions applicable across multiple policies to <insert_purpose>
 of conditions that can be used across multiple policies
 
 

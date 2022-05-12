@@ -8,7 +8,7 @@ of conditions that can be used across multiple policies
 
 ### Header is not present
 
-Condition pass if header 'Backend' is sent and it's staging
+Condition passes if the  'Backend' header is sent and it's staging
 
 ```
 "condition":{

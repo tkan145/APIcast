@@ -41,7 +41,7 @@ If you want to test when the `Backend` header is not present, the condition is a
 ## Numeric operations
 
 Numeric operations require additional steps. By default, all the values on liquid are strings, so you need
-to get any integer before do any operation. We can use `minus` or `plus`
+to get any integer before do any operation. Use `minus` or `plus`
 filters using 0, and do something like this:
 
 

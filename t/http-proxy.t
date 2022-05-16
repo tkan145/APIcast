@@ -1075,3 +1075,72 @@ Request body is bigger than client_body_buffer_size
 --- no_error_log
 [error]
 --- user_files fixture=tls.pl eval
+
+
+=== TEST 21: https upstream API connection routes to the right path
+--- env eval
+(
+  "https_proxy" => $ENV{TEST_NGINX_HTTPS_PROXY},
+  'BACKEND_ENDPOINT_OVERRIDE' => "http://test_backend.lvh.me:$ENV{TEST_NGINX_SERVER_PORT}"
+)
+--- configuration random_port env
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT/somepath",
+        "proxy_rules": [
+          { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+            {"name": "apicast","version": "builtin"}
+        ]
+      }
+    }
+  ]
+}
+--- backend
+server_name test_backend.lvh.me;
+
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream env
+server_name test-upstream.lvh.me;
+
+listen $TEST_NGINX_RANDOM_PORT ssl;
+ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+location /somepath {
+    echo_foreach_split '\r\n' $echo_client_request_headers;
+    echo $echo_it;
+    echo_end;
+    access_by_lua_block {
+       assert = require('luassert')
+       assert.equal('https', ngx.var.scheme)
+       assert.equal('$TEST_NGINX_RANDOM_PORT', ngx.var.server_port)
+       assert.equal('test-upstream.lvh.me', ngx.var.ssl_server_name)
+    }
+}
+--- request
+GET /test?user_key=test3
+--- more_headers
+User-Agent: Test::APIcast::Blackbox
+ETag: foobar
+--- expected_response_body_like_multiple eval
+[[
+    qr{GET \/somepath\/test\?user_key=test3 HTTP\/1\.1},
+    qr{ETag\: foobar},
+    qr{Connection\: close}, 
+    qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
+    qr{Host\: test-upstream.lvh.me\:\d+}
+]]
+--- error_code: 200
+--- error_log env
+proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+--- no_error_log
+[error]
+--- user_files fixture=tls.pl eval

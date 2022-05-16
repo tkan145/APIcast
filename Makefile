@@ -76,14 +76,14 @@ export COMPOSE_PROJECT_NAME
 .PHONY: dev-build
 dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
 dev-build: export LUAROCKS_VERSION?=2.3.0
-dev-build:
+dev-build: ## Build development image
 	$(DOCKER) build -t $(DEVEL_IMAGE) \
 		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
 		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
 		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)
 
 test: ## Run all tests
-	$(MAKE) --keep-going busted prove builder-image test-builder-image prove-docker runtime-image test-runtime-image
+	$(MAKE) --keep-going busted prove dev-build builder-image test-builder-image prove-docker runtime-image test-runtime-image
 
 apicast-source: export IMAGE_NAME ?= apicast-test
 apicast-source: ## Create Docker Volume container with APIcast source code

@@ -13,11 +13,6 @@ NPROC ?= $(firstword $(shell nproc 2>/dev/null) 1)
 
 SEPARATOR="\n=============================================\n"
 
-IMAGE_NAME ?= apicast-test
-OPENRESTY_VERSION ?= master
-BUILDER_IMAGE ?= quay.io/3scale/s2i-openresty-centos7:$(OPENRESTY_VERSION)
-RUNTIME_IMAGE ?= $(BUILDER_IMAGE)-runtime
-
 DEVEL_IMAGE ?= apicast-development:latest
 DEVEL_DOCKERFILE ?= Dockerfile.devel
 
@@ -42,8 +37,6 @@ GIT_TAG += $(shell git describe --tags --exact-match 2>/dev/null)
 GIT_BRANCH += $(CIRCLE_BRANCH)
 GIT_BRANCH += $(shell git symbolic-ref --short HEAD 2>/dev/null)
 
-S2I_OPTIONS = --env GIT_BRANCH=$(firstword $(GIT_BRANCH)) --env GIT_TAG=$(firstword $(GIT_TAG))
-
 CIRCLE_NODE_INDEX ?= 0
 CIRCLE_STAGE ?= build
 COMPOSE_PROJECT_NAME ?= apicast_$(CIRCLE_STAGE)_$(CIRCLE_NODE_INDEX)
@@ -57,10 +50,6 @@ endif
 
 CPANM ?= $(call which, cpanm)
 CARTON ?= $(firstword $(call which, carton) local/bin/carton)
-
-ifneq ($(CI),true)
-S2I_OPTIONS += --copy
-endif
 
 export COMPOSE_PROJECT_NAME
 
@@ -85,7 +74,7 @@ dev-build: ## Build development image
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove dev-build builder-image test-builder-image prove-docker runtime-image test-runtime-image
 
-apicast-source: export IMAGE_NAME ?= apicast-test
+apicast-source: export IMAGE_NAME ?= $(DEVEL_IMAGE)
 apicast-source: ## Create Docker Volume container with APIcast source code
 	- docker rm -v -f $(COMPOSE_PROJECT_NAME)-source
 	docker create --rm -v /opt/app-root/src --name $(COMPOSE_PROJECT_NAME)-source $(IMAGE_NAME) /bin/true
@@ -120,11 +109,7 @@ carton:
 	$(CARTON) install --deployment --cached
 	$(CARTON) bundle 2> /dev/null
 
-find-file = $(shell find $(2) -type f -name $(1))
-
 circleci = $(shell circleci tests glob $(1) 2>/dev/null | grep -v examples/scaffold | circleci tests split --split-by=timings 2>/dev/null)
-
-split-tests = $(shell echo $(1) | xargs -n 1 echo | circleci tests split --split-by=timings 2>/dev/null)
 
 BUSTED_PATTERN = "{spec,examples}/**/*_spec.lua"
 BUSTED_FILES ?= $(call circleci, $(BUSTED_PATTERN))
@@ -142,20 +127,14 @@ prove: export TEST_NGINX_RANDOMIZE=1
 prove: $(ROVER) lua_modules nginx ## Test nginx
 	$(ROVER) exec script/prove --verbose -j$(NPROC) --harness=$(HARNESS) $(PROVE_FILES)
 
-prove-docker: apicast-source
-prove-docker: export IMAGE_NAME ?= apicast-test
-prove-docker: ## Test nginx inside docker
-	$(DOCKER_COMPOSE) run --rm -T prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
+ifeq ($(origin USER),environment)
+prove-docker: USER := $(shell id -u $(USER))
+endif
+prove-docker: export IMAGE_NAME ?= $(DEVEL_IMAGE)
+prove-docker: apicast-source ## Test nginx inside docker
+	$(DOCKER_COMPOSE) run --rm -T --user $(USER) prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
 
-builder-image: PULL_POLICY ?= always
-builder-image: ## Build builder image
-	$(S2I) build . $(BUILDER_IMAGE) $(IMAGE_NAME) \
-		--context-dir=$(S2I_CONTEXT) \
-		--pull-policy=$(PULL_POLICY) \
-		--runtime-pull-policy=$(PULL_POLICY) \
-		--incremental $(S2I_OPTIONS)
-
-runtime-image: IMAGE_NAME = apicast-runtime-image
+runtime-image: IMAGE_NAME ?= apicast-runtime-image
 runtime-image: ## Build runtime image
 	$(DOCKER) build -t $(IMAGE_NAME) $(PROJECT_PATH)
 

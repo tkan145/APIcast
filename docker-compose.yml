@@ -45,11 +45,10 @@ services:
       - example.com
   prove:
     image: ${IMAGE_NAME:-apicast-test}
-    user: root
     environment:
       TEST_NGINX_BINARY: openresty
       TEST_NGINX_REDIS_HOST: redis
-    command: "sh -ec '$$TEST_NGINX_BINARY -V; cd ; /usr/libexec/s2i/entrypoint make prove; exit $$?'"
+    command: "sh -ec '$$TEST_NGINX_BINARY -V; cd ; make prove; exit $$?'"
     dns_search:
       - example.com
     depends_on:

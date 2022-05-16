@@ -38,13 +38,25 @@ ENV PATH="./lua_modules/bin:/usr/local/openresty/luajit/bin/:${PATH}" \
     LUA_CPATH="./lua_modules/lib/lua/5.1/?.so;;" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/app-root/lib"
 
-RUN luarocks install --server=http://luarocks.org/dev lua-rover && \
-    rover -v && \
-    yum -y remove luarocks && \
-    ln -s /usr/bin/rover /usr/local/openresty/luajit/bin/ && \
-    chmod g+w "${HOME}/.cache" && \
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/pintsized/lua-resty-http-0.15-0.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/kikito/router-2.1-0.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/kikito/inspect-3.1.1-0.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/cdbattags/lua-resty-jwt-0.2.0-0.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/3scale/lua-resty-url-0.3.5-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/3scale/lua-resty-env-0.4.0-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/3scale/liquid-0.1.7-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/tieske/penlight-1.7.0-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/mpeterv/argparse-0.6.0-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/3scale/lua-resty-execvp-0.1.1-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/3scale/luafilesystem-ffi-0.2.0-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/3scale/lua-resty-jit-uuid-0.0.7-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/knyar/nginx-lua-prometheus-0.20181120-2.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/hamish/lua-resty-iputils-0.3.0-1.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/golgote/net-url-0.9-1.src.rock
+
+RUN yum -y remove libyaml-devel m4 openssl-devel git gcc luarocks && \
     rm -rf /var/cache/yum && yum clean all -y && \
-    rm -rf "${HOME}/.cache/luarocks" ./*
+    rm -rf ./*
 
 COPY gateway/. /opt/app-root/src/
 
@@ -68,16 +80,7 @@ RUN ln --verbose --symbolic /opt/app-root/src/bin /opt/app-root/bin && \
 RUN ln --verbose --symbolic /opt/app-root/src /opt/app-root/app && \
     ln --verbose --symbolic /opt/app-root/bin /opt/app-root/scripts
 
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/app-root/lib"
-
 WORKDIR /opt/app-root/app
-
-RUN git config --global url.https://github.com/.insteadOf git://github.com/
-
-RUN EXTRA_CFLAGS="-DHAVE_EVP_KDF_CTX=1" rover install --path . --without development --without test
-
-RUN yum -y remove libyaml-devel m4 openssl-devel git gcc && rm -rf /var/cache/yum && \
-    yum clean all -y
 
 USER 1001
 

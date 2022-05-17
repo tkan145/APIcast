@@ -137,8 +137,8 @@ jobs:
             then
               IMAGE_TAG="latest"
             fi
-            TO_IMAGE_NAME="apicast:${IMAGE_TAG}"
-            docker tag ${IMAGE_NAME} ${TO_IMAGE_NAME}
+            IMAGE_NAME="apicast:${IMAGE_TAG}"
+            docker tag apicast-runtime-image ${IMAGE_NAME}
             make push
       - cleanup-docker
 

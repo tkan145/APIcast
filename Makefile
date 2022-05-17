@@ -12,10 +12,10 @@ NPROC ?= $(firstword $(shell nproc 2>/dev/null) 1)
 
 SEPARATOR="\n=============================================\n"
 
-DEVEL_IMAGE ?= apicast-development:latest
+DEVEL_IMAGE ?= quay.io/3scale/apicast-ci:openresty-1.19.3
 DEVEL_DOCKERFILE ?= Dockerfile.devel
 
-RUNTIME_IMAGE ?= apicast-runtime-image
+RUNTIME_IMAGE ?= quay.io/3scale/apicast:latest
 
 DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
 DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
@@ -59,15 +59,16 @@ export COMPOSE_PROJECT_NAME
 # The development image is also used in CI (circleCI) as the 'openresty' executor
 # When the development image changes, make sure to:
 # * build a new development image:
-#     make dev-build DEVEL_IMAGE=quay.io/3scale/apicast-ci:openresty-1.19.3
+#     make dev-build IMAGE_NAME=quay.io/3scale/apicast-ci:openresty-1.19.3
 # * push to quay.io/3scale/apicast-ci with a fixed tag (avoid floating tags)
 #     docker push quay.io/3scale/apicast-ci:openresty-1.19.3
 # * update .circleci/config.yaml openresty executor with the image URL
 .PHONY: dev-build
 dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
 dev-build: export LUAROCKS_VERSION?=2.3.0
+dev-build: IMAGE_NAME ?= apicast-development:latest
 dev-build: ## Build development image
-	$(DOCKER) build -t $(DEVEL_IMAGE) \
+	$(DOCKER) build -t $(IMAGE_NAME) \
 		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
 		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
 		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)
@@ -75,15 +76,17 @@ dev-build: ## Build development image
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove dev-build prove-docker runtime-image test-runtime-image
 
-ifeq ($(origin USER),environment)
-apicast-source: USER := $(shell id -u $(USER))
-apicast-source: GROUP := $(shell id -g $(USER))
-endif
+apicast-source: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 apicast-source: ## Create Docker Volume container with APIcast source code
-	- docker rm -v -f $(COMPOSE_PROJECT_NAME)-source
-	docker run -d --rm -v /opt/app-root/src --name $(COMPOSE_PROJECT_NAME)-source alpine tail -f /dev/null
-	docker exec --user root $(COMPOSE_PROJECT_NAME)-source chown $(USER):$(GROUP) /opt/app-root/src
-	docker cp . $(COMPOSE_PROJECT_NAME)-source:/opt/app-root/src
+	- $(DOCKER) rm -v -f $(COMPOSE_PROJECT_NAME)-source
+	$(DOCKER) run -d -v /opt/app-root/src --name $(COMPOSE_PROJECT_NAME)-source $(IMAGE_NAME) tail -f /dev/null
+	$(DOCKER) cp . $(COMPOSE_PROJECT_NAME)-source:/opt/app-root/src
+	$(DOCKER) exec --user root $(COMPOSE_PROJECT_NAME)-source \
+		chown -R $(shell $(DOCKER) run --rm $(IMAGE_NAME) /bin/bash -c 'id -u'):$(shell $(DOCKER) run --rm $(IMAGE_NAME) /bin/bash -c 'id -g') \
+		/opt/app-root/src
+	# The container will be used by docker compose.
+	# It is not removed because docker run does not have --rm
+	$(DOCKER) stop $(COMPOSE_PROJECT_NAME)-source
 
 nginx:
 	@ ($(NGINX) -V 2>&1) > /dev/null
@@ -129,18 +132,15 @@ PROVE_PATTERN = "{t,examples}/**/*.t"
 prove: HARNESS ?= TAP::Harness
 prove: PROVE_FILES ?= $(call circleci, $(PROVE_PATTERN))
 prove: export TEST_NGINX_RANDOMIZE=1
-prove: $(ROVER) lua_modules nginx ## Test nginx
+prove: $(ROVER) dependencies nginx ## Test nginx
 	$(ROVER) exec script/prove --verbose -j$(NPROC) --harness=$(HARNESS) $(PROVE_FILES)
 
-ifeq ($(origin USER),environment)
-prove-docker: USER := $(shell id -u $(USER))
-prove-docker: GROUP := $(shell id -g $(USER))
-endif
 prove-docker: export IMAGE_NAME ?= $(DEVEL_IMAGE)
-prove-docker: apicast-source ## Test nginx inside docker
-	$(DOCKER_COMPOSE) run --rm -T --user $(USER):$(GROUP) prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
+prove-docker: ## Test nginx inside docker
+	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) apicast-source
+	$(DOCKER_COMPOSE) run --rm -T prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
 
-runtime-image: IMAGE_NAME ?= $(RUNTIME_IMAGE)
+runtime-image: IMAGE_NAME ?= apicast-runtime-image:latest
 runtime-image: ## Build runtime image
 	$(DOCKER) build -t $(IMAGE_NAME) $(PROJECT_PATH)
 
@@ -150,15 +150,17 @@ push: ## Push image to the registry
 
 bash: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 bash: export SERVICE = gateway
-bash: apicast-source ## Run bash inside the runtime image
+bash: ## Run bash inside the runtime image
+	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) apicast-source
 	$(DOCKER_COMPOSE) run --user=root --rm --entrypoint=bash $(SERVICE)
 
 gateway-logs: export IMAGE_NAME = does-not-matter
 gateway-logs:
 	$(DOCKER_COMPOSE) logs gateway
 
-test-runtime-image: export IMAGE_NAME = $(RUNTIME_IMAGE)
-test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
+test-runtime-image: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
+test-runtime-image: ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
+	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) clean-containers
 	$(DOCKER_COMPOSE) --version
 	$(DOCKER_COMPOSE) run --rm --user 100001 gateway apicast -l -d
 	@echo -e $(SEPARATOR)
@@ -186,11 +188,12 @@ test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any d
 $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :
 	mkdir -p $@
 
+dep_folders: $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache
+
 ifeq ($(origin USER),environment)
 development: USER := $(shell id -u $(USER))
 development: GROUP := $(shell id -g $(USER))
 endif
-development: $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache
 development: ## Run bash inside the development image
 	@echo "Running on $(os)"
 	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d
@@ -217,15 +220,19 @@ lua_modules: $(ROVER) $(GATEWAY_CONTEXT)/Roverfile.lock translate_git_protocol
 lua_modules/bin/rover:
 	@LUAROCKS_CONFIG=$(GATEWAY_CONTEXT)/config-5.1.lua luarocks install --server=http://luarocks.org/dev lua-rover --tree=lua_modules 1>&2
 
-dependencies: lua_modules carton  ## Install project dependencies
+dependencies: dep_folders lua_modules carton  ## Install project dependencies
 
-clean-containers:
-	$(DOCKER_COMPOSE) down --volumes
-	- docker stop $(COMPOSE_PROJECT_NAME)-source
+clean-containers: apicast-source
+	$(DOCKER_COMPOSE) down --volumes --remove-orphans
 
-clean: clean-containers ## Remove all running docker containers and images
-	- docker rmi apicast-test apicast-runtime-image --force
+clean-deps: ## Remove all local dependency folders
+	- rm -rf $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :
+
+clean: ## Remove all docker containers and images
+	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) clean-containers
+	- docker rmi $(DEVEL_IMAGE) $(RUNTIME_IMAGE) apicast-runtime-image:latest apicast-development:latest --force
 	- rm -rf luacov.stats*.out
+	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) clean-deps
 
 doc/lua/index.html: $(shell find gateway/src -name '*.lua' 2>/dev/null) | lua_modules $(ROVER)
 	$(ROVER) exec ldoc -c doc/config.ld .

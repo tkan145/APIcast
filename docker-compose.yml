@@ -49,9 +49,7 @@ services:
       HOME: /opt/app-root/src/
       TEST_NGINX_BINARY: openresty
       TEST_NGINX_REDIS_HOST: redis
-    command: "sh -ec '$$TEST_NGINX_BINARY -V; cd ; make prove; exit $$?'"
-    dns_search:
-      - example.com
+    command: "sh -ec '$$TEST_NGINX_BINARY -V; cd ; make dependencies; make prove; exit $$?'"
     depends_on:
       - redis
     volumes_from:

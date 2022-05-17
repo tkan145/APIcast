@@ -24,7 +24,7 @@ RUN dnf install -y 'dnf-command(config-manager)'
 
 RUN yum config-manager --add-repo http://packages.dev.3sca.net/dev_packages_3sca_net.repo
 
-RUN PKGS="perl-interpreter-5.26.3-420.el8 libyaml-devel-0.1.7-5.el8 m4 openssl-devel git gcc make curl openresty-resty-${OPENRESTY_RPM_VERSION} luarocks-2.3.0-5.el8 opentracing-cpp-devel-1.3.0-26.el8arches libopentracing-cpp1-1.3.0-26.el8arches jaegertracing-cpp-client openresty-opentracing-${OPENRESTY_RPM_VERSION}" && \
+RUN PKGS="perl-interpreter-5.26.3 libyaml-devel-0.1.7 m4 openssl-devel git gcc make curl openresty-resty-${OPENRESTY_RPM_VERSION} luarocks-2.3.0 opentracing-cpp-devel-1.3.0 libopentracing-cpp1-1.3.0 jaegertracing-cpp-client openresty-opentracing-${OPENRESTY_RPM_VERSION}" && \
     mkdir -p "$HOME" && \
     yum -y --setopt=tsflags=nodocs install $PKGS && \
     rpm -V $PKGS && \

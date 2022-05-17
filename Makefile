@@ -3,7 +3,6 @@ PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 .DEFAULT_GOAL := help
 DOCKER_COMPOSE = docker-compose
 DOCKER ?= $(shell which podman 2> /dev/null || which docker 2> /dev/null || echo "docker")
-S2I = script/s2i
 REGISTRY ?= quay.io/3scale
 export TEST_NGINX_BINARY ?= openresty
 NGINX = $(shell which $(TEST_NGINX_BINARY))
@@ -15,6 +14,8 @@ SEPARATOR="\n=============================================\n"
 
 DEVEL_IMAGE ?= apicast-development:latest
 DEVEL_DOCKERFILE ?= Dockerfile.devel
+
+RUNTIME_IMAGE ?= apicast-runtime-image
 
 DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
 DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
@@ -29,7 +30,7 @@ else
     DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE = $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE)
 endif
 
-S2I_CONTEXT ?= gateway
+GATEWAY_CONTEXT ?= $(PROJECT_PATH)/gateway
 
 GIT_TAG += $(CIRCLE_TAG)
 GIT_TAG += $(shell git describe --tags --exact-match 2>/dev/null)
@@ -72,12 +73,16 @@ dev-build: ## Build development image
 		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)
 
 test: ## Run all tests
-	$(MAKE) --keep-going busted prove dev-build builder-image test-builder-image prove-docker runtime-image test-runtime-image
+	$(MAKE) --keep-going busted prove dev-build prove-docker runtime-image test-runtime-image
 
-apicast-source: export IMAGE_NAME ?= $(DEVEL_IMAGE)
+ifeq ($(origin USER),environment)
+apicast-source: USER := $(shell id -u $(USER))
+apicast-source: GROUP := $(shell id -g $(USER))
+endif
 apicast-source: ## Create Docker Volume container with APIcast source code
 	- docker rm -v -f $(COMPOSE_PROJECT_NAME)-source
-	docker create --rm -v /opt/app-root/src --name $(COMPOSE_PROJECT_NAME)-source $(IMAGE_NAME) /bin/true
+	docker run -d --rm -v /opt/app-root/src --name $(COMPOSE_PROJECT_NAME)-source alpine tail -f /dev/null
+	docker exec --user root $(COMPOSE_PROJECT_NAME)-source chown $(USER):$(GROUP) /opt/app-root/src
 	docker cp . $(COMPOSE_PROJECT_NAME)-source:/opt/app-root/src
 
 nginx:
@@ -129,12 +134,13 @@ prove: $(ROVER) lua_modules nginx ## Test nginx
 
 ifeq ($(origin USER),environment)
 prove-docker: USER := $(shell id -u $(USER))
+prove-docker: GROUP := $(shell id -g $(USER))
 endif
 prove-docker: export IMAGE_NAME ?= $(DEVEL_IMAGE)
 prove-docker: apicast-source ## Test nginx inside docker
-	$(DOCKER_COMPOSE) run --rm -T --user $(USER) prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
+	$(DOCKER_COMPOSE) run --rm -T --user $(USER):$(GROUP) prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
 
-runtime-image: IMAGE_NAME ?= apicast-runtime-image
+runtime-image: IMAGE_NAME ?= $(RUNTIME_IMAGE)
 runtime-image: ## Build runtime image
 	$(DOCKER) build -t $(IMAGE_NAME) $(PROJECT_PATH)
 
@@ -142,20 +148,23 @@ push: ## Push image to the registry
 	docker tag $(IMAGE_NAME) $(REGISTRY)/$(IMAGE_NAME)
 	docker push $(REGISTRY)/$(IMAGE_NAME)
 
-bash: export IMAGE_NAME ?= apicast-test
+bash: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 bash: export SERVICE = gateway
-bash: builder-image apicast-source ## Run bash inside the builder image
+bash: apicast-source ## Run bash inside the runtime image
 	$(DOCKER_COMPOSE) run --user=root --rm --entrypoint=bash $(SERVICE)
 
-dev: export IMAGE_NAME ?= apicast-test
-dev: export SERVICE = dev
-dev: USER = root
-dev: builder-image apicast-source ## Run APIcast inside the container mounted to local volume
-	$(DOCKER_COMPOSE) run --user=$(USER) --service-ports --rm --entrypoint=bash $(SERVICE) -i
+gateway-logs: export IMAGE_NAME = does-not-matter
+gateway-logs:
+	$(DOCKER_COMPOSE) logs gateway
 
-test-builder-image: export IMAGE_NAME ?= apicast-test
-test-builder-image: clean-containers ## Smoke test the builder image. Pass any docker image in IMAGE_NAME parameter.
+test-runtime-image: export IMAGE_NAME = $(RUNTIME_IMAGE)
+test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
 	$(DOCKER_COMPOSE) --version
+	$(DOCKER_COMPOSE) run --rm --user 100001 gateway apicast -l -d
+	@echo -e $(SEPARATOR)
+	$(DOCKER_COMPOSE) run --rm --user 100002 -e APICAST_CONFIGURATION_LOADER=boot -e THREESCALE_PORTAL_ENDPOINT=https://echo-api.3scale.net gateway bin/apicast -d
+	@echo -e $(SEPARATOR)
+	$(DOCKER_COMPOSE) run --rm test sh -c 'sleep 5 && curl --fail http://gateway:8090/status/live'
 	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm --user 100001 gateway bin/apicast --test
 	@echo -e $(SEPARATOR)
@@ -168,27 +177,11 @@ test-builder-image: clean-containers ## Smoke test the builder image. Pass any d
 	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm test curl --fail -X PUT http://gateway:8090/config --data '{"services":[{"id":42}]}'
 	@echo -e $(SEPARATOR)
-	$(DOCKER_COMPOSE) run --rm -e THREESCALE_PORTAL_ENDPOINT=http://gateway:8090/config --user 100001 test /tmp/scripts/run -d
-	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm test curl --fail http://gateway:8090/status/ready
 	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm test curl --fail -X POST http://gateway:8090/boot
 	@echo -e $(SEPARATOR)
-	$(DOCKER_COMPOSE) run --rm -e THREESCALE_PORTAL_ENDPOINT=https://echo-api.3scale.net gateway libexec/boot | grep 'APIcast/'
-	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm gateway bin/apicast -c http://echo-api.3scale.net -d -b
-
-gateway-logs: export IMAGE_NAME = does-not-matter
-gateway-logs:
-	$(DOCKER_COMPOSE) logs gateway
-
-test-runtime-image: export IMAGE_NAME = apicast-runtime-image
-test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
-	$(DOCKER_COMPOSE) run --rm --user 100001 gateway apicast -l -d
-	@echo -e $(SEPARATOR)
-	$(DOCKER_COMPOSE) run --rm --user 100002 -e APICAST_CONFIGURATION_LOADER=boot -e THREESCALE_PORTAL_ENDPOINT=https://echo-api.3scale.net gateway bin/apicast -d
-	@echo -e $(SEPARATOR)
-	$(DOCKER_COMPOSE) run --rm test sh -c 'sleep 5 && curl --fail http://gateway:8090/status/live'
 
 $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :
 	mkdir -p $@
@@ -210,24 +203,25 @@ stop-development: ## Stop development environment
 rover: $(ROVER)
 	@echo $(ROVER)
 
-$(S2I_CONTEXT)/Roverfile.lock : $(S2I_CONTEXT)/Roverfile $(S2I_CONTEXT)/apicast-scm-1.rockspec
-	$(ROVER) lock --roverfile=$(S2I_CONTEXT)/Roverfile
+$(GATEWAY_CONTEXT)/Roverfile.lock : $(GATEWAY_CONTEXT)/Roverfile $(GATEWAY_CONTEXT)/apicast-scm-1.rockspec
+	$(ROVER) lock --roverfile=$(GATEWAY_CONTEXT)/Roverfile
 
 translate_git_protocol:
 	@git config --global url.https://github.com/.insteadOf git://github.com/
 
-lua_modules: $(ROVER) $(S2I_CONTEXT)/Roverfile.lock translate_git_protocol
+lua_modules: $(ROVER) $(GATEWAY_CONTEXT)/Roverfile.lock translate_git_protocol
 # This variable is to skip issues with openssl 1.1.1
 # https://github.com/wahern/luaossl/issues/175
-	EXTRA_CFLAGS="-DHAVE_EVP_KDF_CTX=1" $(ROVER) install --roverfile=$(S2I_CONTEXT)/Roverfile > /dev/null
+	EXTRA_CFLAGS="-DHAVE_EVP_KDF_CTX=1" $(ROVER) install --roverfile=$(GATEWAY_CONTEXT)/Roverfile > /dev/null
 
 lua_modules/bin/rover:
-	@LUAROCKS_CONFIG=$(S2I_CONTEXT)/config-5.1.lua luarocks install --server=http://luarocks.org/dev lua-rover --tree=lua_modules 1>&2
+	@LUAROCKS_CONFIG=$(GATEWAY_CONTEXT)/config-5.1.lua luarocks install --server=http://luarocks.org/dev lua-rover --tree=lua_modules 1>&2
 
 dependencies: lua_modules carton  ## Install project dependencies
 
-clean-containers: apicast-source
+clean-containers:
 	$(DOCKER_COMPOSE) down --volumes
+	- docker stop $(COMPOSE_PROJECT_NAME)-source
 
 clean: clean-containers ## Remove all running docker containers and images
 	- docker rmi apicast-test apicast-runtime-image --force

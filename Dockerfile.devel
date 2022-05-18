@@ -17,7 +17,7 @@ RUN yum upgrade -y
 RUN dnf install -y 'dnf-command(config-manager)'
 
 RUN yum install -y \
-        gcc make git which curl expat-devel kernel-headers openssl-devel m4 \
+        gcc make git which curl iputils bind-utils expat-devel kernel-headers openssl-devel m4 \
         libyaml libyaml-devel perl-local-lib perl-App-cpanminus
 
 # perl-Test-Nginx

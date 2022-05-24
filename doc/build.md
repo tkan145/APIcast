@@ -31,7 +31,7 @@ In future releases, we will leverage multistage docker files and use a minimal r
 
 **runtime image**
 
-The runtime image build is defined in the `Makefile`. The `make runtime-image` is meant for the upstream release build.
+The runtime image build is defined in the `Makefile`. The `make runtime-image` is for the upstream release build.
 
 **development image**
 

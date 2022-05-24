@@ -25,7 +25,7 @@ You must have docker installed and available on your system.
 
 The development image used is based on [UBI](https://developers.redhat.com/products/rhel/ubi).
 It builds on heavy OpenShift base images.
-In the future, we would like to leverage multistage dockerfiles and use a very minimal runtime image.
+In future releases, we will leverage multistage docker files and use a minimal runtime image.
 
 ## Build process
 

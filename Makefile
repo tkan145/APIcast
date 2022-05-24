@@ -1,6 +1,8 @@
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 .DEFAULT_GOAL := help
-
 DOCKER_COMPOSE = docker-compose
+DOCKER ?= $(shell which podman 2> /dev/null || which docker 2> /dev/null || echo "docker")
 S2I = script/s2i
 REGISTRY ?= quay.io/3scale
 export TEST_NGINX_BINARY ?= openresty
@@ -16,8 +18,8 @@ OPENRESTY_VERSION ?= master
 BUILDER_IMAGE ?= quay.io/3scale/s2i-openresty-centos7:$(OPENRESTY_VERSION)
 RUNTIME_IMAGE ?= $(BUILDER_IMAGE)-runtime
 
-DEVEL_IMAGE ?= apicast-development
-DEVEL_DOCKERFILE ?= Dockerfile-development
+DEVEL_IMAGE ?= apicast-development:latest
+DEVEL_DOCKERFILE ?= Dockerfile.devel
 
 DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
 DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
@@ -64,8 +66,24 @@ export COMPOSE_PROJECT_NAME
 
 .PHONY: benchmark lua_modules
 
+# The development image is also used in CI (circleCI) as the 'openresty' executor
+# When the development image changes, make sure to:
+# * build a new development image:
+#     make dev-build DEVEL_IMAGE=quay.io/3scale/apicast-ci:openresty-1.19.3
+# * push to quay.io/3scale/apicast-ci with a fixed tag (avoid floating tags)
+#     docker push quay.io/3scale/apicast-ci:openresty-1.19.3
+# * update .circleci/config.yaml openresty executor with the image URL
+.PHONY: dev-build
+dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
+dev-build: export LUAROCKS_VERSION?=2.3.0
+dev-build: ## Build development image
+	$(DOCKER) build -t $(DEVEL_IMAGE) \
+		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
+		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
+		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)
+
 test: ## Run all tests
-	$(MAKE) --keep-going busted prove builder-image test-builder-image prove-docker runtime-image test-runtime-image
+	$(MAKE) --keep-going busted prove dev-build builder-image test-builder-image prove-docker runtime-image test-runtime-image
 
 apicast-source: export IMAGE_NAME ?= apicast-test
 apicast-source: ## Create Docker Volume container with APIcast source code
@@ -199,18 +217,19 @@ test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any d
 	@echo -e $(SEPARATOR)
 	$(DOCKER_COMPOSE) run --rm test sh -c 'sleep 5 && curl --fail http://gateway:8090/status/live'
 
-.docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache :
+$(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :
 	mkdir -p $@
 
 ifeq ($(origin USER),environment)
 development: USER := $(shell id -u $(USER))
+development: GROUP := $(shell id -g $(USER))
 endif
-development: .docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache
+development: $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache
 development: ## Run bash inside the development image
 	@echo "Running on $(os)"
 	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d
 	@ # https://github.com/moby/moby/issues/33794#issuecomment-312873988 for fixing the terminal width
-	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash
+	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER):$(GROUP) development bash
 
 stop-development: ## Stop development environment
 	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) down

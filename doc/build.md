@@ -39,4 +39,4 @@ The development image build is defined in the `Makefile`. The `make dev-build` i
 
 ## Release
 
-`master` branch is automatically built and pushed on every successful build by CircleCI to [`quay.io/3scale/apicast:master`](https://quay.io/repository/3scale/apicast?tab=tags&tag=master).
+The `master` branch is automatically built and pushed on every successful build by CircleCI to [`quay.io/3scale/apicast:master`](https://quay.io/repository/3scale/apicast?tab=tags&tag=master).

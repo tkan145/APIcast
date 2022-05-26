@@ -1,0 +1,16 @@
+{
+    "ignorePatterns": [
+        {
+            "pattern": "^.*.foo"
+        },
+        {
+            "pattern": "^.*.bar"
+        }
+    ],
+    "replacementPatterns": [
+        {
+            "pattern": "^/",
+            "replacement": "{{BASEURL}}/"
+        }
+    ]
+}

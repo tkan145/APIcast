@@ -117,7 +117,7 @@ executors:
       TEST_NGINX_BINARY: openresty
       LUA_BIN_PATH: /opt/app-root/bin
 jobs:
-  # Try to build runtime image and run smoke tests
+  # Build the runtime image and run smoke tests
   build-runtime-image:
     executor: docker
     environment:
@@ -142,7 +142,7 @@ jobs:
             make push
       - cleanup-docker
 
-  # Try to build s2i builder image and run smoke tests
+  # Build the development image
   build-development-image:
     executor: docker
     environment:

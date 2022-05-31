@@ -275,7 +275,7 @@ node_modules/.bin/markdown-link-check:
 	yarn install
 
 test-doc: node_modules/.bin/markdown-link-check
-	@find . \( -name node_modules -o -name .git -o -name t \) -prune -o -name "*.md" -print0 | xargs -0 -n1  -I % sh -c 'echo; echo ====================; echo Checking: %; node_modules/.bin/markdown-link-check -q --config travis/config.json  %' \;
+	@find . -type d \( -path ./node_modules -o -path ./.git -o -path ./t -o -path ./.github \) -prune -o -name "*.md" -print0 | xargs -0 -n1  -I % sh -c 'node_modules/.bin/markdown-link-check -v --config markdown-lint-check-config.json  %' \;
 
 benchmark: export IMAGE_TAG ?= master
 benchmark: export COMPOSE_FILE ?= docker-compose.benchmark.yml

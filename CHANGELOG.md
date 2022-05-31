@@ -6,7 +6,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [3.11.0] 2021-09-03
 ## [Unreleased]
 
 ### Fixed
@@ -948,4 +947,3 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.10.0-alpha2]: https://github.com/3scale/apicast/compare/v3.10.0-alpha1..v3.10.0-alpha2
 [3.10.0-beta1]: https://github.com/3scale/apicast/compare/v3.10.0-alpha2..v3.10.0-beta1
 [3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0
-[3.11.0]: https://github.com/3scale/apicast/compare/v3.10.0..v3.11.0

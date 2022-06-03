@@ -46,13 +46,12 @@ commands:
       - attach_workspace:
           at: .
 
-  setup-s2i:
+  setup-build-env:
     steps:
       - run: apk update && apk add wget make bash curl py-pip git openssh-client
       - install-docker-compose
       - setup-docker
       - attach-workspace
-      - run: travis/install-s2i.sh /usr/local/bin # needs to be after checkout because it uses script from the repo
 
   store-junit-results:
     steps:
@@ -102,14 +101,12 @@ commands:
           when: always
 
 executors:
-  s2i:
+  docker:
     working_directory: /opt/app-root/apicast
     docker:
     - image: docker:stable
     environment:
-      S2I_VERSION: "1.1.12-2a783420"
       DOCKER_COMPOSE_VERSION: "1.16.1"
-      OPENRESTY_VERSION: "1.19.3.6-20-centos8"
 
   openresty:
     working_directory: /opt/app-root/apicast
@@ -120,29 +117,17 @@ executors:
       TEST_NGINX_BINARY: openresty
       LUA_BIN_PATH: /opt/app-root/bin
 jobs:
-
-  build-s2i:
-    executor: s2i
-
-    steps:
-      - setup-docker
-      - run: |
-          docker pull quay.io/3scale/s2i-openresty-centos7:${OPENRESTY_VERSION} &
-          docker pull quay.io/3scale/s2i-openresty-centos7:${OPENRESTY_VERSION}-runtime &
-          wait
-
-  # Try to build s2i runtime image and run smoke tests
-  s2i-runtime:
-    executor: s2i
+  # Build the runtime image and run smoke tests
+  build-runtime-image:
+    executor: docker
     environment:
       IMAGE_NAME: apicast-runtime-image
     steps:
-      - setup-s2i
+      - setup-build-env
       - run:
           command: |
             docker rmi --no-prune ${IMAGE_NAME} 2>/dev/null || :
             make runtime-image
-
       - run: make test-runtime-image gateway-logs --keep-going
       - login-docker:
           command: |
@@ -157,39 +142,18 @@ jobs:
             make push
       - cleanup-docker
 
-  # Try to build s2i builder image and run smoke tests
-  s2i-builder:
-    executor: s2i
+  # Build the development image
+  build-development-image:
+    executor: docker
     environment:
-      IMAGE_NAME: apicast-builder-image
+      DEVEL_IMAGE: apicast-development
     steps:
-      - setup-s2i
+      - setup-build-env
       - run:
-          name: "Build image"
+          name: "Build development image"
           command: |
-            docker rmi --no-prune ${IMAGE_NAME} 2>/dev/null || :
-            make builder-image
-
-      - run:
-          name: "Build image (incremental)"
-          command: make builder-image
-
-      - run: |
-          make test-builder-image gateway-logs --keep-going
-          make lint-schema
-
-      - login-docker:
-          command: |
-            CIRCLE_BRANCH_LOWER=`echo $CIRCLE_BRANCH | tr '[:upper:]' '[:lower:]'`
-            IMAGE_TAG="${CIRCLE_TAG:-${CIRCLE_BRANCH_LOWER}}-builder"
-            if [ "${IMAGE_TAG}" == "master-builder" ]
-            then
-              IMAGE_TAG="latest-builder"
-            fi
-            IMAGE_NAME="apicast:${IMAGE_TAG}"
-            docker tag apicast-builder-image ${IMAGE_NAME}
-            make push
-
+            docker rmi --no-prune ${DEVEL_IMAGE} 2>/dev/null || :
+            make dev-build
       - cleanup-docker
 
   # Download, build and store Lua dependencies.
@@ -231,19 +195,19 @@ jobs:
   # Run unit tests (busted)
 
   busted:
-      executor: openresty
+    executor: openresty
 
-      parallelism: 1
-      steps:
-        - attach-workspace
-        - run:
-            name: 'busted'
-            command: $(make rover) exec make busted
-            environment:
-              JUNIT_OUTPUT_FILE: tmp/junit/busted/report.xml
-        - report-codecov:
-            suite: busted
-        - store-junit-results
+    parallelism: 1
+    steps:
+      - attach-workspace
+      - run:
+          name: 'busted'
+          command: $(make rover) exec make busted
+          environment:
+            JUNIT_OUTPUT_FILE: tmp/junit/busted/report.xml
+      - report-codecov:
+          suite: busted
+      - store-junit-results
 
   # Generate documentation
 
@@ -332,13 +296,9 @@ workflows:
           <<: *build-tags
           requires:
             - build-lua
-      - s2i-builder:
+      - build-development-image:
           <<: *build-tags
-          context: org-global
-          requires:
-            - build-lua
-            - build-perl
-      - s2i-runtime:
+      - build-runtime-image:
           <<: *build-tags
           context: org-global
           requires:

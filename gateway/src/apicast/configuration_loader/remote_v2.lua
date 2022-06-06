@@ -162,6 +162,18 @@ local function reset_env()
          resty_env.value('APICAST_CONFIGURATION_LOADER') == 'boot'
 end
 
+-- Returns a table that represents paths and query parameters for the current endpoint:
+-- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
+-- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=version
+local function configuration_endpoint_params(env, host, portal_endpoint_path)
+  local version = resty_env.get(
+      format('APICAST_SERVICE_%s_CONFIGURATION_VERSION', service_id)
+  ) or "latest"
+
+  return portal_endpoint_path and {path = env, args = {host = host}}
+    or {path = '/admin/api/account/proxy_configs/' .. env, args = {host = host, version = version} }
+end
+
 function _M:index(host)
   local http_client = self.http_client
 
@@ -170,19 +182,21 @@ function _M:index(host)
   end
 
   local path = self.path
-
-  if not path then
-    return nil, 'wrong endpoint url'
-  end
-
   local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
 
   if not env then
     return nil, 'missing environment'
   end
 
-  local url = resty_url.join(self.endpoint, env .. '.json?' .. encode_args({ host = host }))
+  local endpoint_params = configuration_endpoint_params(env, host, self.path)
+  local base_url = resty_url.join(self.endpoint, endpoint_params.path .. '.json')
+  local query_args = encode_args(endpoint_params.args) ~= '' and '?'..encode_args(endpoint_params.args)
+  local url = query_args and base_url..query_args or base_url
+
   local res, err = http_client.get(url)
+  if res and res.status == 200 and res.body then
+    return parse_resp_body(self, res.body)
+  end
 
   if not res and err then
     ngx.log(ngx.DEBUG, 'index get error: ', err, ' url: ', url)
@@ -191,11 +205,7 @@ function _M:index(host)
 
   ngx.log(ngx.DEBUG, 'index get status: ', res.status, ' url: ', url)
 
-  if res.status == 200 then
-    return parse_resp_body(self, res.body)
-  else
-    return nil, 'invalid status'
-  end
+  return nil, 'invalid status'
 end
 
 function _M:load_configs_for_env_and_host(env, host)

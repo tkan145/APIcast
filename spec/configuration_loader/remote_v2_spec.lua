@@ -624,4 +624,60 @@ UwIDAQAB
       assert.same('https://idp.example.com/auth/realms/foo', result_config.oidc[1].config.issuer)
     end)
   end)
+
+  describe('When <environment>.json and account/proxy_configs paths are available on the endpoint', function()
+    describe(':index', function()
+      it('returns configuration from master endpoint', function()
+        loader = _M.new('http://example.com/some/path', { client = test_backend })
+        env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+        test_backend.expect{ url = 'http://example.com/some/path/production.json?host=foobar.example.com' }.
+          respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+            {
+              proxy_config = {
+                version = 42,
+                environment = 'staging',
+                content = { id = 2, backend_version = 2 }
+              }
+            }
+          }})}
+
+        local config = assert(loader:index('foobar.example.com'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        result_config = cjson.decode(config)
+        assert.equals(1, #result_config.services)
+        assert.equals(1, #result_config.oidc)
+        assert.same('2', result_config.oidc[1].service_id)
+      end)
+
+      it('returns configuration from admin portal endpoint', function()
+        loader = _M.new('http://example.com/', { client = test_backend })
+        env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+        test_backend.expect{
+          url = 'http://example.com/admin/api/account/proxy_configs/production.json?' ..
+          ngx.encode_args({ host = "foobar.example.com", version = "latest" })
+        }.
+          respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+            {
+              proxy_config = {
+                version = 42,
+                environment = 'staging',
+                content = { id = 2, backend_version = 2 }
+              }
+            }
+          }})}
+        local config = assert(loader:index('foobar.example.com'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        result_config = cjson.decode(config)
+        assert.equals(1, #result_config.services)
+        assert.equals(1, #result_config.oidc)
+        assert.same('2', result_config.oidc[1].service_id)
+      end)
+    end)
+  end)
 end)

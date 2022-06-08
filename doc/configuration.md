@@ -60,5 +60,4 @@ OIDC config for all services. There are three type of configuration_loader:
     - init phase: started the configuration_store
     - init_worker phase: retrieves the config using configuration_loader and sends the configuration_store object, which saves the config retrieved
     - rewrite phase: looks for the service for the requested host, and sets the service config on that request.
-      service config on that request.
 

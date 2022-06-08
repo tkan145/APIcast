@@ -59,6 +59,6 @@ OIDC config for all services. There are three type of configuration_loader:
 - policy/load-configuration: this policy loads first by default and works in the following scenarios:
     - init phase: started the configuration_store
     - init_worker phase: retrieves the config using configuration_loader and sends the configuration_store object, which saves the config retrieved
-    - rewrite phase: look for the service for the request host, and set the
+    - rewrite phase: looks for the service for the requested host, and sets the service config on that request.
       service config on that request.
 

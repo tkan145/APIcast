@@ -57,7 +57,6 @@ OIDC config for all services. There are three type of configuration_loader:
     - remote_v2: This is the recommended way for retrieving the config for each service, to auto-discover the OIDC information, and it uses the THREESCALE_PORTAL_ENDPOINT env variable.
 - configuration_store: this object stores the configuration into the Openresty cache and uses it at different phases.
 - policy/load-configuration: this policy loads first by default and works in the following scenarios:
-  first.It has the same behaviour as any policy, given the following scenario:
     - init phase: started the configuration_store
     - init_worker phase: retrieved the config using configuration_loader and send the
       configuration_store object, so can save the config retrieved.

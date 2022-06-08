@@ -58,7 +58,7 @@ OIDC config for all services. There are three type of configuration_loader:
 - configuration_store: this object stores the configuration into the Openresty cache and uses it at different phases.
 - policy/load-configuration: this policy loads first by default and works in the following scenarios:
     - init phase: started the configuration_store
-    - init_worker phase: retrieved the config using configuration_loader and send the
+    - init_worker phase: retrieves the config using configuration_loader and sends the configuration_store object, which saves the config retrieved
       configuration_store object, so can save the config retrieved.
     - rewrite phase: look for the service for the request host, and set the
       service config on that request.

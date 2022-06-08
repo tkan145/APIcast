@@ -48,7 +48,6 @@ TODO: figure out how to store/load the configuration in multi-tenant way
 ## How config is loaded:
 
 The following are the three main components in an APIcast configuration:
-components are the following ones:
 
 - configuration_loader: this is a object that retrieve the configuration and the
   OIDC config for all services, there are a few kinds of loader:

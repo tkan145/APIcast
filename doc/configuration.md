@@ -51,7 +51,6 @@ The following are the three main components in an APIcast configuration:
 
 - configuration_loader: this is an object that retrieves the configuration and the
 OIDC config for all services. There are three type of configuration_loader:
-  OIDC config for all services, there are a few kinds of loader:
     - file: for using local file and THREESCALE_CONFIG_FILE
     - remote_v1: this is what we used in the past, to load all the config from
       system and spec.json, using THREESCALE_PORTAL_ENDPOINT.

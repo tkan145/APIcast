@@ -81,10 +81,6 @@ local function absolute_url(uri)
     )
 end
 
-local function current_path(uri)
-    return format('%s%s%s', uri.path or ngx.var.uri, ngx.var.is_args, ngx.var.query_string or '')
-end
-
 local function forward_https_request(proxy_uri, uri, skip_https_connect)
     -- This is needed to call ngx.req.get_body_data() below.
     ngx.req.read_body()
@@ -93,7 +89,7 @@ local function forward_https_request(proxy_uri, uri, skip_https_connect)
         uri = uri,
         method = ngx.req.get_method(),
         headers = ngx.req.get_headers(0, true),
-        path = current_path(uri),
+        path = format('%s%s%s', ngx.var.uri, ngx.var.is_args, ngx.var.query_string or ''),
 
         -- We cannot use resty.http's .get_client_body_reader().
         -- In POST requests with HTTPS, the result of that call is nil, and it

@@ -21,6 +21,10 @@ DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
 DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
 DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE ?= docker-compose-devel-volmount-default.yml
 
+PROVE_DOCKER_COMPOSE_FILE ?= docker-compose.prove.yml
+
+DOCKER_VOLUME_NAME ?= apicast-local-volume
+
 os = "$(shell uname -s)"
 
 # if running on Mac
@@ -76,17 +80,18 @@ dev-build: ## Build development image
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove dev-build prove-docker runtime-image test-runtime-image
 
-apicast-source: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
+apicast-source: export IMAGE_NAME ?= $(DEVEL_IMAGE)
 apicast-source: ## Create Docker Volume container with APIcast source code
-	- $(DOCKER) rm -v -f $(COMPOSE_PROJECT_NAME)-source
-	$(DOCKER) run -d -v /opt/app-root/src --name $(COMPOSE_PROJECT_NAME)-source $(IMAGE_NAME) tail -f /dev/null
-	$(DOCKER) cp . $(COMPOSE_PROJECT_NAME)-source:/opt/app-root/src
-	$(DOCKER) exec --user root $(COMPOSE_PROJECT_NAME)-source \
+	($(DOCKER) volume inspect $(DOCKER_VOLUME_NAME) 1>/dev/null 2>&1 && \
+		$(DOCKER) volume rm $(DOCKER_VOLUME_NAME) 1>/dev/null ) || true
+	$(DOCKER) volume create $(DOCKER_VOLUME_NAME) 1>/dev/null
+	$(DOCKER) rm dummy 1>/dev/null 2>&1 || true
+	$(DOCKER) run -d --rm --name dummy -v $(DOCKER_VOLUME_NAME):/opt/app-root/src alpine tail -f /dev/null
+	$(DOCKER) cp . dummy:/opt/app-root/src
+	$(DOCKER) exec --user root dummy \
 		chown -R $(shell $(DOCKER) run --rm $(IMAGE_NAME) /bin/bash -c 'id -u'):$(shell $(DOCKER) run --rm $(IMAGE_NAME) /bin/bash -c 'id -g') \
 		/opt/app-root/src
-	# The container will be used by docker compose.
-	# It is not removed because docker run does not have --rm
-	$(DOCKER) stop $(COMPOSE_PROJECT_NAME)-source
+	$(DOCKER) stop dummy
 
 nginx:
 	@ ($(NGINX) -V 2>&1) > /dev/null
@@ -138,7 +143,9 @@ prove: $(ROVER) dependencies nginx ## Test nginx
 prove-docker: export IMAGE_NAME ?= $(DEVEL_IMAGE)
 prove-docker: ## Test nginx inside docker
 	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) apicast-source
-	$(DOCKER_COMPOSE) run --rm -T prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
+	$(DOCKER_COMPOSE) -f $(PROVE_DOCKER_COMPOSE_FILE) run --rm -T \
+		-v $(DOCKER_VOLUME_NAME):/opt/app-root/src prove | \
+		awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
 
 runtime-image: IMAGE_NAME ?= apicast-runtime-image:latest
 runtime-image: ## Build runtime image
@@ -151,7 +158,6 @@ push: ## Push image to the registry
 bash: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 bash: export SERVICE = gateway
 bash: ## Run bash inside the runtime image
-	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) apicast-source
 	$(DOCKER_COMPOSE) run --user=root --rm --entrypoint=bash $(SERVICE)
 
 gateway-logs: export IMAGE_NAME = does-not-matter
@@ -159,8 +165,7 @@ gateway-logs:
 	$(DOCKER_COMPOSE) logs gateway
 
 test-runtime-image: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
-test-runtime-image: ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
-	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) clean-containers
+test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
 	$(DOCKER_COMPOSE) --version
 	$(DOCKER_COMPOSE) run --rm --user 100001 gateway apicast -l -d
 	@echo -e $(SEPARATOR)
@@ -200,8 +205,7 @@ development: ## Run bash inside the development image
 	@ # https://github.com/moby/moby/issues/33794#issuecomment-312873988 for fixing the terminal width
 	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER):$(GROUP) development bash
 
-stop-development: ## Stop development environment
-	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) down
+stop-development: clean-containers ## Stop development environment
 
 rover: $(ROVER)
 	@echo $(ROVER)
@@ -222,8 +226,10 @@ lua_modules/bin/rover:
 
 dependencies: dep_folders lua_modules carton  ## Install project dependencies
 
-clean-containers: apicast-source
-	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+clean-containers:
+	- $(DOCKER_COMPOSE) down --volumes --remove-orphans
+	- $(DOCKER_COMPOSE) -f $(PROVE_DOCKER_COMPOSE_FILE) down --volumes --remove-orphans
+	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) down --volumes --remove-orphans
 
 clean-deps: ## Remove all local dependency folders
 	- rm -rf $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :
@@ -239,7 +245,7 @@ doc/lua/index.html: $(shell find gateway/src -name '*.lua' 2>/dev/null) | lua_mo
 
 doc: doc/lua/index.html ## Generate documentation
 
-lint-schema: apicast-source
+lint-schema:
 	@ docker run --volumes-from ${COMPOSE_PROJECT_NAME}-source --workdir /opt/app-root/src \
 		3scale/ajv validate \
 		-s gateway/src/apicast/policy/manifest-schema.json \

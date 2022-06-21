@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed NGINX filters policy error [PR #1339](https://github.com/3scale/APIcast/pull/1339) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
 - Fix to avoid uninitialized variables when request URI is too large [PR #1340](https://github.com/3scale/APIcast/pull/1340) [THREESCALE-7906](https://issues.redhat.com/browse/THREESCALE-7906)
 - Fixed issue where request path is stripped for proxied https requests [PR #1342](https://github.com/3scale/APIcast/pull/1342) [THREESCALE-8426](https://issues.redhat.com/browse/THREESCALE-8426)
+- Bumped liquid-lua to version 0.2.0-2 [PR #1369](https://github.com/3scale/APIcast/pull/1369) - includes: [THREESCALE-8483](https://issues.redhat.com/browse/THREESCALE-8483) and [THREESCALE-8484](https://issues.redhat.com/browse/THREESCALE-8484)
 
 ### Added
 

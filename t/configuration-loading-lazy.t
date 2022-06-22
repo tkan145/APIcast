@@ -19,7 +19,7 @@ should just say service is not found
   'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}"
 )
 --- upstream
-location /admin/api/services.json {
+location /admin/api/account/proxy_configs/production.json {
     echo '{}';
 }
 --- request: GET /t
@@ -36,7 +36,7 @@ should just say service is not found
   'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}"
 )
 --- upstream
-location /admin/api/services.json {
+location /admin/api/account/proxy_configs/production.json {
     echo '';
 }
 --- request: GET /t
@@ -53,31 +53,25 @@ should correctly route the request
   'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}"
 )
 --- upstream env
-    location = /admin/api/services.json {
+    location = /admin/api/account/proxy_configs/production.json {
         echo '
         {
-            "services": [
-                { "service": { "id":1 } }
-            ]
-        }';
-    }
-
-    location = /admin/api/services/1/proxy/configs/production/latest.json {
-        echo '
-        {
-            "proxy_config": {
-                "content": {
-                    "id": 1,
-                    "backend_version": 1,
-                    "proxy": {
-                        "hosts": [ "localhost" ],
-                        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
-                        "proxy_rules": [
-                            { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
-                        ]
+            "proxy_configs" : [
+            {
+                "proxy_config": {
+                    "content": {
+                        "id": 1,
+                        "backend_version": 1,
+                        "proxy": {
+                            "hosts": [ "localhost" ],
+                            "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+                            "proxy_rules": [
+                                { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
+                            ]
+                        }
                     }
                 }
-            }
+            }]
         }';
     }
 
@@ -123,35 +117,28 @@ GET /t?user_key=fake
   'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}"
 )
 --- upstream env
-    location = /admin/api/services.json {
+    location = /admin/api/account/proxy_configs/production.json {
         echo '
         {
-            "services": [
-                { "service": { "id":1 } }
-            ]
-        }';
-    }
-
-    location = /admin/api/services/1/proxy/configs/production/latest.json {
-        echo '
-        {
-            "proxy_config": {
-                "content": {
-                    "id": 1,
-                    "backend_version": "oauth",
-                    "proxy": {
-                        "hosts": [ "localhost" ],
-                        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
-                        "service_id": 2555417794444,
-                        "oidc_issuer_endpoint": "www.fgoodl/adasd",
-                        "authentication_method": "oidc",
-                        "service_backend_version": "oauth",
-                        "proxy_rules": [
-                            { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
-                        ]
+            "proxy_configs" : [{
+                "proxy_config": {
+                    "content": {
+                        "id": 1,
+                        "backend_version": "oauth",
+                        "proxy": {
+                            "hosts": [ "localhost" ],
+                            "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+                            "service_id": 2555417794444,
+                            "oidc_issuer_endpoint": "www.fgoodl/adasd",
+                            "authentication_method": "oidc",
+                            "service_backend_version": "oauth",
+                            "proxy_rules": [
+                                { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
+                            ]
+                        }
                     }
                 }
-            }
+            }]
         }';
     }
 --- backend

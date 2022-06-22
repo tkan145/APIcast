@@ -100,17 +100,6 @@ local function service_config_endpoint(portal_endpoint, service_id, env, version
   )
 end
 
-local function endpoint_for_services_with_host(portal_endpoint, env, host)
-  local query_args = encode_args({ host = host, version = "latest" })
-
-  return format(
-      "%s/admin/api/account/proxy_configs/%s.json?%s",
-      portal_endpoint,
-      env,
-      query_args
-  )
-end
-
 local function parse_resp_body(self, resp_body)
   local ok, res = pcall(cjson.decode, resp_body)
   if not ok then return nil, res end
@@ -146,11 +135,6 @@ local function parse_resp_body(self, resp_body)
     config.services[i] = original_proxy_config.content
   end
   return cjson.encode(config)
-end
-
-local function load_just_the_services_needed()
-  return resty_env.enabled('APICAST_LOAD_SERVICES_WHEN_NEEDED') and
-         resty_env.value('APICAST_CONFIGURATION_LOADER') == 'lazy'
 end
 
 -- When the APICAST_LOAD_SERVICES_WHEN_NEEDED is enabled, but the config loader
@@ -195,10 +179,9 @@ function _M:index(host)
 
   local res, err = http_client.get(url)
   if res and res.status == 200 and res.body then
+    ngx.log(ngx.DEBUG, 'index downloaded config from url: ', url)
     return parse_resp_body(self, res.body)
-  end
-
-  if not res and err then
+  elseif not res and err then
     ngx.log(ngx.DEBUG, 'index get error: ', err, ' url: ', url)
     return nil, err
   end
@@ -208,21 +191,7 @@ function _M:index(host)
   return nil, 'invalid status'
 end
 
-function _M:load_configs_for_env_and_host(env, host)
-  local url = endpoint_for_services_with_host(self.endpoint, env, host)
-
-  local response = self.http_client.get(url)
-
-  if response.status == 200 then
-    return parse_resp_body(self, response.body)
-  else
-    ngx.log(ngx.ERR, 'failed to load proxy configs')
-    return false
-  end
-end
-
 function _M:call(environment)
-  local load_just_for_host = load_just_the_services_needed()
 
   local service_regexp_filter  = resty_env.value("APICAST_SERVICES_FILTER_BY_URL")
   if service_regexp_filter then
@@ -249,14 +218,13 @@ function _M:call(environment)
     end
   end
 
+  -- Everything past this point in `call()` is deprecated because
+  -- now the configuration load is handled completely by `index()`.
+  -- Service filtering is done in configuration.lua
   local http_client = self.http_client
 
   if not http_client then
     return nil, 'not initialized'
-  end
-
-  if load_just_for_host then
-    return self:load_configs_for_env_and_host(resty_env.value('THREESCALE_DEPLOYMENT_ENV'), environment)
   end
 
   local env = environment or resty_env.value('THREESCALE_DEPLOYMENT_ENV')

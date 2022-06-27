@@ -155,3 +155,51 @@ using lazy configuration loader
 OIDC url is not valid, uri:
 --- no_error_log
 [error]
+
+=== TEST 6: load configuration with APICAST_SERVICE_${ID}_CONFIGURATION_VERSION
+--- env eval
+(
+  'APICAST_CONFIGURATION_LOADER' => 'lazy',
+  'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}",
+  'APICAST_SERVICE_2_CONFIGURATION_VERSION' => 42
+)
+--- upstream env
+    location = /admin/api/services.json {
+        echo '{ "services": [ { "service": { "id": 2 } } ] }';
+    }
+    location = /admin/api/services/2/proxy/configs/production/42.json {
+        echo '
+        {
+            "proxy_config": {
+                "content": {
+                    "id": 2,
+                    "backend_version": 1,
+                    "proxy": {
+                        "hosts": [ "localhost" ],
+                        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+                        "proxy_rules": [
+                            { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
+                        ]
+                    }
+                }
+            }
+        }';
+    }
+
+    location /t {
+        echo "all ok";
+    }
+
+--- backend
+    location /transactions/authrep.xml {
+      content_by_lua_block {
+        ngx.exit(200)
+      }
+    }
+--- request
+GET /t?user_key=fake
+--- error_code: 200
+--- error_log
+using lazy configuration loader
+--- no_error_log
+[error]

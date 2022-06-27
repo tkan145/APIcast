@@ -455,6 +455,23 @@ UwIDAQAB
 
   describe(':index', function()
 
+    it('invalid status is handled', function()
+      loader = _M.new('http://example.com/', { client = test_backend })
+      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+      env.set('APICAST_CONFIGURATION_LOADER', 'lazy')
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?version=latest' }.
+        respond_with{ status = 512, body = nil}
+      assert.same({ nil, 'invalid status' }, { loader:index() })
+    end)
+
+    it('returns "wrong endpoint url" when service version is configured', function()
+      loader = _M.new('http://example.com/', { client = test_backend })
+      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+      env.set('APICAST_SERVICE_2_CONFIGURATION_VERSION', 42)
+      env.set('APICAST_CONFIGURATION_LOADER', 'lazy')
+      assert.same({ nil, 'wrong endpoint url' }, { loader:index() })
+    end)
+
     it('returns configuration for all services (no path on endpoint)', function()
       loader = _M.new('http://example.com/', { client = test_backend })
       env.set('THREESCALE_DEPLOYMENT_ENV', 'production')

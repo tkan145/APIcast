@@ -137,6 +137,19 @@ local function parse_resp_body(self, resp_body)
   return cjson.encode(config)
 end
 
+local function use_service_version(portal_endpoint_has_path)
+  local vars = resty_env.list()
+  for n, v in pairs(vars) do
+    if match(n, "APICAST_SERVICE_\\d+_CONFIGURATION_VERSION") and v and v ~= ''
+      and portal_endpoint_has_path then
+        ngx.log(ngx.INFO, "APICAST_SERVICE_${ID}_CONFIGURATION_VERSION is configured: ",
+          "services will be loaded individually")
+        return true
+    end
+  end
+  return false
+end
+
 -- When the APICAST_LOAD_SERVICES_WHEN_NEEDED is enabled, but the config loader
 -- is boot, APICAST_LOAD_SERVICES_WHEN_NEEDED is going to be ignored. But in
 -- that case, env refers to a host and we need to reset it to pick the env
@@ -150,12 +163,8 @@ end
 -- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
 -- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=version
 local function configuration_endpoint_params(env, host, portal_endpoint_path)
-  local version = resty_env.get(
-      format('APICAST_SERVICE_%s_CONFIGURATION_VERSION', service_id)
-  ) or "latest"
-
   return portal_endpoint_path and {path = env, args = {host = host}}
-    or {path = '/admin/api/account/proxy_configs/' .. env, args = {host = host, version = version} }
+    or {path = '/admin/api/account/proxy_configs/' .. env, args = {host = host, version = "latest"} }
 end
 
 function _M:index(host)
@@ -170,6 +179,13 @@ function _M:index(host)
 
   if not env then
     return nil, 'missing environment'
+  end
+
+  -- Exit from index if a service version is configured because
+  -- in that case we have to retrieve the services individually
+  -- through the "old" services endpoint.
+  if use_service_version(not self.path and true) then
+    return nil, 'wrong endpoint url'
   end
 
   local endpoint_params = configuration_endpoint_params(env, host, self.path)
@@ -211,16 +227,14 @@ function _M:call(environment)
       return ret, err
     end
 
-    if load_just_for_host then
-      return m:call(host)
-    else
-      return m:call()
-    end
+    return m:call()
+
   end
 
-  -- Everything past this point in `call()` is deprecated because
-  -- now the configuration load is handled completely by `index()`.
-  -- Service filtering is done in configuration.lua
+  -- Unless APICAST_SERVICE_${ID}_CONFIGURATION_VERSION is set,
+  -- everything past this point in `call()` is skipped because
+  -- otherwise the configuration load is handled completely by
+  -- `index()`. Service filtering is done in configuration.lua
   local http_client = self.http_client
 
   if not http_client then

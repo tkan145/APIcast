@@ -334,6 +334,7 @@ UwIDAQAB
       end)
 
       local host = 'test_host.com'
+      local version = 'latest'
 
       local proxy_config_response = {
         version = 1,
@@ -346,7 +347,7 @@ UwIDAQAB
         -- the endpoint that returns services by host
         local endpoint = format(
             "http://example.com/admin/api/account/proxy_configs/staging.json?%s",
-            encode_args({ host = host })
+            encode_args({ host = host, version = version })
         )
 
         test_backend.expect { url = endpoint }.

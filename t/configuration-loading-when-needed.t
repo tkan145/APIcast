@@ -22,7 +22,7 @@ not defined in this test.
 --- upstream env
 location = /admin/api/account/proxy_configs/production.json {
   content_by_lua_block {
-    expected = "host=localhost"
+    expected = "host=localhost&version=latest"
     require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
 
     local response = {

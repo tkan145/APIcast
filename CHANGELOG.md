@@ -964,3 +964,4 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.10.0-beta1]: https://github.com/3scale/apicast/compare/v3.10.0-alpha2..v3.10.0-beta1
 [3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0
 [3.11.0]: https://github.com/3scale/apicast/compare/v3.10.0..v3.11.0
+[3.12.0]: https://github.com/3scale/apicast/compare/v3.11.0..v3.12.0

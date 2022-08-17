@@ -186,7 +186,9 @@ function _M:verify(jwt, cache_key)
   local jwk_obj = find_jwk(jwt, self.keys)
 
   local pubkey = jwk_obj.pem
-  if jwk_obj.alg ~= jwt.header.alg then
+  -- Check the jwk for the alg field and if not present skip the validation as it is 
+  -- OPTIONAL according to https://www.rfc-editor.org/rfc/rfc7517#section-4.4
+  if jwk_obj.alg and jwk_obj.alg ~= jwt.header.alg then
     return false, '[jwt] alg mismatch'
   end
 

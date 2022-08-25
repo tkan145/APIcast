@@ -164,6 +164,12 @@ gateway-logs: export IMAGE_NAME = does-not-matter
 gateway-logs:
 	$(DOCKER_COMPOSE) logs gateway
 
+opentelemetry-gateway: ## run gateway instrumented with opentelemetry
+	$(DOCKER_COMPOSE) run opentelemetry-instrumented-gateway
+
+opentracing-gateway: ## run gateway instrumented with opentracing
+	$(DOCKER_COMPOSE) run opentracing-instrumented-gateway
+
 test-runtime-image: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
 	$(DOCKER_COMPOSE) --version

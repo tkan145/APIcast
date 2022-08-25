@@ -98,6 +98,8 @@ _M.default_environment = 'production'
 -- @tfield ?string opentracing_tracer loads an opentracing tracer library, for example: jaeger
 -- @tfield ?string opentracing_config opentracing config file to load
 -- @tfield ?string opentracing_forward_header opentracing http header to forward upstream
+-- @tfield ?string opentelemetry enables server instrumentation using opentelemetry SDKs
+-- @tfield ?string opentelemetry_config_file opentelemetry config file to load
 -- @tfield ?string upstream_retry_cases error cases where the call to the upstream should be retried
 --         follows the same format as https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream
 -- @tfield ?policy_chain policy_chain @{policy_chain} instance
@@ -116,6 +118,8 @@ _M.default_config = {
     opentracing_tracer = env_value_ref('OPENTRACING_TRACER'),
     opentracing_config = env_value_ref('OPENTRACING_CONFIG'),
     opentracing_forward_header = env_value_ref('OPENTRACING_FORWARD_HEADER'),
+    opentelemetry = env_value_ref('OPENTELEMETRY'),
+    opentelemetry_config_file = env_value_ref('OPENTELEMETRY_CONFIG'),
     upstream_retry_cases = env_value_ref('APICAST_UPSTREAM_RETRY_CASES'),
     http_keepalive_timeout = env_value_ref('HTTP_KEEPALIVE_TIMEOUT'),
     policy_chain = require('apicast.policy_chain').default(),

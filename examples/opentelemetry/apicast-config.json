@@ -1,0 +1,12 @@
+{
+    "services": [
+        {
+            "proxy": {
+                "hosts": ["one"],
+                "proxy_rules": [],
+                "api_backend": "https://echo-api.3scale.net",
+                "policy_chain": []
+            }
+        }
+    ]
+}

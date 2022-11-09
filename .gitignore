@@ -13,3 +13,4 @@ tmp/benchmark/
 .cpanm
 /vendor/cache
 /tmp/
+.gitconfig

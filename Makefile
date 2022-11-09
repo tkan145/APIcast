@@ -216,7 +216,7 @@ $(GATEWAY_CONTEXT)/Roverfile.lock : $(GATEWAY_CONTEXT)/Roverfile $(GATEWAY_CONTE
 translate_git_protocol:
 	@git config --global url.https://github.com/.insteadOf git://github.com/
 
-lua_modules: $(ROVER) $(GATEWAY_CONTEXT)/Roverfile.lock translate_git_protocol
+lua_modules: $(ROVER) translate_git_protocol $(GATEWAY_CONTEXT)/Roverfile.lock
 # This variable is to skip issues with openssl 1.1.1
 # https://github.com/wahern/luaossl/issues/175
 	EXTRA_CFLAGS="-DHAVE_EVP_KDF_CTX=1" $(ROVER) install --roverfile=$(GATEWAY_CONTEXT)/Roverfile > /dev/null

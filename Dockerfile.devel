@@ -12,7 +12,7 @@ ENV APP_ROOT=/opt/app-root \
 
 RUN sed -i s/enabled=./enabled=0/g /etc/yum/pluginconf.d/subscription-manager.conf
 
-RUN yum upgrade -y 
+RUN yum upgrade -y
 
 RUN dnf install -y 'dnf-command(config-manager)'
 
@@ -21,7 +21,8 @@ RUN yum install -y \
         libyaml libyaml-devel perl-local-lib perl-App-cpanminus
 
 # perl-Test-Nginx
-RUN cpanm https://cpan.metacpan.org/authors/id/A/AG/AGENT/Test-Nginx-0.29.tar.gz
+RUN cpanm --notest IPC::Run && \
+    cpanm https://cpan.metacpan.org/authors/id/A/AG/AGENT/Test-Nginx-0.29.tar.gz
 
 RUN yum config-manager --add-repo http://packages.dev.3sca.net/dev_packages_3sca_net.repo
 
@@ -29,7 +30,7 @@ RUN yum install -y \
         openresty-${OPENRESTY_RPM_VERSION} \
         openresty-resty-${OPENRESTY_RPM_VERSION} \
         openresty-opentracing-${OPENRESTY_RPM_VERSION} \
-        jaegertracing-cpp-client 
+        jaegertracing-cpp-client
 
 RUN ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
     && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log \

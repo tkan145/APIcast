@@ -72,7 +72,7 @@ dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
 dev-build: export LUAROCKS_VERSION?=2.3.0
 dev-build: IMAGE_NAME ?= apicast-development:latest
 dev-build: ## Build development image
-	$(DOCKER) build -t $(IMAGE_NAME) \
+	$(DOCKER) build --platform linux/amd64 -t $(IMAGE_NAME) \
 		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
 		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
 		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)

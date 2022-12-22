@@ -8,7 +8,7 @@ Following simple steps, you can set up a development environment for APIcast usi
 You must install Docker and Docker Compose:
 
    * Docker version 19.03.8. You can find instructions for installing Docker in the Docker [website](https://docs.docker.com/get-docker/).
-   * `docker-compose` version 1.25.4. You can find instructions for installing `docker-compose` in the Docker [website](https://docs.docker.com/compose/install/).
+   * Docker Compose version 1.25.4. You can find instructions for installing Docker Compose on the Docker [website](https://docs.docker.com/compose/install/).
 
 Instructions for installing Docker Compose can also be found on the Docker [website](https://docs.docker.com/compose/install/).
 

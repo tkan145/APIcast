@@ -19,12 +19,7 @@ After you have installed both Docker and `docker-compose`, you can configure the
 
 ```shell
 git clone https://github.com/3scale/apicast.git
-```
-
-. Switch to a stable branch. In this case, the example uses version `3.8`: 
-```shell
 cd apicast/
-git checkout 3.8-stable
 ```
 
 . To start the APIcast containers using `docker-compose`,  use the *make* file provided by 3scale. Run this command in the APIcast directory:
@@ -32,30 +27,50 @@ git checkout 3.8-stable
 make development
 ```
 
-![make-development](img/make-development.png)
-
+```bash
+Running on Linux
+docker-compose -f docker-compose-devel.yml -f docker-compose-devel-volmount-default.yml up -d
+[+] Running 2/2
+ ⠿ Container apicast_build_0-redis-1        Started                                                                                                                                                                                                                          0.8s
+ ⠿ Container apicast_build_0-development-1  Started                                                                                                                                                                                                                          0.7s
+docker-compose -f docker-compose-devel.yml -f docker-compose-devel-volmount-default.yml exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user 1000:1000 development bash
+bash-4.4$
+```
 . The Docker container starts in the foreground with a bash session. The next step is to install all the dependencies inside the container, using a *make* command:
 
-This can also be done using a Make command, which again must be issued **inside** the container.
 ```shell
 make dependencies
 ```
-It will now download and install a plethora of dependencies inside the container.
 
 +
 * The output will be very long. After a successful completion of the installation of all the dependencies, you will see a message similar to this:
 +
 
-![make-dependencies](img/make-dependencies.png)
+```
+Complete! Modules were installed into /opt/app-root/src/local
+local/bin/carton bundle 2> /dev/null
+Bundling modules using /opt/app-root/src/gateway/cpanfile
+Complete! Modules were bundled into /opt/app-root/src/vendor/cache
+bash-4.4$
+```
 
-Now as a final verification we can run some APIcast unit tests to see if we are up and running and ready to start the development of our policy.
+Now we can run some APIcast unit tests to see if we are up and running and ready to start the development of our policy.
 
 . To run the Lua unit tests use this command **inside** the container:
 
 ```shell
-make busted
+bash-4.4$ make busted
+EXTRA_CFLAGS="-DHAVE_EVP_KDF_CTX=1" /usr/local/openresty/luajit/bin/rover install --roverfile=/opt/app-root/src/gateway/Roverfile > /dev/null
+/usr/local/openresty/luajit/bin/rover exec bin/busted
+●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●◌●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●◌●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+1208 successes / 0 failures / 0 errors / 2 pending : 6.209112 seconds
+
+Pending → spec/policy/rate_limit/redis_shdict_spec.lua @ 33
+Redis Shared Dictionary incr without default
+
+Pending → spec/resty/http_ng_spec.lua @ 35
+http_ng options method works with default options
 ```
-![make-busted](img/make-busted.png)
 
 After confirming that the unit tests run successfully, you can start the policy development.
 

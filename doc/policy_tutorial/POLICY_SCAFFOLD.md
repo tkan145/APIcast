@@ -85,7 +85,9 @@ The first two lines import the APIcast policy module an instantiate a new policy
 We won’t cover all the files in details here since we are going to touch these in upcoming series when we flesh out our policy with functionality.
 But as a final verification to see if we have something working let’s run the unit tests again.
 
-![busted-after-scaffold](img/make-busted-after-generate.png)
+```
+bash-4.4$ make busted
+```
 
 The keen observer can see the number of successes in the unit test outcome has increased by 2 after we generated the scaffold for our policy.
 

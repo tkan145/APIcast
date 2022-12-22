@@ -13,7 +13,7 @@ You must install Docker and Docker Compose:
 Instructions for installing Docker Compose can also be found on the Docker [website](https://docs.docker.com/compose/install/).
 
 ### Setting up the development image
-After you have installed both Docker and `docker-compose`, you can configure the APIcast development image.
+After you have installed Docker and Docker Compose, you can configure the APIcast development image.
 
 . Clone the APIcast git repository. Use the stable branch of APIcast to base the policy on the latest 3scale release. 
 

@@ -5,7 +5,7 @@ You need to configure an environment to work with Lua because APIcast policies a
 Following simple steps, you can set up a development environment for APIcast using Docker and Docker Compose.
 
 ### prerequisites
-This means both Docker and Docker compose must be installed.
+You must install Docker and Docker Compose:
 
    * Docker version 19.03.8. You can find instructions for installing Docker in the Docker [website](https://docs.docker.com/get-docker/).
    * `docker-compose` version 1.25.4. You can find instructions for installing `docker-compose` in the Docker [website](https://docs.docker.com/compose/install/).

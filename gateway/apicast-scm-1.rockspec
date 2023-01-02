@@ -10,7 +10,7 @@ description = {
    license = "Apache License 2.0"
 }
 dependencies = {
-   'lua-resty-http',
+   'lua-resty-http == 0.15',
    'inspect',
    'lyaml',
    'router',

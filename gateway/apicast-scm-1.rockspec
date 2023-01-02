@@ -21,7 +21,7 @@ dependencies = {
    'liquid',
    'argparse',
    'penlight',
-   'nginx-lua-prometheus',
+   'nginx-lua-prometheus == 0.20181120',
    'lua-resty-jit-uuid',
 }
 build = {

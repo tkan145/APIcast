@@ -89,7 +89,7 @@ Stopping the development environment container is a two step process. In the int
 Ctrl + C
 ```
 
-This exits the foreground bash shell, but the containers are still running. Execute the following make command to cleanly stop all containers:
+This exits the foreground bash shell, but the containers are still running. Run the following make command to stop all containers:
 
 ```shell
 $ make stop-development

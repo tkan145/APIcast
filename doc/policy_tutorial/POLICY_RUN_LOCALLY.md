@@ -121,7 +121,7 @@ if secret_header ~= self.secret then
  return ngx.exit(ngx.status)
 ```
 
-So we now our policy is executing. Let’s provide the secret header in our request in order to pass the validation. Issue the following HTTP request:
+The policy is now executing. You must provide the secret header in the request to pass the validation. Issue the following HTTP request:
 
 ```shell
 $ curl localhost:8080 -H 'secret: mysecret'

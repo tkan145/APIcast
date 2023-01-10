@@ -83,7 +83,7 @@ The development container for APIcast uses a Docker volume mount to mount the lo
 It also means you can use your favorite IDE or editor to develop your APIcast policy.
 
 ### Stopping the development container
-Stopping the development environment container is a two step process. In the interactive Bash session simple press:
+Stopping the development environment container is a two step process. In the interactive Bash session, press:
 
 ```
 Ctrl + C

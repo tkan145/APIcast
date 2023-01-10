@@ -93,7 +93,7 @@ $ curl localhost:8080
 </html>
 ```
 
-The response will be a 403 Forbidden. Let’s look at the logs to see what has happened.
+The response will be a 403 Forbidden. Look at the logs to see what has happened.
 
 ```shell
 $ bin/apicast --log-level=notice --dev -c examples/configuration/hello_world_config.json

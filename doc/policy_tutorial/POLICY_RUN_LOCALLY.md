@@ -8,7 +8,7 @@ You can provision APIcast in two ways, either automatically from the 3scale APIM
 
 The part of the JSON configuration file detailing the configuration of our policy needs to adhere to the JSON schema we defined earlier.
 
-The location of the config file is somewhat arbitrary as long as the APIcast process can access the file. In this example we are going to create the following file **‘hello_world_config.json’** in the **apicast/examples/configuration** directory.
+The location of the configuration file is arbitrary as long as the APIcast process can access the file. In this example, you will create the following file: **‘hello_world_config.json’** in the **apicast/examples/configuration** directory.
 
 The contents of the configuration file is:
 

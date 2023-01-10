@@ -49,7 +49,7 @@ The policy scaffolding utility not only generates a scaffold for the policy, but
 
 The source code of the policy in the directory src/gateway/apicast/policy/hello_world contains three files.
 
-* init.lua - all policies contain this init.lua file. It contains 1 line importing (require in Lua) our policy. It should not be modified.
+* init.lua: All policies contain this init.lua file. It contains 1 line importing (required in Lua) our policy. It should not be modified.
 * aplicast-policy.json - The APIcast gateway is configured using a json document. Policies requiring configuration also use this json document. The apicast-policy.json file is a json schema file were configuration properties for the policy can be defined. We will look into configuration properties and this file in more detail in our next part of the workshop.
 ```json
 {

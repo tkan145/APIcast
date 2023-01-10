@@ -9,7 +9,7 @@ Switched to a new branch 'policy-development-tutorial'
 $ make development
 ```
 
-To generate the scaffold of our policy we can use the apicast utility located in the bin/ directory of our development container.
+To generate the scaffold of the policy, use the APIcast utility located in the bin/ directory of the development container.
 So in the development container issue the following command:
 
 ```shell

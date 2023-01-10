@@ -110,7 +110,7 @@ loading development environment configuration: /home/centos/gateway/config/devel
 [29/Apr/2019:09:43:17 +0000] localhost:8080 127.0.0.1:40946 "GET / HTTP/1.1" 403 175 (0.000) 0
 ```
 
-The APIcast is running with the notice log-level, when started with the debug log-level considerable more log events will be present. But the one we are interested in is the second from the bottom.
+APIcast is running with the notice log-level, when started with the debug log-level considerable more log events will be present. The one you need is the second from the bottom.
 
 Which states: **‘request is not authorized, secrets do not match’** which is put in the log by the following line in the policy code:
 

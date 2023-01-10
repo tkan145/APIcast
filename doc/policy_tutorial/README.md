@@ -16,7 +16,7 @@ An overview of the various phases and corresponding Lua hooks was kindly in the 
 
 Since the APIcast gateway uses OpenResty, a way to leverage these Lua hooks in the NGINX server is provided by something called policies. As described in the APIcast README:
 
-**“The behaviour of APIcast is customizable via policies. A policy basically tells APIcast what it should do in each of the nginx phases.”**
+**“The behaviour of APIcast is customizable via policies. A policy basically tells APIcast what it should do in each of the NGINX phases.”**
 
 The code in this repo follows the APIcast directory structure.
 To use this code it must be integrated in the APIcast code.

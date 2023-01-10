@@ -83,7 +83,7 @@ return _M
 
 The first two lines import the APIcast policy module and instantiate a new policy with hello_world as an argument. This returns a module and implements it using a Lua table. Lua is not an object oriented language, but tables, especially metatables, can mimic objects. The third line stores a reference to a function new, which is defined below. The new function takes a configuration variable as  an argument, but for now nothing happens with is. The new method returns itself. Finally, the module representing the policy is returned. This is done so other components importing this policy module retrieve the table and can invoke all functions and variables stored in the policy.
 We won’t cover all the files in details here since we are going to touch these in upcoming series when we flesh out our policy with functionality.
-But as a final verification to see if we have something working let’s run the unit tests again.
+As a final verification to check if everything is working, run the unit tests again.
 
 ```
 bash-4.4$ make busted

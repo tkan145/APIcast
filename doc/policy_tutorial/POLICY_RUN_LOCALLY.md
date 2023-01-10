@@ -112,7 +112,7 @@ loading development environment configuration: /home/centos/gateway/config/devel
 
 APIcast is running with the notice log-level, when started with the debug log-level considerable more log events will be present. The one you need is the second from the bottom.
 
-Which states: **‘request is not authorized, secrets do not match’** which is put in the log by the following line in the policy code:
+Which states: **‘request is not authorized, secrets do not match’**. This is put in the log by the following line in the policy code:
 
 ```lua
 if secret_header ~= self.secret then

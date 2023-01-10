@@ -59,7 +59,7 @@ If the amount of debug logging is too large, you can set the log-level to **noti
 ### Executing test requests
 Now that you have the APIcast server up and running, you can test if the hello_world policy works.
 
-To test this we need to issue an HTTP request to the APIcast server. However the development Docker container does not expose any ports. We could alter either the makefile or the Docker compose file to expose the ports. But in this example we are simply going to create another bash session the the development container and issue a curl request from inside the container.
+To test this, you must issue an HTTP request to the APIcast server, but the development Docker container does not expose any ports. You can alter the makefile or the Docker Compose file to expose the ports. In this example you will create another bash session in the development container and issue a curl request from inside the container.
 
 To create a second bash session open a new terminal window and find the Docker container id of the APIcast development image using the following command:
 

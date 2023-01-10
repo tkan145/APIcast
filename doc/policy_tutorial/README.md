@@ -6,7 +6,7 @@ In this tutorial we are going to dive into the development and testing of a cust
 
 But before we begin, let’s first take a look what a APIcast policy is. We are not going into too much detail here, since this is described [here](../policies.md).
 
-The APIcast gateway is based on [Nginx](https://www.nginx.com/) and more specifically [Openresty](http://openresty.org/en/), which is a distribution of Nginx compiled with various modules, most notable the [lua-nginx-module](https://github.com/openresty/lua-nginx-module).
+The APIcast gateway is based on [NGINX](https://www.nginx.com/) and more specifically [OpenResty](http://openresty.org/en/), which is a distribution of NGINX compiled with various modules, most notable the [lua-nginx-module](https://github.com/openresty/lua-nginx-module).
 
 The lua-nginx-module provides the ability to enhance a Nginx server by executing scripts using the [Lua programming language](https://www.lua.org/). This is done by providing a Lua hook for each of the Nginx phases. Nginx works using an event loop and a state model where every request (as well as the starting of the server and its worker processes) goes through various phases. Each phase can execute a specific Lua function.
 

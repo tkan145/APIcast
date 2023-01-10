@@ -4,7 +4,7 @@ When you have completed development and unit testing of the policy, it is time t
 
 ## Create APIcast configuration
 
-APIcast can be provisioned in two ways, either automatically from the 3scale API Manager or via a json configuration file. Since the custom policy is not available in the 3scale API Manager we need to configure APIcast with the json configuration file. In this configuration file we are also going to leverage the build-in echo service of APIcast so we can test the policy and receive an upstream response without running a full 3scale API Manager configuration.
+You can provision APIcast in two ways, either automatically from the 3scale APIManager or via a JSON configuration file. Since the custom policy is not available in the 3scale APIManager,  you will configure APIcast with the JSON configuration file. In the configuration file you will leverage the built-in echo service of APIcast to test the policy and receive an upstream response without running a full 3scale APIManager configuration.
 
 The part of the json configuration file detailing the configuration of our policy need to adhere to the json schema we defined earlier.
 

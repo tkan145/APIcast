@@ -1,5 +1,5 @@
 # Generate a policy scaffold
-In first part of the tutorial about APIcast policy development we looked into the setup of a development environment. Now we have a functioning development environment we can start the actual development of the APIcast policy. In this part we will take a look and use the scaffolding utility provided by APIcast to generate a policy scaffold.
+In the first part of the tutorial about APIcast policy development, you set up a development environment. Now you have a functioning development environment, you can start development of the APIcast policy. You will use the scaffolding utility provided by APIcast to generate a policy scaffold.
 
 The first thing we are going to do is create a new git branch of the APIcast source we have cloned in the previous part. This is an optional step, but developing a new feature or changing code in general in a new branch is a good habit to get into. So create a new branch and start up our development container.
 

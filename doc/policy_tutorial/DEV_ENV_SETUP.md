@@ -101,4 +101,4 @@ Removing apicast_build_0_redis_1       ... done
 Removing network apicast_build_0_default
 ```
 
-Now we are ready to create a 3scale APIcast policy. The next step in the tutorial is [here](POLICY_SCAFFOLD.md)
+Now you are ready to create a 3scale APIcast policy. The next step in the tutorial is [here](POLICY_SCAFFOLD.md)

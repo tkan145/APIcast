@@ -53,7 +53,7 @@ To start the APIcast server with the hello_world_configuration.json file inside 
 bash-4.2$ bin/apicast --log-level=debug --dev -c examples/configuration/hello_world_config.json
 ```
 
-the bin/apicast executable starts the apicast server, we set the log-level to debug which is going to result in an incredible amount of debug logging.
+The bin/apicast executable starts the APIcast server. Set log-level to debug which results in a large amount of debug logging.
 If the amount of debug logging is a bit too much for you the log-level can also be set to **notice** this results in a lot fewer log lines, but still the custom log entries in the policy are logged.
 
 ### Executing test requests

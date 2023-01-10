@@ -146,4 +146,4 @@ secret: mysecret
 myparam: myvalue
 ```
 
-Now we see in the response the header myparam:myheader
+You will see in the response, the header: myparam:myheader

@@ -54,7 +54,7 @@ Complete! Modules were bundled into /opt/app-root/src/vendor/cache
 bash-4.4$
 ```
 
-Now we can run some APIcast unit tests to see if we are up and running and ready to start the development of our policy.
+Now you can run APIcast unit tests to see if everything is up and running and ready to start the development of our policy.
 
 . To run the Lua unit tests use this command **inside** the container:
 

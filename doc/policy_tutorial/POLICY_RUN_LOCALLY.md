@@ -47,7 +47,7 @@ The contents of the configuration file is:
 First, configure the hello_world policy inside the policy chain with overwrite and secret properties. Second, the upstream policy acts as an echo mock service in the policy chain, so you can receive a response.
 
 ### Starting the APIcast server
-Now in order to start the APIcast server with the hello_world_configuration.json file inside the development container issue the following command:
+To start the APIcast server with the hello_world_configuration.json file inside the development container, run the following command:
 
 ```shell
 bash-4.2$ bin/apicast --log-level=debug --dev -c examples/configuration/hello_world_config.json

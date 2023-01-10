@@ -39,7 +39,7 @@ created: gateway/src/apicast/policy/hello_world/init.lua
 created: gateway/src/apicast/policy/hello_world/hello_world.lua
 ```
 
-As you can see from the output of the generate policy command a few files have been created. These artifacts related to our policy are located in three different directories:
+You will see from the output of the generate policy command, files have been created. These artefacts related to the policy, are located in three different directories:
 
 * t/ – this directory contains all Nginx integration tests
 * src/gateway/apicast/policy – this directory contains the source code and configuration schemas of all policies. Our policy resides in the subdirectory of hello_world

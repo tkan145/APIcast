@@ -72,7 +72,7 @@ CONTAINER ID        IMAGE                                         COMMAND       
 
 The make development command used to start the APIcast development container starts two containers. One with the APIcast development environment and another with a Redis cache. You need the container with the following image: **quay.io/3scale/s2i-openresty-centos7:master**.
 
-In the above example it has the id of **5a72c49671c5** off course yours will be different. Now that we know the ID of the container let’s create a new bash session using the following command:
+In the above example, it has the ID of **5a72c49671c5**. Yours will be different. Now that you know the ID of the container, create a new bash session using the following command:
 
 ```shell
 $ docker exec -it 5a72c49671c5 /bin/bash

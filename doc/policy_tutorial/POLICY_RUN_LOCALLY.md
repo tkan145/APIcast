@@ -57,7 +57,7 @@ The bin/apicast executable starts the APIcast server. Set log-level to debug whi
 If the amount of debug logging is too large, you can set the log-level to **notice**. This results in fewer log lines, but custom log entries in the policy are still logged.
 
 ### Executing test requests
-Now that we have our APIcast server up and running let’s test if the hello_world policy actually works.
+Now that you have the APIcast server up and running, you can test if the hello_world policy works.
 
 To test this we need to issue an HTTP request to the APIcast server. However the development Docker container does not expose any ports. We could alter either the makefile or the Docker compose file to expose the ports. But in this example we are simply going to create another bash session the the development container and issue a curl request from inside the container.
 

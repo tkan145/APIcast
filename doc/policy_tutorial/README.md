@@ -19,7 +19,7 @@ Since the APIcast gateway uses Openresty a way to leverage these Lua hooks in th
 **“The behaviour of APIcast is customizable via policies. A policy basically tells APIcast what it should do in each of the nginx phases.”**
 
 The code in this repo follows the APIcast directory structure.
-In order to use this code it has to be integrated in the APIcast code.
+To use this code it must be integrated in the APIcast code.
 Therefore the code and configuration in this repository act for reference purposes only.
 
 The tutorial was 4 distinct sections:

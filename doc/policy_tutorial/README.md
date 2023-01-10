@@ -1,5 +1,5 @@
 # APIcast policy development tutorial
-This repository contains the code and configuration of a APIcast policy used in the tutorial described in this README.
+This repository contains the code and configuration of an APIcast policy used in the tutorial described in this README.
 Its purposes are to provide a first introduction to the world of policy development.
 
 In this tutorial you will dive into the development and testing of a custom APIcast policy. In the first part you will setup a development environment so you can start the development of the policy.

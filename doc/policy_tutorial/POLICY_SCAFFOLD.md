@@ -91,4 +91,4 @@ bash-4.4$ make busted
 
 You will see the number of successes in the unit test outcome will have increased by 2 after generating the scaffold for the policy.
 
-In the next part we actually create the implementation of the policy. This is described [here](POLICY_IMPLEMENTATION.md)
+In the next part you will create the implementation of the policy. This is described [here](POLICY_IMPLEMENTATION.md)

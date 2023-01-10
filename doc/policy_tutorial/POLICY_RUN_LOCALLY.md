@@ -61,7 +61,7 @@ Now that you have the APIcast server up and running, you can test if the hello_w
 
 To test this, you must issue an HTTP request to the APIcast server, but the development Docker container does not expose any ports. You can alter the makefile or the Docker Compose file to expose the ports. In this example you will create another bash session in the development container and issue a curl request from inside the container.
 
-To create a second bash session open a new terminal window and find the Docker container id of the APIcast development image using the following command:
+Create a second bash session in a new terminal window and find the Docker container ID of the APIcast development image using the following command:
 
 ```shell
 $ docker ps

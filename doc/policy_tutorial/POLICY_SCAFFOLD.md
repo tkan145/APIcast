@@ -66,7 +66,7 @@ The source code of the policy in the directory src/gateway/apicast/policy/hello_
   }
 }
 ```
-* hello_world.lua - This is the actual source code of our policy, which at the moment does not contain much.
+* hello_world.lua: This is the actual source code of the policy, which at the moment does not contain much.
 ```lua
 -- This is a hello_world description.
 local policy = require('apicast.policy')

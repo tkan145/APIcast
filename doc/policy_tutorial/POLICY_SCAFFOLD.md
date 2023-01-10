@@ -89,6 +89,6 @@ As a final verification to check if everything is working, run the unit tests ag
 bash-4.4$ make busted
 ```
 
-The keen observer can see the number of successes in the unit test outcome has increased by 2 after we generated the scaffold for our policy.
+You will see the number of successes in the unit test outcome will have increased by 2 after generating the scaffold for the policy.
 
 In the next part we actually create the implementation of the policy. This is described [here](POLICY_IMPLEMENTATION.md)

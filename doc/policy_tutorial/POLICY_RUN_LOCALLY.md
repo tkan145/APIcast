@@ -133,7 +133,7 @@ Accept: */*
 secret: mysecret
 ```
 
-Now we received a valid 200 response from the echo server. But the actual rewrite of query parameters to header is not tested, since the request did not contain any query parameters. So issue a new request with a query parameter to see the transformation at work. Issue the following request:
+You should receive a valid 200 response from the echo server. The rewrite of query parameters to header is not tested, since the request did not contain any query parameters. Issue a new request with a query parameter to see the transformation at work. Issue the following request:
 
 ```shell
 $ curl localhost:8080?myparam=myvalue -H 'secret: mysecret'

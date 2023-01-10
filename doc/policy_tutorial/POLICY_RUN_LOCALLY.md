@@ -78,7 +78,7 @@ In the above example, it has the ID of **5a72c49671c5**. Yours will be different
 $ docker exec -it 5a72c49671c5 /bin/bash
 ```
 
-Now we have another interactive bash shell in the APIcast development container and we can issue the HTTP request to test the policy from here.
+Now you have another interactive bash shell in the APIcast development container, you can issue the HTTP request to test the policy from there.
 
 In the container issue the following HTTP request:
 

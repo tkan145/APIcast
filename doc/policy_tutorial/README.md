@@ -8,7 +8,7 @@ Before beginning, first take a look what an APIcast policy is, described [here](
 
 The APIcast gateway is based on [NGINX](https://www.nginx.com/) and more specifically [OpenResty](http://openresty.org/en/), which is a distribution of NGINX compiled with various modules, most notable the [lua-nginx-module](https://github.com/openresty/lua-nginx-module).
 
-The lua-nginx-module provides the ability to enhance a Nginx server by executing scripts using the [Lua programming language](https://www.lua.org/). This is done by providing a Lua hook for each of the Nginx phases. Nginx works using an event loop and a state model where every request (as well as the starting of the server and its worker processes) goes through various phases. Each phase can execute a specific Lua function.
+The lua-nginx-module provides the ability to enhance a NGINX server by executing scripts using the [Lua programming language](https://www.lua.org/). This is done by providing a Lua hook for each of the NGINX phases. NGINX works using an event loop and a state model where every request, as well as the starting of the server and its worker processes, goes through various phases. Each phase can execute a specific Lua function.
 
 An overview of the various phases and corresponding Lua hooks was kindly in the README of the lua-nginx-module: https://github.com/openresty/lua-nginx-module#directives
 

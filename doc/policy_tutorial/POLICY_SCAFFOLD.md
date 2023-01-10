@@ -10,7 +10,7 @@ $ make development
 ```
 
 To generate the scaffold of the policy, use the APIcast utility located in the bin/ directory of the development container.
-So in the development container issue the following command:
+In the development container, run the following command:
 
 ```shell
 $ bin/apicast generate policy hello_world

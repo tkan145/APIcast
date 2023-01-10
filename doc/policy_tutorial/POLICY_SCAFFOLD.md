@@ -45,7 +45,7 @@ You will see from the output of the generate policy command, files have been cre
 * src/gateway/apicast/policy – this directory contains the source code and configuration schemas of all policies. Our policy resides in the subdirectory of hello_world
 * spec/policy – this directory contains the unit tests of all policies. The unit tests for our policy resides in the subdirectory of hello_world
 
-So the policy scaffolding utility not only generates a scaffold for our policy, but also the files for a configuration schema, unit tests and integration tests. Let’s have a look at these files.
+The policy scaffolding utility not only generates a scaffold for the policy, but also the files for a configuration schema, unit tests, and integration tests.
 
 The source code of our policy residing in the directory src/gateway/apicast/policy/hello_world contains three files.
 

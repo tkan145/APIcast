@@ -56,7 +56,7 @@ bash-4.4$
 
 Now you can run APIcast unit tests to see if everything is up and running and ready to start the development of our policy.
 
-. To run the Lua unit tests use this command **inside** the container:
+. To run the Lua unit tests, use the following command **inside** the container:
 
 ```shell
 bash-4.4$ make busted

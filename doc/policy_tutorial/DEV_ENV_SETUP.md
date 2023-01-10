@@ -76,7 +76,7 @@ After confirming that the unit tests run successfully, you can start the policy 
 
 The project’s source code will be available in the container, and synchronized with your local APIcast directory. You can edit files in your preferred environment and still run whatever you need inside the Docker container.
 
-The development container for APIcast uses a Docker volume mount to mount the local apicast directory inside the container. This means all files changed locally in the repository are synced with the container and used in the tests and runtime of the development container.
+The development container for APIcast uses a Docker volume mount to mount the local APIcast directory inside the container. This means all files changed locally in the repository are synchronized with the container and used in the tests and runtime of the development container.
 
 ![APIcast-dev-container-mount](img/apicast-dev-container-mount.png)
 

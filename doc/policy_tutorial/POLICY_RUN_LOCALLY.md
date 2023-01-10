@@ -1,6 +1,6 @@
 # Run the policy locally
 
-Now that the development and unit testing of the policy is completed it is time to actually start APIcast with the newly created policy. This way we can verify the policy actually works inside the Nginx process. We are again going to use the APIcast development Docker image to run APIcast with our newly created policy.
+When you have completed development and unit testing of the policy, it is time to start APIcast with the policy. This way you can verify the policy works inside the NGINX process. You are going to use the APIcast development Docker image to run APIcast with the created policy.
 
 ## Create APIcast configuration
 

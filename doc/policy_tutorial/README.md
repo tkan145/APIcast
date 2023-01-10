@@ -4,7 +4,7 @@ It's purposes are to provide a first introduction to the world of policy develop
 
 In this tutorial you will dive into the development and testing of a custom APIcast policy. In the first part you will setup a development environment so you can start the development of the policy.
 
-But before we begin, let’s first take a look what a APIcast policy is. We are not going into too much detail here, since this is described [here](../policies.md).
+Before beginning, first take a look what an APIcast policy is, described [here](../policies.md).
 
 The APIcast gateway is based on [NGINX](https://www.nginx.com/) and more specifically [OpenResty](http://openresty.org/en/), which is a distribution of NGINX compiled with various modules, most notable the [lua-nginx-module](https://github.com/openresty/lua-nginx-module).
 

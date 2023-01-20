@@ -78,7 +78,7 @@ insulate('Configuration object', function()
 
     it('returns true with blank configuration', function()
       local config = configuration_store.new()
-      assert.falsy(_M.configure(config, ''))
+      assert.is_nil(_M.configure(config, ''))
     end)
 
     it('stores the configuration', function()

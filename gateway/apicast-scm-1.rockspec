@@ -10,18 +10,18 @@ description = {
    license = "Apache License 2.0"
 }
 dependencies = {
-   'lua-resty-http',
+   'lua-resty-http == 0.15',
    'inspect',
    'lyaml',
    'router',
-   'lua-resty-jwt',
+   'lua-resty-jwt == 0.2.0',
    'lua-resty-url',
    'lua-resty-env',
    'lua-resty-execvp',
    'liquid',
    'argparse',
    'penlight',
-   'nginx-lua-prometheus',
+   'nginx-lua-prometheus == 0.20181120',
    'lua-resty-jit-uuid',
 }
 build = {

@@ -107,7 +107,7 @@ executors:
     - image: docker:stable
     environment:
       COMPOSE_TLS_VERSION: "TLSv1_2"
-      DOCKER_COMPOSE_VERSION: "1.16.1"
+      DOCKER_COMPOSE_VERSION: "2.14.0"
 
   openresty:
     working_directory: /opt/app-root/apicast

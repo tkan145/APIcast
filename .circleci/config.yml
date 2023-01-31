@@ -32,7 +32,9 @@ commands:
   install-docker-compose:
     steps:
       - run: |
-          pip install "docker-compose==${DOCKER_COMPOSE_VERSION}"
+          curl -sLO https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-linux-x86_64
+          chmod +x docker-compose-linux-x86_64
+          mv docker-compose-linux-x86_64 /usr/local/bin/docker-compose
           docker-compose version
 
   setup-docker:
@@ -48,7 +50,7 @@ commands:
 
   setup-build-env:
     steps:
-      - run: apk update && apk add wget make bash curl py-pip git openssh-client
+      - run: apk update && apk add wget make bash curl git openssh-client
       - install-docker-compose
       - setup-docker
       - attach-workspace
@@ -107,7 +109,7 @@ executors:
     - image: docker:stable
     environment:
       COMPOSE_TLS_VERSION: "TLSv1_2"
-      DOCKER_COMPOSE_VERSION: "2.14.0"
+      DOCKER_COMPOSE_VERSION: "v2.14.0"
 
   openresty:
     working_directory: /opt/app-root/apicast

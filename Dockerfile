@@ -1,6 +1,8 @@
 FROM registry.access.redhat.com/ubi8:8.5
 
 ARG OPENRESTY_RPM_VERSION="1.19.3-21.el8"
+ARG LUAROCKS_VERSION="2.3.0"
+ARG JAEGERTRACING_CPP_CLIENT_RPM_VERSION="0.3.1-13.el8"
 
 LABEL summary="The 3scale API gateway (APIcast) is an OpenResty application, which consists of two parts: NGINX configuration and Lua files." \
       description="APIcast is not a standalone API gateway therefore it needs connection to the 3scale API management platform. The container includes OpenResty and uses LuaRocks to install dependencies (rocks are installed in the application folder)." \
@@ -28,7 +30,7 @@ RUN dnf install -y 'dnf-command(config-manager)'
 
 RUN yum config-manager --add-repo http://packages.dev.3sca.net/dev_packages_3sca_net.repo
 
-RUN PKGS="openresty-resty-${OPENRESTY_RPM_VERSION} openresty-opentelemetry-${OPENRESTY_RPM_VERSION} openresty-opentracing-${OPENRESTY_RPM_VERSION} openresty-${OPENRESTY_RPM_VERSION} luarocks-2.3.0 opentracing-cpp-devel-1.3.0 libopentracing-cpp1-1.3.0 jaegertracing-cpp-client" && \
+RUN PKGS="openresty-resty-${OPENRESTY_RPM_VERSION} openresty-opentelemetry-${OPENRESTY_RPM_VERSION} openresty-opentracing-${OPENRESTY_RPM_VERSION} openresty-${OPENRESTY_RPM_VERSION} luarocks-${LUAROCKS_VERSION} opentracing-cpp-devel-1.3.0 libopentracing-cpp1-1.3.0 jaegertracing-cpp-client-${JAEGERTRACING_CPP_CLIENT_RPM_VERSION}" && \
     mkdir -p "$HOME" && \
     yum -y --setopt=tsflags=nodocs install $PKGS && \
     rpm -V $PKGS && \

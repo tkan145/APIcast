@@ -129,7 +129,6 @@ server {
 
   {% if opentelemetry != empty %}
   opentelemetry_operation_name apicast;
-  opentelemetry_propagate;
   opentelemetry_attribute original_request_uri $original_request_uri;
   {% endif %}
 

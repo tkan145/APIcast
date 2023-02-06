@@ -1,11 +1,24 @@
 {
     "services": [
         {
+            "backend_version": "1",
             "proxy": {
                 "hosts": ["one"],
-                "proxy_rules": [],
-                "api_backend": "https://echo-api.3scale.net",
-                "policy_chain": []
+                "api_backend": "http://httpbin.org",
+                "backend": {
+                    "endpoint": "http://127.0.0.1:8081",
+                    "host": "backend"
+                },
+                "proxy_rules": [
+                    {
+                        "http_method": "GET",
+                        "pattern": "/",
+                        "metric_system_name": "hits",
+                        "delta": 1,
+                        "parameters": [],
+                        "querystring_parameters": {}
+                    }
+                ]
             }
         }
     ]

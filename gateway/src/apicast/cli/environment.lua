@@ -23,6 +23,7 @@ local insert = table.insert
 local concat = table.concat
 local re = require('ngx.re')
 
+
 local function parse_nameservers()
     local resolver = require('resty.resolver')
     local nameservers = {}
@@ -83,6 +84,16 @@ local function env_value_ref(name)
     return setmetatable({ name = name }, env_value_mt)
 end
 
+local function read_opentracing_tracer(varname)
+    local opentracing_tracer = env_value_ref(varname)
+
+    if tostring(opentracing_tracer) ~= nil then
+        ngx.log(ngx.WARN, 'opentracing use is DEPRECATED. Use Opentelemetry instead with OPENTELEMETRY env var')
+    end
+
+    return opentracing_tracer
+end
+
 local _M = {}
 ---
 -- @field default_environment Default environment name.
@@ -115,7 +126,7 @@ _M.default_config = {
     proxy_ssl_session_reuse = env_value_ref('APICAST_PROXY_HTTPS_SESSION_REUSE'),
     proxy_ssl_password_file = env_value_ref('APICAST_PROXY_HTTPS_PASSWORD_FILE'),
     proxy_ssl_verify = resty_env.enabled('OPENSSL_VERIFY'),
-    opentracing_tracer = env_value_ref('OPENTRACING_TRACER'),
+    opentracing_tracer = read_opentracing_tracer('OPENTRACING_TRACER'),
     opentracing_config = env_value_ref('OPENTRACING_CONFIG'),
     opentracing_forward_header = env_value_ref('OPENTRACING_FORWARD_HEADER'),
     opentelemetry = env_value_ref('OPENTELEMETRY'),

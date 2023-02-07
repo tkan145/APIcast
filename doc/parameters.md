@@ -513,9 +513,6 @@ policy.
 
 ### `OPENTELEMETRY`
 
-**Default:** 1
-**Value:** string
-
 This environment variable enables NGINX instrumentation using opentelemetry tracing library.
 It works with [Jaeger](https://www.jaegertracing.io/) since v1.35.
 If the existing collector does not support Opentelemetry traces, an [Opentelemetry Collector](https://opentelemetry.io/docs/collector/) is required as tracing proxy.

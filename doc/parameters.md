@@ -513,14 +513,14 @@ policy.
 
 ### `OPENTELEMETRY`
 
-This environment variable enables NGINX instrumentation using opentelemetry tracing library.
-It works with [Jaeger](https://www.jaegertracing.io/) since v1.35.
-If the existing collector does not support Opentelemetry traces, an [Opentelemetry Collector](https://opentelemetry.io/docs/collector/) is required as tracing proxy.
+This environment variable enables NGINX instrumentation using OpenTelemetry tracing library.
+It works with [Jaeger](https://www.jaegertracing.io/) since version 1.35.
+If the existing collector does not support OpenTelemetry traces, an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) is required as tracing proxy.
 
-If empty or not set, nginx instrumentation with opentelemetry is disabled.
+If empty or not set, Nginx instrumentation with OpenTelemetry is disabled.
 
 Currently, the only implemeneted [exporter](https://opentelemetry.io/docs/reference/specification/protocol/exporter/)
-in APIcast is OTLP over gRPC `OTLP/gRPC`. Eventhough Opentelemetry spec supports also OTLP over HTTP (`OTLP/HTTP`),
+in APIcast is OTLP over gRPC `OTLP/gRPC`. Even though OpenTelemetry specification supports also OTLP over HTTP (`OTLP/HTTP`),
 this exporter is not included in APIcast.
 
 Supported propagation types: [W3C](https://w3c.github.io/trace-context/)
@@ -531,7 +531,7 @@ Supported propagation types: [W3C](https://w3c.github.io/trace-context/)
 
 This environment variable provides location of the configuration file for the tracer. If `OPENTELEMETRY` is not set, this variable will be ignored.
 
-The configuration file spec is defined in the [nginx instrumentation library repo](https://github.com/open-telemetry/opentelemetry-cpp-contrib/tree/main/instrumentation/nginx).
+The configuration file specification is defined in the [Nginx instrumentation library repo](https://github.com/open-telemetry/opentelemetry-cpp-contrib/tree/main/instrumentation/nginx).
 
 `otlp` is the only supported exporter.
 
@@ -542,7 +542,7 @@ exporter = "otlp"
 processor = "batch"
 
 [exporters.otlp]
-# Alternatively the OTEL_EXPORTER_OTLP_ENDPOINT environment variable can also be used.
+# Alternatively, the OTEL_EXPORTER_OTLP_ENDPOINT environment variable can also be used.
 host = "localhost"
 port = 4317
 

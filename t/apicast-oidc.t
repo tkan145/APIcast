@@ -389,17 +389,6 @@ to_json({
     keys => { somekid => { pem => $::public_key, alg => 'RS256' } },
   }]
 });
---- upstream
-  location /test {
-    echo "yes";
-  }
---- backend
-  location = /transactions/oauth_authrep.xml {
-    content_by_lua_block {
-      local expected = "provider_key=fookey&service_id=42&usage%5Bhits%5D=1&app_id=appid"
-      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
-    }
-  }
 --- request: GET /test
 --- error_code: 403
 --- more_headers eval

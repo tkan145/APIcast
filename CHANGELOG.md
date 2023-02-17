@@ -11,6 +11,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Fixed: OIDC jwt key verification [PR #1389](https://github.com/3scale/APIcast/pull/1389) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)
+
+## [3.13.0] 2023-02-07
+
+### Fixed
+
+- Fixed NGINX filters policy error [PR #1339](https://github.com/3scale/APIcast/pull/1339) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
+- Fix to avoid uninitialized variables when request URI is too large [PR #1340](https://github.com/3scale/APIcast/pull/1340) [THREESCALE-7906](https://issues.redhat.com/browse/THREESCALE-7906)
+- Fixed issue where request path is stripped for proxied https requests [PR #1342](https://github.com/3scale/APIcast/pull/1342) [THREESCALE-8426](https://issues.redhat.com/browse/THREESCALE-8426)
+- Bumped liquid-lua to version 0.2.0-2 [PR #1369](https://github.com/3scale/APIcast/pull/1369) - includes: [THREESCALE-8483](https://issues.redhat.com/browse/THREESCALE-8483) and [THREESCALE-8484](https://issues.redhat.com/browse/THREESCALE-8484)
+- Fixed: APIcast could not retrieve the latest version of the proxy config [PR #1370](https://github.com/3scale/APIcast/pull/1370) [THREESCALE-8485](https://issues.redhat.com/browse/THREESCALE-8485)
+- Fixed: JWKs without alg field cause the JWT validation process to fail [PR #1371](https://github.com/3scale/APIcast/pull/1371) [THREESCALE-8601](https://issues.redhat.com/browse/THREESCALE-8601)
+
+### Added
+
+- Updated policy list [PR #1374](https://github.com/3scale/APIcast/pull/1374)
+
+## [3.12.0] 2022-07-07
+
+### Fixed
+
+- Fixed warning messages [PR #1318](https://github.com/3scale/APIcast/pull/1318) [THREESCALE-7906](https://issues.redhat.com/browse/THREESCALE-7906)
+- Fixed dirty context [PR #1328](https://github.com/3scale/APIcast/pull/1328) [THREESCALE-8000](https://issues.redhat.com/browse/THREESCALE-8000) [THREESCALE-8007](https://issues.redhat.com/browse/THREESCALE-8007)
+- Fixed jwk alg confusion [PR #1329](https://github.com/3scale/APIcast/pull/1329) [THREESCALE-8249](https://issues.redhat.com/browse/THREESCALE-8249)
+- Fixed issue with resolving target server hostnames to IP when using CONNECT method [PR #1323](https://github.com/3scale/APIcast/pull/1323) [THREESCALE-7967](https://issues.redhat.com/browse/THREESCALE-7967)
+- Fixed issue with resolving target server hostnames to IPs when forwarding requests through http/s proxy [PR #1323](https://github.com/3scale/APIcast/pull/1323) [THREESCALE-7967](https://issues.redhat.com/browse/THREESCALE-7967)
+- Fixed dirty context [PR #1328](https://github.com/3scale/APIcast/pull/1328) [THREESCALE-8000](https://issues.redhat.com/browse/THREESCALE-8000) [THREESCALE-8007](https://issues.redhat.com/browse/THREESCALE-8007) [THREESCALE-8252](https://issues.redhat.com/browse/THREESCALE-8252)
+- Fixed dirty context (part 2 of PR #1328) when tls termination policy is in the policy chain [PR #1333](https://github.com/3scale/APIcast/pull/1333)
+
+## [3.11.0] 2022-02-17
+
+### Fixed
+
 - Fixed hostname_rewrite incompatibility with Routing Policy [PR #1263](https://github.com/3scale/APIcast/pull/1263) [THREESCALE-6723](https://issues.redhat.com/browse/THREESCALE-6723)
 - Fixed issues with URI when using Routing Policy [PR #1245](https://github.com/3scale/APIcast/pull/1245) [THREESCALE-6410](https://issues.redhat.com/browse/THREESCALE-6410)
 - Fixed typo on TLS jsonschema [PR #1260](https://github.com/3scale/APIcast/pull/1260) [THREESCALE-6390](https://issues.redhat.com/browse/THREESCALE-6390)

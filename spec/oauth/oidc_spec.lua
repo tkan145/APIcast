@@ -45,6 +45,11 @@ describe('OIDC', function()
       config = { id_token_signing_alg_values_supported = { 'RS256', 'HS256' } },
       keys = { somekid = { pem = rsa.pub, alg = 'RS256' } },
     }
+    local oidc_config_no_alg = {
+      issuer = 'https://example.com/auth/realms/apicast',
+      config = { id_token_signing_alg_values_supported = { 'RS256', 'HS256' } },
+      keys = { somekid = { pem = rsa.pub } },
+    }
 
     before_each(function() jwt_validators.set_system_clock(function() return 0 end) end)
 
@@ -266,6 +271,43 @@ describe('OIDC', function()
 
       local credentials, _, _, err = oidc:transform_credentials({ access_token = access_token })
       assert(credentials, err)
+    end)
+
+    it('validation passes when jwk.alg does not exist', function()
+      local oidc = _M.new(oidc_config_no_alg)
+      local access_token = jwt:sign(rsa.private, {
+        header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
+        payload = {
+          iss = oidc_config.issuer,
+          aud = 'notused',
+          azp = 'ce3b2e5e',
+          sub = 'someone',
+          nbf = 0,
+          exp = ngx.now() + 10,
+          typ = 'Bearer'
+        },
+      })
+
+      local credentials, _, _, err = oidc:transform_credentials({ access_token = access_token })
+      assert(credentials, err)
+    end)
+
+    it('token key id not found', function()
+      local oidc = _M.new(oidc_config)
+      local access_token = jwt:sign(rsa.private, {
+        header = { typ = 'JWT', alg = 'RS256', kid = 'otherkid' },
+        payload = {
+          iss = oidc_config.issuer,
+          aud = 'notused',
+          azp = 'ce3b2e5e',
+          sub = 'someone',
+          exp = ngx.now() + 10,
+        },
+      })
+
+      local credentials, _, _, err = oidc:transform_credentials({ access_token = access_token })
+
+      assert.match('jwk not found', err, nil, true)
     end)
 
     describe('getting client_id from any JWT claim', function()

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed: OIDC jwt key verification [PR #1389](https://github.com/3scale/APIcast/pull/1389) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)
+
 ## [3.13.0] 2023-02-07
 
 ### Fixed

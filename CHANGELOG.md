@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.0] 2023-02-07
+
 ### Fixed
 
 - Fixed NGINX filters policy error [PR #1339](https://github.com/3scale/APIcast/pull/1339) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
@@ -17,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed: JWKs without alg field cause the JWT validation process to fail [PR #1371](https://github.com/3scale/APIcast/pull/1371) [THREESCALE-8601](https://issues.redhat.com/browse/THREESCALE-8601)
 
 ### Added
+
+- Updated policy list [PR #1374](https://github.com/3scale/APIcast/pull/1374)
 
 ## [3.12.0] 2022-07-07
 
@@ -965,3 +969,4 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0
 [3.11.0]: https://github.com/3scale/apicast/compare/v3.10.0..v3.11.0
 [3.12.0]: https://github.com/3scale/apicast/compare/v3.11.0..v3.12.0
+[3.13.0]: https://github.com/3scale/apicast/compare/v3.12.0..v3.13.0

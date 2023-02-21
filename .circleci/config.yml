@@ -106,6 +106,7 @@ executors:
     docker:
     - image: docker:stable
     environment:
+      COMPOSE_TLS_VERSION: "TLSv1_2"
       DOCKER_COMPOSE_VERSION: "1.16.1"
 
   openresty:

@@ -17,9 +17,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-          - apicast-rocks-{{ arch }}-{{ checksum "gateway/Roverfile.lock" }}
-          - apicast-rocks-{{ arch }}-{{ .Branch }}
-          - apicast-rocks-{{ arch }}-master
+          - apicast-rocks-v2.13-{{ arch }}-{{ checksum "gateway/Roverfile.lock" }}
+          - apicast-rocks-v2.13-{{ arch }}-{{ .Branch }}
+          - apicast-rocks-v2.13-{{ arch }}-master
 
   restore-perl-cache:
     steps:
@@ -171,7 +171,7 @@ jobs:
       - restore-lua-cache
       - run: make lua_modules
       - save_cache:
-          key: apicast-rocks-{{ arch }}-{{ checksum "gateway/Roverfile.lock" }}
+          key: apicast-rocks-v2.13-{{ arch }}-{{ checksum "gateway/Roverfile.lock" }}
           <<: *lua-cache-paths
       - persist_to_workspace:
           root: .

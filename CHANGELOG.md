@@ -5,9 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-
-## [3.11.0] 2021-09-03
 ## [Unreleased]
+
+## [3.12.2] 2023-02-21
+
+- Fixed: OIDC jwt key verification [PR #1391](https://github.com/3scale/APIcast/pull/1391) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)
+
+## [3.12.0] 2022-07-07
+
+### Fixed
+
+- Fixed warning messages [PR #1318](https://github.com/3scale/APIcast/pull/1318) [THREESCALE-7906](https://issues.redhat.com/browse/THREESCALE-7906)
+- Fixed dirty context [PR #1328](https://github.com/3scale/APIcast/pull/1328) [THREESCALE-8000](https://issues.redhat.com/browse/THREESCALE-8000) [THREESCALE-8007](https://issues.redhat.com/browse/THREESCALE-8007)
+- Fixed jwk alg confusion [PR #1329](https://github.com/3scale/APIcast/pull/1329) [THREESCALE-8249](https://issues.redhat.com/browse/THREESCALE-8249)
+- Fixed issue with resolving target server hostnames to IP when using CONNECT method [PR #1323](https://github.com/3scale/APIcast/pull/1323) [THREESCALE-7967](https://issues.redhat.com/browse/THREESCALE-7967)
+- Fixed issue with resolving target server hostnames to IPs when forwarding requests through http/s proxy [PR #1323](https://github.com/3scale/APIcast/pull/1323) [THREESCALE-7967](https://issues.redhat.com/browse/THREESCALE-7967)
+- Fixed dirty context [PR #1328](https://github.com/3scale/APIcast/pull/1328) [THREESCALE-8000](https://issues.redhat.com/browse/THREESCALE-8000) [THREESCALE-8007](https://issues.redhat.com/browse/THREESCALE-8007) [THREESCALE-8252](https://issues.redhat.com/browse/THREESCALE-8252)
+- Fixed dirty context (part 2 of PR #1328) when tls termination policy is in the policy chain [PR #1333](https://github.com/3scale/APIcast/pull/1333)
+
+## [3.11.0] 2022-02-17
 
 ### Fixed
 
@@ -948,3 +964,5 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.10.0-beta1]: https://github.com/3scale/apicast/compare/v3.10.0-alpha2..v3.10.0-beta1
 [3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0
 [3.11.0]: https://github.com/3scale/apicast/compare/v3.10.0..v3.11.0
+[3.12.0]: https://github.com/3scale/apicast/compare/v3.11.0..v3.12.0
+[3.12.2]: https://github.com/3scale/apicast/compare/v3.12.0..v3.12.2

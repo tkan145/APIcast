@@ -979,4 +979,3 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.12.0]: https://github.com/3scale/apicast/compare/v3.11.0..v3.12.0
 [3.12.2]: https://github.com/3scale/apicast/compare/v3.12.0..v3.12.2
 [3.13.0]: https://github.com/3scale/apicast/compare/v3.12.0..v3.13.0
-[3.13.2]: https://github.com/3scale/apicast/compare/v3.13.0..v3.13.2

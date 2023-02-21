@@ -186,7 +186,8 @@ function _M:verify(jwt, cache_key)
   local jwk_obj = find_jwk(jwt, self.keys)
 
   if jwk_obj == nil then
-    return false, '[jwk] jwk not found, token might not belong to right realm'
+    ngx.log(ngx.ERR, "[jwt] failed verification for kid: ", jwt.header.kid)
+    return false, '[jwk] not found, token might belong to a different realm'
   end
 
   local pubkey = jwk_obj.pem

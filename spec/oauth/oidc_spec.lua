@@ -292,7 +292,7 @@ describe('OIDC', function()
       assert(credentials, err)
     end)
 
-    it('token key id not found', function()
+    it('token was signed by a different key', function()
       local oidc = _M.new(oidc_config)
       local access_token = jwt:sign(rsa.private, {
         header = { typ = 'JWT', alg = 'RS256', kid = 'otherkid' },
@@ -307,7 +307,25 @@ describe('OIDC', function()
 
       local credentials, _, _, err = oidc:transform_credentials({ access_token = access_token })
 
-      assert.match('jwk not found', err, nil, true)
+      assert.match('[jwk] not found, token might belong to a different realm', err, nil, true)
+    end)
+
+    it('token was signed by a different issuer', function()
+      local oidc = _M.new(oidc_config)
+      local access_token = jwt:sign(rsa.private, {
+        header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
+        payload = {
+          iss = 'other_issuer',
+          aud = 'notused',
+          azp = 'ce3b2e5e',
+          sub = 'someone',
+          exp = ngx.now() + 10,
+        },
+      })
+
+      local credentials, _, _, err = oidc:transform_credentials({ access_token = access_token })
+
+      assert.match('Claim \'iss\' (\'other_issuer\') returned failure', err, nil, true)
     end)
 
     describe('getting client_id from any JWT claim', function()

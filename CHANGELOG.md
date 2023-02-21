@@ -5,28 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-
-## [3.11.0] 2021-09-03
 ## [Unreleased]
 
-### Fixed
+## [3.12.2] 2023-02-21
 
-- Fixed: OIDC jwt key verification [PR #1389](https://github.com/3scale/APIcast/pull/1389) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)
-
-## [3.13.0] 2023-02-07
-
-### Fixed
-
-- Fixed NGINX filters policy error [PR #1339](https://github.com/3scale/APIcast/pull/1339) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
-- Fix to avoid uninitialized variables when request URI is too large [PR #1340](https://github.com/3scale/APIcast/pull/1340) [THREESCALE-7906](https://issues.redhat.com/browse/THREESCALE-7906)
-- Fixed issue where request path is stripped for proxied https requests [PR #1342](https://github.com/3scale/APIcast/pull/1342) [THREESCALE-8426](https://issues.redhat.com/browse/THREESCALE-8426)
-- Bumped liquid-lua to version 0.2.0-2 [PR #1369](https://github.com/3scale/APIcast/pull/1369) - includes: [THREESCALE-8483](https://issues.redhat.com/browse/THREESCALE-8483) and [THREESCALE-8484](https://issues.redhat.com/browse/THREESCALE-8484)
-- Fixed: APIcast could not retrieve the latest version of the proxy config [PR #1370](https://github.com/3scale/APIcast/pull/1370) [THREESCALE-8485](https://issues.redhat.com/browse/THREESCALE-8485)
-- Fixed: JWKs without alg field cause the JWT validation process to fail [PR #1371](https://github.com/3scale/APIcast/pull/1371) [THREESCALE-8601](https://issues.redhat.com/browse/THREESCALE-8601)
-
-### Added
-
-- Updated policy list [PR #1374](https://github.com/3scale/APIcast/pull/1374)
+- Fixed: OIDC jwt key verification [PR #1391](https://github.com/3scale/APIcast/pull/1391) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)
 
 ## [3.12.0] 2022-07-07
 
@@ -981,3 +964,5 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.10.0-beta1]: https://github.com/3scale/apicast/compare/v3.10.0-alpha2..v3.10.0-beta1
 [3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0
 [3.11.0]: https://github.com/3scale/apicast/compare/v3.10.0..v3.11.0
+[3.12.0]: https://github.com/3scale/apicast/compare/v3.11.0..v3.12.0
+[3.12.2]: https://github.com/3scale/apicast/compare/v3.12.0..v3.12.2

@@ -23,6 +23,7 @@ local insert = table.insert
 local concat = table.concat
 local re = require('ngx.re')
 
+
 local function parse_nameservers()
     local resolver = require('resty.resolver')
     local nameservers = {}
@@ -83,6 +84,16 @@ local function env_value_ref(name)
     return setmetatable({ name = name }, env_value_mt)
 end
 
+local function read_opentracing_tracer(varname)
+    local opentracing_tracer = env_value_ref(varname)
+
+    if tostring(opentracing_tracer) ~= nil then
+        ngx.log(ngx.WARN, 'opentracing use is DEPRECATED. Use Opentelemetry instead with OPENTELEMETRY env var')
+    end
+
+    return opentracing_tracer
+end
+
 local _M = {}
 ---
 -- @field default_environment Default environment name.
@@ -98,6 +109,8 @@ _M.default_environment = 'production'
 -- @tfield ?string opentracing_tracer loads an opentracing tracer library, for example: jaeger
 -- @tfield ?string opentracing_config opentracing config file to load
 -- @tfield ?string opentracing_forward_header opentracing http header to forward upstream
+-- @tfield ?string opentelemetry enables server instrumentation using opentelemetry SDKs
+-- @tfield ?string opentelemetry_config_file opentelemetry config file to load
 -- @tfield ?string upstream_retry_cases error cases where the call to the upstream should be retried
 --         follows the same format as https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream
 -- @tfield ?policy_chain policy_chain @{policy_chain} instance
@@ -113,9 +126,11 @@ _M.default_config = {
     proxy_ssl_session_reuse = env_value_ref('APICAST_PROXY_HTTPS_SESSION_REUSE'),
     proxy_ssl_password_file = env_value_ref('APICAST_PROXY_HTTPS_PASSWORD_FILE'),
     proxy_ssl_verify = resty_env.enabled('OPENSSL_VERIFY'),
-    opentracing_tracer = env_value_ref('OPENTRACING_TRACER'),
+    opentracing_tracer = read_opentracing_tracer('OPENTRACING_TRACER'),
     opentracing_config = env_value_ref('OPENTRACING_CONFIG'),
     opentracing_forward_header = env_value_ref('OPENTRACING_FORWARD_HEADER'),
+    opentelemetry = env_value_ref('OPENTELEMETRY'),
+    opentelemetry_config_file = env_value_ref('OPENTELEMETRY_CONFIG'),
     upstream_retry_cases = env_value_ref('APICAST_UPSTREAM_RETRY_CASES'),
     http_keepalive_timeout = env_value_ref('HTTP_KEEPALIVE_TIMEOUT'),
     policy_chain = require('apicast.policy_chain').default(),

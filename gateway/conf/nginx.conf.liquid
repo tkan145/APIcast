@@ -9,6 +9,10 @@ env OPENSSL_VERIFY;
   {% for file in "modules/ngx_http_opentracing_module.so" | filesystem %}
 load_module {{file}};
   {% endfor %}
+{% elsif opentelemetry != empty %}
+  {% for file in "modules/otel_ngx_module.so" | filesystem %}
+load_module {{file}};
+  {% endfor %}
 {% else %}
   {% if timer_resolution %}
     timer_resolution {{ timer_resolution }};
@@ -79,6 +83,11 @@ http {
   {% if opentracing_tracer != empty %}
     {%- capture tracer_conf %}conf.d/opentracing/{{ opentracing_tracer }}.conf.liquid{%- endcapture -%}
     {% include tracer_conf %}
+  {% endif %}
+
+  {% if opentelemetry != empty %}
+    {%- capture otel_conf %}conf.d/opentelemetry/otel.conf.liquid{%- endcapture -%}
+    {% include otel_conf %}
   {% endif %}
 
   {% for file in template | default: 'http.d/apicast.conf.liquid' | filesystem %}

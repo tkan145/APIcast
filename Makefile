@@ -12,7 +12,7 @@ NPROC ?= $(firstword $(shell nproc 2>/dev/null) 1)
 
 SEPARATOR="\n=============================================\n"
 
-DEVEL_IMAGE ?= quay.io/3scale/apicast-ci:openresty-1.19.3-pr1381
+DEVEL_IMAGE ?= quay.io/3scale/apicast-ci:openresty-1.19.3-pr1379
 DEVEL_DOCKERFILE ?= Dockerfile.devel
 
 RUNTIME_IMAGE ?= quay.io/3scale/apicast:latest
@@ -63,9 +63,9 @@ export COMPOSE_PROJECT_NAME
 # The development image is also used in CI (circleCI) as the 'openresty' executor
 # When the development image changes, make sure to:
 # * build a new development image:
-#     make dev-build IMAGE_NAME=quay.io/3scale/apicast-ci:openresty-1.19.3-pr1381
+#     make dev-build IMAGE_NAME=quay.io/3scale/apicast-ci:openresty-1.19.3-pr{NUM}
 # * push to quay.io/3scale/apicast-ci with a fixed tag (avoid floating tags)
-#     docker push quay.io/3scale/apicast-ci:openresty-1.19.3-pr1381
+#     docker push quay.io/3scale/apicast-ci:openresty-1.19.3-pr{NUM}
 # * update .circleci/config.yaml openresty executor with the image URL
 .PHONY: dev-build
 dev-build: export OPENRESTY_RPM_VERSION?=1.19.3
@@ -163,6 +163,12 @@ bash: ## Run bash inside the runtime image
 gateway-logs: export IMAGE_NAME = does-not-matter
 gateway-logs:
 	$(DOCKER_COMPOSE) logs gateway
+
+opentelemetry-gateway: ## run gateway instrumented with opentelemetry
+	$(DOCKER_COMPOSE) run opentelemetry-instrumented-gateway
+
+opentracing-gateway: ## run gateway instrumented with opentracing
+	$(DOCKER_COMPOSE) run opentracing-instrumented-gateway
 
 test-runtime-image: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.

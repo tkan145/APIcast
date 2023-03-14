@@ -20,7 +20,12 @@ should just say service is not found
 )
 --- upstream
 location /admin/api/account/proxy_configs/production.json {
-    echo '{}';
+  content_by_lua_block {
+    expected = "host=localhost&version=latest"
+    require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+
+    ngx.say(require('cjson').encode({}))
+  }
 }
 --- request: GET /t
 --- error_code: 404
@@ -53,38 +58,43 @@ should correctly route the request
   'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}"
 )
 --- upstream env
-    location = /admin/api/account/proxy_configs/production.json {
-        echo '
+location = /admin/api/account/proxy_configs/production.json {
+  content_by_lua_block {
+    expected = "host=localhost&version=latest"
+    require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+
+    local response = {
+      proxy_configs = {
         {
-            "proxy_configs" : [
-            {
-                "proxy_config": {
-                    "content": {
-                        "id": 1,
-                        "backend_version": 1,
-                        "proxy": {
-                            "hosts": [ "localhost" ],
-                            "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
-                            "proxy_rules": [
-                                { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
-                            ]
-                        }
-                    }
+          proxy_config = {
+            content = {
+              id = 1, backend_version = 1,
+              proxy = {
+                hosts = { 'localhost' },
+                api_backend = 'http://test:$TEST_NGINX_SERVER_PORT/',
+                proxy_rules = {
+                  { pattern = '/t', http_method = 'GET', metric_system_name = 'test', delta = 1 }
                 }
-            }]
-        }';
-    }
-
-    location /t {
-        echo "all ok";
-    }
-
---- backend
-    location /transactions/authrep.xml {
-      content_by_lua_block {
-        ngx.exit(200)
+              }
+            }
+          }
+        }
       }
     }
+
+    ngx.say(require('cjson').encode(response))
+  }
+}
+
+location /t {
+    echo "all ok";
+}
+--- backend
+location /transactions/authrep.xml {
+  content_by_lua_block {
+    ngx.exit(200)
+  }
+}
 --- request
 GET /t?user_key=fake
 --- error_code: 200

@@ -274,9 +274,9 @@ function _M:call(host)
   -- APICAST_SERVICE_%s_CONFIGURATION_VERSION does not work then THREESCALE_PORTAL_ENDPOINT
   -- points to master (the API does not allow it), hence error is returned
 
-  use_service_version = is_service_version_set()
-  use_service_list = is_service_list_set()
-  use_service_filter_by_url = is_service_filter_by_url_set()
+  local use_service_version = is_service_version_set()
+  local use_service_list = is_service_list_set()
+  local use_service_filter_by_url = is_service_filter_by_url_set()
 
   if use_service_version and proxy_config_path then
     return nil, 'APICAST_SERVICE_%s_CONFIGURATION_VERSION cannot be used when proxy config path is provided'

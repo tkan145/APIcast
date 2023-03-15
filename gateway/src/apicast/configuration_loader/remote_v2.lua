@@ -339,6 +339,38 @@ local services_subset = function()
   end
 end
 
+
+-- Returns existing services in a single page
+-- @param http_client the http client object
+-- @param portal_endpoint 3scale API endpoint
+-- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
+-- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
+local services_per_page = function(http_client, portal_endpoint, page, per_page)
+  local encoded_args = ngx.encode_args({page = page, per_page = per_page})
+  local query_args = encoded_args ~= '' and '?'..encoded_args
+  local base_url = services_index_endpoint(portal_endpoint)
+  local url = query_args and base_url..query_args or base_url
+
+  local res, err = http_client.get(url)
+
+  if not res and err then
+    ngx.log(ngx.DEBUG, 'services get error: ', err, ' url: ', url)
+    return nil, err
+  end
+
+  ngx.log(ngx.DEBUG, 'services get status: ', res.status, ' url: ', url)
+
+  if res.status == 200 then
+    local ok, res = pcall(cjson.decode, res.body)
+    if not ok then return nil, res end
+    local json = res
+
+    return json.services or array()
+  else
+    return nil, status_code_error(res)
+  end
+end
+
 -- Returns a table with services.
 -- There are 2 cases:
 -- A) with APICAST_SERVICES_LIST. The method returns a table where each element
@@ -367,23 +399,32 @@ function _M:services()
     return nil, 'no endpoint'
   end
 
-  local url = services_index_endpoint(endpoint)
-  local res, err = http_client.get(url)
+  local SERVICES_PER_PAGE = 500
+  -- Keep asking until the results length is different than "per_page" param
+  -- If the 3scale API endpoint version does not support paginations AND
+  -- the number of  results equals to SERVICES_PER_PAGE, the gateway will keep fetching
+  -- services indefinitely. The 3scale API endpoint version must support pagination to
+  -- avoid endless loop.
 
-  if not res and err then
-    ngx.log(ngx.DEBUG, 'services get error: ', err, ' url: ', url)
-    return nil, err
-  end
+  local all_results_per_page = false
+  local current_page = 1
+  local services = array()
 
-  ngx.log(ngx.DEBUG, 'services get status: ', res.status, ' url: ', url)
+  repeat
+    local page_services, err = services_per_page(http_client, endpoint, current_page, SERVICES_PER_PAGE)
+    if not page_services and err then
+      return nil, err
+    end
 
-  if res.status == 200 then
-    local json = cjson.decode(res.body)
+    for _, service in ipairs(page_services) do
+      insert(services, service)
+    end
 
-    return json.services or array()
-  else
-    return nil, status_code_error(res)
-  end
+    all_results_per_page = #page_services == SERVICES_PER_PAGE
+    current_page = current_page + 1
+  until(not  all_results_per_page)
+
+  return services
 end
 
 function _M:oidc_issuer_configuration(service)

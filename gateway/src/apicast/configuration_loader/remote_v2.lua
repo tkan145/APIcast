@@ -4,7 +4,6 @@ local len = string.len
 local ipairs = ipairs
 local insert = table.insert
 local rawset = rawset
-local encode_args = ngx.encode_args
 local tonumber = tonumber
 local pcall = pcall
 
@@ -163,14 +162,6 @@ local function is_service_version_set()
   return false
 end
 
--- Returns a table that represents paths and query parameters for the current endpoint:
--- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
--- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=version
-local function configuration_endpoint_params(env, host, portal_endpoint_path)
-  return portal_endpoint_path and {path = env, args = {host = host}}
-    or {path = '/admin/api/account/proxy_configs/' .. env, args = {host = host, version = "latest"} }
-end
-
 function _M:index_per_service()
   local http_client = self.http_client
 
@@ -226,7 +217,7 @@ function _M:index_per_service()
   return cjson.encode(configs)
 end
 
-function _M:index(host)
+function _M:index_custom_path(host)
   local http_client = self.http_client
 
   if not http_client then
@@ -240,10 +231,43 @@ function _M:index(host)
     return nil, 'missing environment'
   end
 
-  local endpoint_params = configuration_endpoint_params(env, host, proxy_config_path)
-  local base_url = resty_url.join(self.endpoint, endpoint_params.path .. '.json')
-  local query_args = encode_args(endpoint_params.args) ~= '' and '?'..encode_args(endpoint_params.args)
+  -- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
+  local base_url = resty_url.join(self.endpoint, env..'.json')
+  local encoded_args = ngx.encode_args({host = host})
+  local query_args = encoded_args ~= '' and '?'..encoded_args
   local url = query_args and base_url..query_args or base_url
+
+  local res, err = http_client.get(url)
+  if res and res.status == 200 and res.body then
+    ngx.log(ngx.DEBUG, 'index downloaded config from url: ', url)
+    return parse_resp_body(self, res.body)
+  elseif not res and err then
+    ngx.log(ngx.DEBUG, 'index get error: ', err, ' url: ', url)
+    return nil, err
+  end
+
+  ngx.log(ngx.DEBUG, 'index get status: ', res.status, ' url: ', url)
+
+  return nil, 'invalid status'
+end
+
+function _M:index(host)
+  local http_client = self.http_client
+
+  if not http_client then
+    return nil, 'not initialized'
+  end
+
+  local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
+
+  if not env then
+    return nil, 'missing environment'
+  end
+
+  -- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=latest
+  local base_url = resty_url.join(self.endpoint, '/admin/api/account/proxy_configs/'..env..'.json')
+  local query_args = '?'..ngx.encode_args({host = host, version = "latest"})
+  local url = base_url..query_args
 
   local res, err = http_client.get(url)
   if res and res.status == 200 and res.body then
@@ -296,6 +320,8 @@ function _M:call(host)
     return self:index_per_service()
   elseif use_service_filter_by_url then
     return self:index_per_service()
+  elseif proxy_config_path then
+    return self:index_custom_path(host)
   else
     return self:index(host)
   end

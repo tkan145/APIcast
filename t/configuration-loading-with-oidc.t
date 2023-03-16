@@ -65,6 +65,30 @@ location = /admin/api/account/proxy_configs/production.json {
   }
 }
 
+location = /issuer/endpoint/.well-known/openid-configuration {
+  content_by_lua_block {
+    local base = "http://" .. ngx.var.host .. ':' .. ngx.var.server_port
+    ngx.header.content_type = 'application/json;charset=utf-8'
+    ngx.say(require('cjson').encode {
+        issuer = 'https://example.com/auth/realms/apicast',
+        id_token_signing_alg_values_supported = { 'RS256' },
+        jwks_uri = base .. '/jwks',
+    })
+  }
+}
+
+location = /jwks {
+  content_by_lua_block {
+    ngx.header.content_type = 'application/json;charset=utf-8'
+    ngx.say([[
+        { "keys": [
+            { "kty":"RSA","kid":"somekid",
+              "n":"sKXP3pwND3rkQ1gx9nMb4By7bmWnHYo2kAAsFD5xq0IDn26zv64tjmuNBHpI6BmkLPk8mIo0B1E8MkxdKZeozQ","e":"AQAB" }
+        ] }
+    ]])
+  }
+}
+
 location /transactions/authrep.xml {
   content_by_lua_block {
     ngx.exit(200)

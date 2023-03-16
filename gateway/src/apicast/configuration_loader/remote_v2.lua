@@ -267,10 +267,9 @@ end
 -- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
 -- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
 local proxy_configs_per_page = function(http_client, portal_endpoint, host, env, page, per_page)
-  local encoded_args = ngx.encode_args({
-    host = host, version = "latest", page = page, per_page = per_page
-  })
-  local query_args = '?'..encoded_args
+  local args = { host = host, version = "latest", page = page, per_page = per_page }
+
+  local query_args = '?'..ngx.encode_args(args)
   local base_url = proxy_configs_index_endpoint(portal_endpoint, env)
   local url = base_url..query_args
 

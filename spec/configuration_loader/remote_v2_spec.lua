@@ -4,7 +4,6 @@ local cjson = require 'cjson'
 local user_agent = require 'apicast.user_agent'
 local env = require 'resty.env'
 local format = string.format
-local encode_args = ngx.encode_args
 
 local service_generator = function(n)
   local services = {}
@@ -817,13 +816,15 @@ UwIDAQAB
     end)
 
     it('invalid status is handled', function()
-      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?version=latest' }.
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+      ngx.encode_args({ page = 1, per_page = 500, version = "latest" })}.
         respond_with{ status = 512, body = nil}
       assert.same({ nil, 'invalid status' }, { loader:index() })
     end)
 
-    it('returns configuration for all services with no host', function()
-      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?version=latest' }.
+    it('returns configuration for all proxy configs with no host', function()
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+      ngx.encode_args({ version = "latest", page = 1, per_page = 500 })}.
         respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {
@@ -847,7 +848,7 @@ UwIDAQAB
 
     it('returns configuration for all services with host', function()
       test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
-      ngx.encode_args({ host = "foobar.example.com", version = "latest" })}.
+      ngx.encode_args({ host = "foobar.example.com", version = "latest", page = 1, per_page = 500 })}.
         respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {
@@ -871,7 +872,7 @@ UwIDAQAB
 
     it('returns nil and an error if the config is not a valid', function()
       test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
-      ngx.encode_args({ host = "foobar.example.com", version = "latest" })}.
+      ngx.encode_args({ host = "foobar.example.com", version = "latest", page = 1, per_page = 500 })}.
       respond_with{ status = 200, body = '{ invalid json }'}
 
       local config, err = loader:index('foobar.example.com')
@@ -882,7 +883,7 @@ UwIDAQAB
 
     it('returns configuration with oidc config complete', function()
       test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
-      ngx.encode_args({ host = "foobar.example.com", version = "latest" })}.
+      ngx.encode_args({ host = "foobar.example.com", version = "latest", page = 1, per_page = 500 })}.
         respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {
@@ -961,7 +962,7 @@ UwIDAQAB
     it('returns configuration from admin portal endpoint', function()
       test_backend.expect{
         url = 'http://example.com/admin/api/account/proxy_configs/production.json?' ..
-        ngx.encode_args({ host = "foobar.example.com", version = "latest" })
+        ngx.encode_args({ host = "foobar.example.com", version = "latest", page = 1, per_page = 500 })
       }.respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {
@@ -1108,7 +1109,7 @@ UwIDAQAB
 
     it('by default call index', function()
       test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
-      ngx.encode_args({ host = "foobar.example.com", version = "latest" })}.
+      ngx.encode_args({ host = "foobar.example.com", version = "latest", page = 1, per_page = 500 })}.
         respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {

@@ -87,6 +87,10 @@ local function services_index_endpoint(portal_endpoint)
   return resty_url.join(portal_endpoint, '/admin/api/services.json')
 end
 
+local function proxy_configs_index_endpoint(portal_endpoint, env)
+  return resty_url.join(portal_endpoint, '/admin/api/account/proxy_configs/'..env..'.json')
+end
+
 local function service_config_endpoint(portal_endpoint, service_id, env, version)
   local version_override = resty_env.get(
       format('APICAST_SERVICE_%s_CONFIGURATION_VERSION', service_id)
@@ -99,14 +103,8 @@ local function service_config_endpoint(portal_endpoint, service_id, env, version
   )
 end
 
-local function parse_resp_body(self, resp_body)
-  local ok, res = pcall(cjson.decode, resp_body)
-  if not ok then return nil, res end
-  local json = res
-
+local function parse_proxy_configs(self, proxy_configs)
   local config = { services = array(), oidc = array() }
-
-  local proxy_configs = json.proxy_configs or {}
 
   for i, proxy_conf in ipairs(proxy_configs) do
     local proxy_config = proxy_conf.proxy_config
@@ -134,6 +132,16 @@ local function parse_resp_body(self, resp_body)
     config.services[i] = original_proxy_config.content
   end
   return cjson.encode(config)
+end
+
+local function parse_resp_body(self, resp_body)
+  local ok, res = pcall(cjson.decode, resp_body)
+  if not ok then return nil, res end
+  local json = res
+
+  local proxy_configs = json.proxy_configs or {}
+
+  return parse_proxy_configs(self, proxy_configs)
 end
 
 local function is_service_filter_by_url_set()
@@ -251,6 +259,43 @@ function _M:index_custom_path(host)
   return nil, 'invalid status'
 end
 
+-- Returns existing proxy configs in a single page
+-- @param http_client the http client object
+-- @param portal_endpoint 3scale API endpoint
+-- @param host proxy config filter based on request hostname. Optional, can be nil.
+-- @param env gateway environment
+-- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
+-- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
+local proxy_configs_per_page = function(http_client, portal_endpoint, host, env, page, per_page)
+  local encoded_args = ngx.encode_args({
+    host = host, version = "latest", page = page, per_page = per_page
+  })
+  local query_args = '?'..encoded_args
+  local base_url = proxy_configs_index_endpoint(portal_endpoint, env)
+  local url = base_url..query_args
+
+  -- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=latest&page=1&per_page=500
+  local res, err = http_client.get(url)
+
+  if not res and err then
+    ngx.log(ngx.DEBUG, 'proxy configs get error: ', err, ' url: ', url)
+    return nil, err
+  end
+
+  ngx.log(ngx.DEBUG, 'proxy configs get status: ', res.status, ' url: ', url)
+
+  if res and res.status == 200 and res.body then
+    local ok, res = pcall(cjson.decode, res.body)
+    if not ok then return nil, res end
+    local json = res
+
+    return json.proxy_configs or array()
+  else
+    ngx.log(ngx.DEBUG, 'proxy configs get error: ', status_code_error(res), ' url: ', url)
+    return nil, 'invalid status'
+  end
+end
+
 function _M:index(host)
   local http_client = self.http_client
 
@@ -264,23 +309,32 @@ function _M:index(host)
     return nil, 'missing environment'
   end
 
-  -- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=latest
-  local base_url = resty_url.join(self.endpoint, '/admin/api/account/proxy_configs/'..env..'.json')
-  local query_args = '?'..ngx.encode_args({host = host, version = "latest"})
-  local url = base_url..query_args
+  local PROXY_CONFIGS_PER_PAGE = 500
+  -- Keep asking until the results length is different than "per_page" param
+  -- If the 3scale API endpoint version does not support paginations AND
+  -- the number of  results equals to PROXY_CONFIGS_PER_PAGE, the gateway will keep fetching
+  -- configs indefinitely. The 3scale API endpoint version must support pagination to
+  -- avoid endless loop.
 
-  local res, err = http_client.get(url)
-  if res and res.status == 200 and res.body then
-    ngx.log(ngx.DEBUG, 'index downloaded config from url: ', url)
-    return parse_resp_body(self, res.body)
-  elseif not res and err then
-    ngx.log(ngx.DEBUG, 'index get error: ', err, ' url: ', url)
-    return nil, err
-  end
+  local all_results_per_page = false
+  local current_page = 1
+  local proxy_configs = array()
 
-  ngx.log(ngx.DEBUG, 'index get status: ', res.status, ' url: ', url)
+  repeat
+    local page_proxy_configs, err = proxy_configs_per_page(http_client, self.endpoint, host, env, current_page, PROXY_CONFIGS_PER_PAGE)
+    if not page_proxy_configs and err then
+      return nil, err
+    end
 
-  return nil, 'invalid status'
+    for _, proxy_config in ipairs(page_proxy_configs) do
+      insert(proxy_configs, proxy_config)
+    end
+
+    all_results_per_page = #page_proxy_configs == PROXY_CONFIGS_PER_PAGE
+    current_page = current_page + 1
+  until(not  all_results_per_page)
+
+  return parse_proxy_configs(self, proxy_configs)
 end
 
 function _M:call(host)

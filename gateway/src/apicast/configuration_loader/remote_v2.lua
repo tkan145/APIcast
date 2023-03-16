@@ -100,17 +100,6 @@ local function service_config_endpoint(portal_endpoint, service_id, env, version
   )
 end
 
-local function endpoint_for_services_with_host(portal_endpoint, env, host)
-  local query_args = encode_args({ host = host, version = "latest" })
-
-  return format(
-      "%s/admin/api/account/proxy_configs/%s.json?%s",
-      portal_endpoint,
-      env,
-      query_args
-  )
-end
-
 local function parse_resp_body(self, resp_body)
   local ok, res = pcall(cjson.decode, resp_body)
   if not ok then return nil, res end
@@ -148,112 +137,48 @@ local function parse_resp_body(self, resp_body)
   return cjson.encode(config)
 end
 
-local function load_just_the_services_needed()
-  return resty_env.enabled('APICAST_LOAD_SERVICES_WHEN_NEEDED') and
-         resty_env.value('APICAST_CONFIGURATION_LOADER') == 'lazy'
-end
-
--- When the APICAST_LOAD_SERVICES_WHEN_NEEDED is enabled, but the config loader
--- is boot, APICAST_LOAD_SERVICES_WHEN_NEEDED is going to be ignored. But in
--- that case, env refers to a host and we need to reset it to pick the env
--- again.
-local function reset_env()
-  return resty_env.enabled('APICAST_LOAD_SERVICES_WHEN_NEEDED') and
-         resty_env.value('APICAST_CONFIGURATION_LOADER') == 'boot'
-end
-
-function _M:index(host)
-  local http_client = self.http_client
-
-  if not http_client then
-    return nil, 'not initialized'
-  end
-
-  local path = self.path
-
-  if not path then
-    return nil, 'wrong endpoint url'
-  end
-
-  local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
-
-  if not env then
-    return nil, 'missing environment'
-  end
-
-  local url = resty_url.join(self.endpoint, env .. '.json?' .. encode_args({ host = host }))
-  local res, err = http_client.get(url)
-
-  if not res and err then
-    ngx.log(ngx.DEBUG, 'index get error: ', err, ' url: ', url)
-    return nil, err
-  end
-
-  ngx.log(ngx.DEBUG, 'index get status: ', res.status, ' url: ', url)
-
-  if res.status == 200 then
-    return parse_resp_body(self, res.body)
+local function is_service_filter_by_url_set()
+  if resty_env.value('APICAST_SERVICES_FILTER_BY_URL') then
+    return true
   else
-    return nil, 'invalid status'
-  end
-end
-
-function _M:load_configs_for_env_and_host(env, host)
-  local url = endpoint_for_services_with_host(self.endpoint, env, host)
-
-  local response = self.http_client.get(url)
-
-  if response.status == 200 then
-    return parse_resp_body(self, response.body)
-  else
-    ngx.log(ngx.ERR, 'failed to load proxy configs')
     return false
   end
 end
 
-function _M:call(environment)
-  local load_just_for_host = load_just_the_services_needed()
+local function is_service_list_set()
+  if resty_env.value('APICAST_SERVICES_LIST') then
+    return true
+  else
+    return false
+  end
+end
 
-  local service_regexp_filter  = resty_env.value("APICAST_SERVICES_FILTER_BY_URL")
-  if service_regexp_filter then
-    local _, err = match("", service_regexp_filter, 'oj')
-    if err then
-      ngx.log(ngx.ERR, "APICAST_SERVICES_FILTER_BY_URL cannot compile, all services will be used: ", err)
-      service_regexp_filter = nil
+local function is_service_version_set()
+  local vars = resty_env.list()
+  for n, v in pairs(vars) do
+    if match(n, "APICAST_SERVICE_\\d+_CONFIGURATION_VERSION") and v and v ~= '' then
+        return true
     end
   end
+  return false
+end
 
-  if self == _M  or not self then
-    local host = environment
-    local m = _M.new()
-    local ret, err = m:index(host)
+-- Returns a table that represents paths and query parameters for the current endpoint:
+-- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
+-- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=version
+local function configuration_endpoint_params(env, host, portal_endpoint_path)
+  return portal_endpoint_path and {path = env, args = {host = host}}
+    or {path = '/admin/api/account/proxy_configs/' .. env, args = {host = host, version = "latest"} }
+end
 
-    if ret then
-      return ret, err
-    end
-
-    if load_just_for_host then
-      return m:call(host)
-    else
-      return m:call()
-    end
-  end
-
+function _M:index_per_service()
   local http_client = self.http_client
 
   if not http_client then
     return nil, 'not initialized'
   end
 
-  if load_just_for_host then
-    return self:load_configs_for_env_and_host(resty_env.value('THREESCALE_DEPLOYMENT_ENV'), environment)
-  end
-
-  local env = environment or resty_env.value('THREESCALE_DEPLOYMENT_ENV')
-
-  if reset_env() then
-    env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
-  end
+  local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
 
   if not env then
     return nil, 'missing environment'
@@ -266,6 +191,15 @@ function _M:call(environment)
   if not res and err then
     ngx.log(ngx.WARN, 'failed to get list of services: ', err, ' url: ', err.url)
     return nil, err
+  end
+
+  local service_regexp_filter  = resty_env.value("APICAST_SERVICES_FILTER_BY_URL")
+  if service_regexp_filter then
+    local _, err = match("", service_regexp_filter, 'oj')
+    if err then
+      ngx.log(ngx.ERR, "APICAST_SERVICES_FILTER_BY_URL cannot compile, all services will be used: ", err)
+      service_regexp_filter = nil
+    end
   end
 
   local config
@@ -290,6 +224,81 @@ function _M:call(environment)
   end
 
   return cjson.encode(configs)
+end
+
+function _M:index(host)
+  local http_client = self.http_client
+
+  if not http_client then
+    return nil, 'not initialized'
+  end
+
+  local proxy_config_path = self.path
+  local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
+
+  if not env then
+    return nil, 'missing environment'
+  end
+
+  local endpoint_params = configuration_endpoint_params(env, host, proxy_config_path)
+  local base_url = resty_url.join(self.endpoint, endpoint_params.path .. '.json')
+  local query_args = encode_args(endpoint_params.args) ~= '' and '?'..encode_args(endpoint_params.args)
+  local url = query_args and base_url..query_args or base_url
+
+  local res, err = http_client.get(url)
+  if res and res.status == 200 and res.body then
+    ngx.log(ngx.DEBUG, 'index downloaded config from url: ', url)
+    return parse_resp_body(self, res.body)
+  elseif not res and err then
+    ngx.log(ngx.DEBUG, 'index get error: ', err, ' url: ', url)
+    return nil, err
+  end
+
+  ngx.log(ngx.DEBUG, 'index get status: ', res.status, ' url: ', url)
+
+  return nil, 'invalid status'
+end
+
+function _M:call(host)
+  if self == _M  or not self then
+    local m = _M.new()
+    return m:call(host)
+  end
+
+  local proxy_config_path = self.path
+
+  -- uses proxy config specific endpoints unless APICAST_SERVICE_%s_CONFIGURATION_VERSION
+  -- When specific version for a specific service is defined,
+  -- loading services one by one is required
+  --
+  -- APICAST_SERVICE_%s_CONFIGURATION_VERSION does not work then THREESCALE_PORTAL_ENDPOINT
+  -- points to master (the API does not allow it), hence error is returned
+
+  local use_service_version = is_service_version_set()
+  local use_service_list = is_service_list_set()
+  local use_service_filter_by_url = is_service_filter_by_url_set()
+
+  if use_service_version and proxy_config_path then
+    return nil, 'APICAST_SERVICE_%s_CONFIGURATION_VERSION cannot be used when proxy config path is provided'
+  end
+
+  if use_service_list and proxy_config_path then
+    return nil, 'APICAST_SERVICES_LIST cannot be used when proxy config path is provided'
+  end
+
+  if use_service_filter_by_url and proxy_config_path then
+    return nil, 'APICAST_SERVICES_FILTER_BY_URL cannot be used when proxy config path is provided'
+  end
+
+  if use_service_version then
+    return self:index_per_service()
+  elseif use_service_list then
+    return self:index_per_service()
+  elseif use_service_filter_by_url then
+    return self:index_per_service()
+  else
+    return self:index(host)
+  end
 end
 
 local services_subset = function()
@@ -400,6 +409,5 @@ function _M:config(service, environment, version, service_regexp_filter)
     return nil, status_code_error(res)
   end
 end
-
 
 return _M

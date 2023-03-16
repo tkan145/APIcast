@@ -244,6 +244,7 @@ clean: ## Remove all docker containers and images
 	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) clean-containers
 	- docker rmi $(DEVEL_IMAGE) $(RUNTIME_IMAGE) apicast-runtime-image:latest apicast-development:latest --force
 	- rm -rf luacov.stats*.out
+	- rm -rf $(PROJECT_PATH)/t/servroot_*
 	make -C $(PROJECT_PATH) -f $(MKFILE_PATH) clean-deps
 
 doc/lua/index.html: $(shell find gateway/src -name '*.lua' 2>/dev/null) | lua_modules $(ROVER)

@@ -76,15 +76,11 @@ yay, api backend: test:$TEST_NGINX_SERVER_PORT
 --- upstream env
 
 server_name test.lvh.me;
-location = /admin/api/services.json {
-  content_by_lua_block {
-    ngx.say([[{ "services": [ { "service": { "id": 1337 } } ] }]])
-  }
-}
 
-location = /admin/api/services/1337/proxy/configs/production/latest.json {
+location = /admin/api/account/proxy_configs/production.json {
   content_by_lua_block {
-    ngx.say([[ { "proxy_config": { "content": { } } }]])
+    ngx.say([[{ "proxy_configs": [{"proxy_config": { "content": { } } }]}
+    ]])
   }
 }
 --- test
@@ -96,11 +92,9 @@ content_by_lua_block {
 
 --- error_code: 200
 --- error_log env
-proxy request: GET http://test.lvh.me:$TEST_NGINX_SERVER_PORT/admin/api/services.json HTTP/1.1
-proxy request: GET http://test.lvh.me:$TEST_NGINX_SERVER_PORT/admin/api/services/1337/proxy/configs/production/latest.json HTTP/1.1
+proxy request: GET http://test.lvh.me:$TEST_NGINX_SERVER_PORT/admin/api/account/proxy_configs/production.json?version=latest HTTP/1.1
 --- no_error_log
 [error]
-
 
 
 === TEST 3: Downloading configuration uses http proxy + TLS
@@ -118,15 +112,10 @@ listen $TEST_NGINX_RANDOM_PORT ssl;
 ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
 ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
 
-location = /admin/api/services.json {
+location = /admin/api/account/proxy_configs/production.json {
   content_by_lua_block {
-    ngx.say([[{ "services": [ { "service": { "id": 1337 } } ] }]])
-  }
-}
-
-location = /admin/api/services/1337/proxy/configs/production/latest.json {
-  content_by_lua_block {
-    ngx.say([[ { "proxy_config": { "content": { } } }]])
+    ngx.say([[{ "proxy_configs": [{"proxy_config": { "content": { } } }]}
+    ]])
   }
 }
 --- user_files fixture=tls.pl eval
@@ -140,6 +129,7 @@ content_by_lua_block {
 proxy request: CONNECT test.lvh.me:$TEST_NGINX_RANDOM_PORT
 --- no_error_log
 [error]
+
 
 === TEST 4: 3scale backend connection uses proxy
 --- env eval

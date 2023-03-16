@@ -241,7 +241,11 @@ UwIDAQAB
     end)
   end)
 
-  describe(':call', function()
+  describe(':index_per_service', function()
+    before_each(function()
+      env.set('THREESCALE_DEPLOYMENT_ENV', 'staging')
+    end)
+
     it('returns configuration for all services', function()
       test_backend.expect{ url = 'http://example.com/admin/api/services.json' }.
         respond_with{ status = 200, body = cjson.encode({ services = {
@@ -270,7 +274,7 @@ UwIDAQAB
           }
         )}
 
-      local config = assert(loader:call('staging'))
+      local config = assert(loader:index_per_service())
 
       assert.truthy(config)
       assert.equals('string', type(config))
@@ -282,7 +286,7 @@ UwIDAQAB
       test_backend.expect{ url = 'http://example.com/admin/api/services.json' }.
         respond_with{ status = 404 }
 
-      local config, err = loader:call('staging')
+      local config, err = loader:index_per_service()
 
       assert.falsy(config)
       assert.equal('invalid status: 404 (Not Found)', tostring(err))
@@ -292,7 +296,7 @@ UwIDAQAB
       test_backend.expect{ url = 'http://example.com/admin/api/services.json' }.
       respond_with{ status = 412 }
 
-      local config, err = loader:call('staging')
+      local config, err = loader:index_per_service()
 
       assert.falsy(config)
       assert.equal('invalid status: 412', tostring(err))
@@ -318,86 +322,12 @@ UwIDAQAB
       test_backend.expect{ url = 'http://example.com/admin/api/services/2/proxy/configs/staging/latest.json' }.
         respond_with{ status = 404 }
 
-      local config = assert(loader:call('staging'))
+      local config = assert(loader:index_per_service())
 
       assert.truthy(config)
       assert.equals('string', type(config))
 
       assert.equals(1, #(cjson.decode(config).services))
-    end)
-
-    describe('when configured to load the services by host', function()
-      before_each(function()
-        env.set('APICAST_CONFIGURATION_LOADER', 'lazy')
-        env.set('APICAST_LOAD_SERVICES_WHEN_NEEDED', '1')
-        env.set('THREESCALE_DEPLOYMENT_ENV', 'staging')
-      end)
-
-      local host = 'test_host.com'
-      local version = 'latest'
-
-      local proxy_config_response = {
-        version = 1,
-        environment = 'staging',
-        content = { id = 1, backend_version = 1 }
-      }
-
-      it('returns just the services for the host', function()
-        -- The important thing for this test is that it sends the request to
-        -- the endpoint that returns services by host
-        local endpoint = format(
-            "http://example.com/admin/api/account/proxy_configs/staging.json?%s",
-            encode_args({ host = host, version = version })
-        )
-
-        test_backend.expect { url = endpoint }.
-          respond_with{
-            status = 200,
-            body = cjson.encode(
-              {
-                proxy_configs = {
-                  {
-                    proxy_config = proxy_config_response
-                  }
-                }
-              }
-            )
-          }
-
-        local config = loader:call(host)
-
-        assert.equals(1, #(cjson.decode(config).services))
-        assert.same(proxy_config_response.content, cjson.decode(config).services[1])
-      end)
-
-      it('returns all the services if the config loader is "boot"', function()
-        env.set('APICAST_CONFIGURATION_LOADER', 'boot')
-
-        -- The important thing for this test is that it send the request to the
-        -- endpoint that returns a list of services first, and then, retrieves
-        -- the config for each of them.
-
-        local index_endpoint = 'http://example.com/admin/api/services.json'
-        local service_endpoint = 'http://example.com/admin/api/services/1/proxy/configs/staging/latest.json'
-
-        test_backend.expect{ url = index_endpoint }.
-          respond_with{
-            status = 200,
-            body = cjson.encode(
-                { services = { { service = { id = 1 } } } }
-            )
-          }
-
-        test_backend.expect{ url = service_endpoint }.
-          respond_with{ status = 200, body = cjson.encode(
-            { proxy_config = proxy_config_response }
-          )}
-
-        local config = loader:call(host)
-
-        assert.equals(1, #(cjson.decode(config).services))
-        assert.same(proxy_config_response.content, cjson.decode(config).services[1])
-      end)
     end)
 
     describe("When using APICAST_SERVICES_FILTER_BY_URL", function()
@@ -447,7 +377,7 @@ UwIDAQAB
       it("Filter it out correctly", function()
         env.set('APICAST_SERVICES_FILTER_BY_URL','one.*')
 
-        local config = assert(loader:call('staging'))
+        local config = assert(loader:index_per_service())
 
         assert.truthy(config)
         assert.equals('string', type(config))
@@ -460,7 +390,7 @@ UwIDAQAB
       it("Filter it out correctly by prod host", function()
         env.set('APICAST_SERVICES_FILTER_BY_URL','*dev')
 
-        local config = assert(loader:call('staging'))
+        local config = assert(loader:index_per_service())
 
         assert.truthy(config)
         assert.equals('string', type(config))
@@ -475,7 +405,7 @@ UwIDAQAB
 
         env.set('APICAST_SERVICES_FILTER_BY_URL','*.com')
 
-        local config = assert(loader:call('staging'))
+        local config = assert(loader:index_per_service())
 
         assert.truthy(config)
         assert.equals('string', type(config))
@@ -490,7 +420,7 @@ UwIDAQAB
 
         env.set('APICAST_SERVICES_FILTER_BY_URL','')
 
-        local config = assert(loader:call('staging'))
+        local config = assert(loader:index_per_service())
 
         assert.truthy(config)
         assert.equals('string', type(config))
@@ -504,7 +434,7 @@ UwIDAQAB
       it("invalid regexp return all", function()
         env.set('APICAST_SERVICES_FILTER_BY_URL','[')
 
-        local config = assert(loader:call('staging'))
+        local config = assert(loader:index_per_service())
 
         assert.truthy(config)
         assert.equals('string', type(config))
@@ -514,9 +444,7 @@ UwIDAQAB
         assert.equals(1, res_services[1].id)
         assert.equals(2, res_services[2].id)
       end)
-
     end)
-
   end)
 
   describe(':oidc_issuer_configuration', function()
@@ -529,12 +457,65 @@ UwIDAQAB
 
   describe(':index', function()
     before_each(function()
-      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
+      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
     end)
 
-    it('returns configuration for all services', function()
-      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
-      test_backend.expect{ url = 'http://example.com/something/with/path/production.json?host=foobar.example.com' }.
+    it('invalid status is handled', function()
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?version=latest' }.
+        respond_with{ status = 512, body = nil}
+      assert.same({ nil, 'invalid status' }, { loader:index() })
+    end)
+
+    it('returns configuration for all services (no path on endpoint)', function()
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?version=latest' }.
+        respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+          {
+            proxy_config = {
+              version = 42,
+              environment = 'production',
+              content = { id = 2, backend_version = 2 }
+            }
+          }
+        }})}
+
+      local config = assert(loader:index())
+
+      assert.truthy(config)
+      assert.equals('string', type(config))
+
+      result_config = cjson.decode(config)
+      assert.equals(1, #result_config.services)
+      assert.equals(1, #result_config.oidc)
+      assert.same('2', result_config.oidc[1].service_id)
+    end)
+
+    it('returns configuration for all services (path on endpoint)', function()
+      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
+      test_backend.expect{ url = 'http://example.com/something/with/path/production.json' }.
+        respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+          {
+            proxy_config = {
+              version = 42,
+              environment = 'staging',
+              content = { id = 2, backend_version = 2 }
+            }
+          }
+        }})}
+
+      local config = assert(loader:index())
+
+      assert.truthy(config)
+      assert.equals('string', type(config))
+
+      result_config = cjson.decode(config)
+      assert.equals(1, #result_config.services)
+      assert.equals(1, #result_config.oidc)
+      assert.same('2', result_config.oidc[1].service_id)
+    end)
+
+    it('returns configuration for all services with host (no path on endpoint)', function()
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+      ngx.encode_args({ host = "foobar.example.com", version = "latest" })}.
         respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {
@@ -556,8 +537,32 @@ UwIDAQAB
       assert.same('2', result_config.oidc[1].service_id)
     end)
 
+    it('returns configuration for all services with host (path on endpoint)', function()
+      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
+      test_backend.expect{ url = 'http://example.com/something/with/path/production.json?host=foobar.example.com' }.
+        respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+          {
+            proxy_config = {
+              version = 42,
+              environment = 'production',
+              content = { id = 2, backend_version = 2 }
+            }
+          }
+        }})}
+
+      local config = assert(loader:index('foobar.example.com'))
+
+      assert.truthy(config)
+      assert.equals('string', type(config))
+
+      result_config = cjson.decode(config)
+      assert.equals(1, #result_config.services)
+      assert.equals(1, #result_config.oidc)
+      assert.same('2', result_config.oidc[1].service_id)
+    end)
+
     it('returns nil and an error if the config is not a valid', function()
-      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
       test_backend.expect{ url = 'http://example.com/something/with/path/production.json?host=foobar.example.com' }.
       respond_with{ status = 200, body = '{ invalid json }'}
 
@@ -568,16 +573,15 @@ UwIDAQAB
     end)
 
     it('returns configuration with oidc config complete', function()
-
-      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+      loader = _M.new('http://example.com/something/with/path/', { client = test_backend })
       test_backend.expect{ url = 'http://example.com/something/with/path/production.json?host=foobar.example.com' }.
         respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
           {
             proxy_config = {
               version = 42,
               environment = 'staging',
-              content = { 
-                id = 2, 
+              content = {
+                id = 2,
                 backend_version = 1,
                 proxy = { oidc_issuer_endpoint = 'http://user:pass@idp.example.com/auth/realms/foo/' }
               }
@@ -622,6 +626,172 @@ UwIDAQAB
       assert.equals(1, #result_config.oidc)
       assert.same('2', result_config.oidc[1].service_id)
       assert.same('https://idp.example.com/auth/realms/foo', result_config.oidc[1].config.issuer)
+    end)
+
+    it('returns configuration from master endpoint', function()
+      loader = _M.new('http://example.com/some/path', { client = test_backend })
+      test_backend.expect{ url = 'http://example.com/some/path/production.json?host=foobar.example.com' }.
+        respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+          {
+            proxy_config = {
+              version = 42,
+              environment = 'production',
+              content = { id = 2, backend_version = 2 }
+            }
+          }
+        }})}
+
+      local config = assert(loader:index('foobar.example.com'))
+
+      assert.truthy(config)
+      assert.equals('string', type(config))
+
+      result_config = cjson.decode(config)
+      assert.equals(1, #result_config.services)
+      assert.equals(1, #result_config.oidc)
+      assert.same('2', result_config.oidc[1].service_id)
+    end)
+
+    it('returns configuration from admin portal endpoint', function()
+      test_backend.expect{
+        url = 'http://example.com/admin/api/account/proxy_configs/production.json?' ..
+        ngx.encode_args({ host = "foobar.example.com", version = "latest" })
+      }.
+        respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+          {
+            proxy_config = {
+              version = 42,
+              environment = 'staging',
+              content = { id = 2, backend_version = 2 }
+            }
+          }
+        }})}
+      local config = assert(loader:index('foobar.example.com'))
+
+      assert.truthy(config)
+      assert.equals('string', type(config))
+
+      result_config = cjson.decode(config)
+      assert.equals(1, #result_config.services)
+      assert.equals(1, #result_config.oidc)
+      assert.same('2', result_config.oidc[1].service_id)
+    end)
+  end)
+
+  describe(':call', function()
+    before_each(function()
+      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+    end)
+
+    it('with path on endpoint service version cannot be set', function()
+      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
+      env.set('APICAST_SERVICE_42_CONFIGURATION_VERSION', '2')
+
+      local config, err = loader:call()
+
+      assert.falsy(config)
+      assert.equal('APICAST_SERVICE_%s_CONFIGURATION_VERSION cannot be used when proxy config path is provided', tostring(err))
+    end)
+
+    it('with path on endpoint service list cannot be set', function()
+      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
+      env.set('APICAST_SERVICES_LIST', '11,42')
+
+      local config, err = loader:call()
+
+      assert.falsy(config)
+      assert.equal('APICAST_SERVICES_LIST cannot be used when proxy config path is provided', tostring(err))
+    end)
+
+    it('with path on endpoint service filter by url cannot be set', function()
+      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
+      env.set('APICAST_SERVICES_FILTER_BY_URL','one.*')
+
+      local config, err = loader:call()
+
+      assert.falsy(config)
+      assert.equal('APICAST_SERVICES_FILTER_BY_URL cannot be used when proxy config path is provided', tostring(err))
+    end)
+
+    it('with service filter by url call index per service', function()
+      env.set('APICAST_SERVICES_FILTER_BY_URL','one.*')
+      test_backend.expect{ url = 'http://example.com/admin/api/services.json' }.
+        respond_with{ status = 200, body = cjson.encode({ services = {} }) }
+      local config = assert(loader:call())
+      assert.truthy(config)
+      assert.equals('string', type(config))
+      assert.equals(0, #(cjson.decode(config).services))
+    end)
+
+    it('with service list call index per service', function()
+      env.set('APICAST_SERVICES_LIST', '11,42')
+      test_backend.expect{ url = 'http://example.com/admin/api/services/11/proxy/configs/production/latest.json' }.
+        respond_with{ status = 200, body = cjson.encode(
+          {
+            proxy_config = {
+              version = 13,
+              environment = 'production',
+              content = { id = 11, backend_version = 1, proxy = { oidc_issuer_endpoint = ngx.null } }
+            }
+          }
+        ) }
+      test_backend.expect{ url = 'http://example.com/admin/api/services/42/proxy/configs/production/latest.json' }.
+        respond_with{ status = 200, body = cjson.encode(
+          {
+            proxy_config = {
+              version = 13,
+              environment = 'production',
+              content = { id = 42, backend_version = 1, proxy = { oidc_issuer_endpoint = ngx.null } }
+            }
+          }
+        ) }
+      local config = assert(loader:call())
+      assert.truthy(config)
+      assert.equals('string', type(config))
+      assert.equals(2, #(cjson.decode(config).services))
+    end)
+
+    it('with service version call index per service', function()
+      env.set('APICAST_SERVICE_42_CONFIGURATION_VERSION', '2')
+      test_backend.expect{ url = 'http://example.com/admin/api/services.json' }.
+        respond_with{ status = 200, body = cjson.encode({ services = {
+            { service = { id = 42 }}
+          }})
+        }
+      test_backend.expect{ url = 'http://example.com/admin/api/services/42/proxy/configs/production/2.json' }.
+      respond_with{ status = 200, body = cjson.encode(
+        {
+          proxy_config = {
+            version = 2,
+            environment = 'production',
+            content = { id = 42, backend_version = 1 }
+          }
+        }
+      ) }
+
+      local config = assert(loader:call())
+      assert.truthy(config)
+      assert.equals('string', type(config))
+      assert.equals(1, #(cjson.decode(config).services))
+    end)
+
+    it('by default call index', function()
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+      ngx.encode_args({ host = "foobar.example.com", version = "latest" })}.
+        respond_with{ status = 200, body = cjson.encode({ proxy_configs = {
+          {
+            proxy_config = {
+              version = 42,
+              environment = 'production',
+              content = { id = 2, backend_version = 2 }
+            }
+          }
+        }})}
+
+      local config = assert(loader:call("foobar.example.com"))
+      assert.truthy(config)
+      assert.equals('string', type(config))
+      assert.equals(1, #(cjson.decode(config).services))
     end)
   end)
 end)

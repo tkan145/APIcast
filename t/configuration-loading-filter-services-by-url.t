@@ -56,17 +56,17 @@ __DATA__
 --- error_code eval
 [200, 404]
 
-=== TEST 2: multi service configuration limited with Regexp Filter with paginated service list
-This test is configured to provide 3 pages of services. On each page, there is one service "one-*"
+=== TEST 2: Regexp Filter with paginated proxy config list
+This test is configured to provide 3 pages of proxy configs. On each page, there is one service "one-*"
 which is valid according to the filter by url. The test will do one request to each valid service.
 --- env eval
 (
-  'APICAST_SERVICES_FILTER_BY_URL' => "^one*",
   'APICAST_CONFIGURATION_LOADER' => 'lazy',
+  'APICAST_SERVICES_FILTER_BY_URL' => "^one*",
   'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}"
 )
 --- upstream env
-location = /admin/api/services.json {
+location /admin/api/account/proxy_configs/production.json {
   content_by_lua_block {
     local args = ngx.req.get_uri_args(0)
     local page = 1
@@ -78,48 +78,34 @@ location = /admin/api/services.json {
       per_page = tonumber(args.per_page)
     end
 
-    local services_per_page = {}
+    -- this test is designed for pages of 500 items
+    require('luassert').equals(500, per_page)
+    require('luassert').is_true(1 <= page and page < 4)
+
+    local function build_proxy_config(service_id, host)
+      return { proxy_config = {
+        content = { id = service_id, backend_version = 1,
+          proxy = {
+            hosts = { host },
+            api_backend = 'http://test:$TEST_NGINX_SERVER_PORT/api/',
+            backend = { endpoint = 'http://test:$TEST_NGINX_SERVER_PORT' },
+            proxy_rules = { { pattern = '/', http_method = 'GET', metric_system_name = 'test', delta = 1 } }
+          }
+        }
+      }}
+    end
+
+    local configs_per_page = {}
+
+    local host_map = { [1] = 'one-1', [501] = 'one-501', [1001] = 'one-1001' }
+
     for i = (page - 1)*per_page + 1,math.min(page*per_page, 1256)
     do
-      table.insert(services_per_page, {service = { id = i }})
+      local host = host_map[i] or 'two'
+      table.insert(configs_per_page, build_proxy_config(i, host))
     end
 
-    require('luassert').True(#services_per_page <= per_page)
-
-    local response = { services = services_per_page }
-    ngx.header.content_type = 'application/json;charset=utf-8'
-    ngx.say(require('cjson').encode(response))
-  }
-}
-
-location ~ /admin/api/services/\d+/proxy/configs/production/latest.json {
-  content_by_lua_block {
-    local proxy_config = {
-      content = { id = 1, backend_version = 1,
-        proxy = {
-          hosts = { 'two' },
-          api_backend = 'http://test:$TEST_NGINX_SERVER_PORT/api/',
-          backend = { endpoint = 'http://test:$TEST_NGINX_SERVER_PORT' },
-          proxy_rules = { { pattern = '/', http_method = 'GET', metric_system_name = 'test', delta = 1 } }
-        }
-      }
-    }
-
-    if( ngx.var.uri == '/admin/api/services/1/proxy/configs/production/latest.json' )
-    then
-      proxy_config.content.id = 1
-      proxy_config.content.proxy.hosts = { 'one-1' }
-    elseif( ngx.var.uri == '/admin/api/services/500/proxy/configs/production/latest.json'  )
-    then
-      proxy_config.content.id = 500
-      proxy_config.content.proxy.hosts = { 'one-500' }
-    elseif( ngx.var.uri == '/admin/api/services/1000/proxy/configs/production/latest.json'  )
-    then
-      proxy_config.content.id = 1000
-      proxy_config.content.proxy.hosts = { 'one-1000' }
-    end
-
-    local response = { proxy_config = proxy_config }
+    local response = { proxy_configs = configs_per_page }
     ngx.header.content_type = 'application/json;charset=utf-8'
     ngx.say(require('cjson').encode(response))
   }
@@ -137,7 +123,7 @@ location /transactions/authrep.xml {
 --- pipelined_requests eval
 ["GET /?user_key=1","GET /?user_key=1","GET /?user_key=1","GET /?user_key=2"]
 --- more_headers eval
-["Host: one-1","Host: one-500","Host: one-1000","Host: two"]
+["Host: one-1","Host: one-501","Host: one-1001","Host: two"]
 --- response_body eval
 ["yay, api backend\n","yay, api backend\n","yay, api backend\n",""]
 --- error_code eval

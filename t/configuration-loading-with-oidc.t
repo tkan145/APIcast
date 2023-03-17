@@ -29,8 +29,8 @@ config, so this test should not crash.
 --- upstream env
 location = /admin/api/account/proxy_configs/production.json {
   content_by_lua_block {
-    expected = "host=localhost&version=latest"
-    require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    local expected = { host = 'localhost', version = 'latest', page = '1', per_page = '500' }
+    require('luassert').same(expected, ngx.req.get_uri_args(0))
 
     local proxy_configs_list = {}
     for i = 1,10,1
@@ -40,6 +40,7 @@ location = /admin/api/account/proxy_configs/production.json {
           content = {
             id = i, backend_version =  1,
             proxy = {
+              hosts = { "localhost" },
               api_backend = 'http://test:$TEST_NGINX_SERVER_PORT/api/',
               backend = { endpoint = 'http://test:$TEST_NGINX_SERVER_PORT' },
               proxy_rules = { { pattern = '/', http_method = 'GET', metric_system_name = 'test', delta = 1 } }

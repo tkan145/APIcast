@@ -42,34 +42,7 @@ GET /t
 {"services":[],"oidc":[]}
 --- exit_code: 200
 
-=== TEST 2: lazy load configuration from remote account/proxy_configs
-endpoint should load that configuration and not fail
---- main_config
-env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT;
-env APICAST_CONFIGURATION_LOADER=lazy;
-env THREESCALE_DEPLOYMENT_ENV=foobar;
-env PATH;
---- http_config
-  lua_package_path "$TEST_NGINX_LUA_PATH";
---- config
-location = /t {
-  content_by_lua_block {
-    local loader = require('apicast.configuration_loader.remote_v2')
-    local body = assert(loader:call("example.com"))
-    ngx.say(body)
-  }
-}
-
-location = /admin/api/account/proxy_configs/foobar.json {
-    echo '{}';
-}
---- request
-GET /t
---- expected_json
-{"services":[],"oidc":[]}
---- exit_code: 200
-
-=== TEST 3: retrieve config with liquid values
+=== TEST 2: retrieve config with liquid values
 should not fail
 --- main_config
 env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT;

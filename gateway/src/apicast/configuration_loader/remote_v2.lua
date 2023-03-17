@@ -265,7 +265,7 @@ local proxy_configs_per_page = function(http_client, portal_endpoint, host, env,
     return nil, err
   end
 
-  ngx.log(ngx.DEBUG, 'proxy configs get status: ', res.status, ' url: ', url)
+  ngx.log(ngx.DEBUG, 'proxy configs get status: ', res.status, ' url: ', url, ' body: ', res.body)
 
   if res and res.status == 200 and res.body then
     local ok, res = pcall(cjson.decode, res.body)
@@ -381,7 +381,7 @@ local services_per_page = function(http_client, portal_endpoint, page, per_page)
     return nil, err
   end
 
-  ngx.log(ngx.DEBUG, 'services get status: ', res.status, ' url: ', url)
+  ngx.log(ngx.DEBUG, 'services get status: ', res.status, ' url: ', url, ' body: ', res.body)
 
   if res.status == 200 then
     local ok, res = pcall(cjson.decode, res.body)

@@ -14,6 +14,19 @@ local service_generator = function(n)
   return { services = services }
 end
 
+local proxy_config_generator = function(n)
+  local proxy_configs = {}
+  for i = 1,n do
+    proxy_configs[i] = { proxy_config = {
+      version = 42,
+      environment = 'staging',
+      content = { id = 2, backend_version = 2 }
+    }}
+  end
+
+  return { proxy_configs = proxy_configs }
+end
+
 describe('Configuration Remote Loader V2', function()
 
   local test_backend
@@ -822,6 +835,22 @@ UwIDAQAB
       assert.same({ nil, 'invalid status' }, { loader:index() })
     end)
 
+    it('invalid status is handled when any page returns invalid status', function()
+      local PROXY_CONFIGS_PER_PAGE = 500
+      local page1 = proxy_config_generator(PROXY_CONFIGS_PER_PAGE)
+
+      test_backend.expect{
+        url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+        ngx.encode_args({ version = 'latest', per_page = 500, page = 1 })}.
+        respond_with{ status = 200, body = cjson.encode(page1) }
+
+      test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+      ngx.encode_args({ page = 2, per_page = 500, version = "latest" })}.
+        respond_with{ status = 404, body = nil}
+
+      assert.same({ nil, 'invalid status' }, { loader:index() })
+    end)
+
     it('returns configuration for all proxy configs with no host', function()
       test_backend.expect{ url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
       ngx.encode_args({ version = "latest", page = 1, per_page = 500 })}.
@@ -981,6 +1010,40 @@ UwIDAQAB
       assert.equals(1, #result_config.services)
       assert.equals(1, #result_config.oidc)
       assert.same('2', result_config.oidc[1].service_id)
+    end)
+
+    it('retuns configurations from multiple pages', function()
+      -- Will serve: 3 pages
+      -- page 1 => PROXY_CONFIGS_PER_PAGE
+      -- page 2 => PROXY_CONFIGS_PER_PAGE
+      -- page 3 => 51
+      local PROXY_CONFIGS_PER_PAGE = 500
+      local page1 = proxy_config_generator(PROXY_CONFIGS_PER_PAGE)
+      local page2 = proxy_config_generator(PROXY_CONFIGS_PER_PAGE)
+      local page3 = proxy_config_generator(51)
+
+      test_backend.expect{
+        url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+        ngx.encode_args({ version = 'latest', per_page = 500, page = 1 })}.
+        respond_with{ status = 200, body = cjson.encode(page1) }
+
+      test_backend.expect{
+        url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+        ngx.encode_args({ version = 'latest', per_page = 500, page = 2 })}.
+        respond_with{ status = 200, body = cjson.encode(page2) }
+
+      test_backend.expect{
+        url = 'http://example.com/admin/api/account/proxy_configs/production.json?'..
+      ngx.encode_args({ version = 'latest', per_page = 500, page = 3 })}.
+        respond_with{ status = 200, body = cjson.encode(page3) }
+
+      local config = loader:index()
+
+      assert.truthy(config)
+      assert.equals('string', type(config))
+
+      local result_config = cjson.decode(config)
+      assert.equals(2*PROXY_CONFIGS_PER_PAGE + 51, #result_config.services)
     end)
   end)
 

@@ -144,22 +144,6 @@ local function parse_resp_body(self, resp_body)
   return parse_proxy_configs(self, proxy_configs)
 end
 
-local function is_service_filter_by_url_set()
-  if resty_env.value('APICAST_SERVICES_FILTER_BY_URL') then
-    return true
-  else
-    return false
-  end
-end
-
-local function is_service_list_set()
-  if resty_env.value('APICAST_SERVICES_LIST') then
-    return true
-  else
-    return false
-  end
-end
-
 local function is_service_version_set()
   local vars = resty_env.list()
   for n, v in pairs(vars) do
@@ -348,30 +332,16 @@ function _M:call(host)
   -- When specific version for a specific service is defined,
   -- loading services one by one is required
   --
-  -- APICAST_SERVICE_%s_CONFIGURATION_VERSION does not work then THREESCALE_PORTAL_ENDPOINT
+  -- APICAST_SERVICE_%s_CONFIGURATION_VERSION does not work when the THREESCALE_PORTAL_ENDPOINT
   -- points to master (the API does not allow it), hence error is returned
 
   local use_service_version = is_service_version_set()
-  local use_service_list = is_service_list_set()
-  local use_service_filter_by_url = is_service_filter_by_url_set()
 
   if use_service_version and proxy_config_path then
     return nil, 'APICAST_SERVICE_%s_CONFIGURATION_VERSION cannot be used when proxy config path is provided'
   end
 
-  if use_service_list and proxy_config_path then
-    return nil, 'APICAST_SERVICES_LIST cannot be used when proxy config path is provided'
-  end
-
-  if use_service_filter_by_url and proxy_config_path then
-    return nil, 'APICAST_SERVICES_FILTER_BY_URL cannot be used when proxy config path is provided'
-  end
-
   if use_service_version then
-    return self:index_per_service()
-  elseif use_service_list then
-    return self:index_per_service()
-  elseif use_service_filter_by_url then
     return self:index_per_service()
   elseif proxy_config_path then
     return self:index_custom_path(host)

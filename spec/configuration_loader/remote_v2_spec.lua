@@ -999,65 +999,6 @@ UwIDAQAB
       assert.equal('APICAST_SERVICE_%s_CONFIGURATION_VERSION cannot be used when proxy config path is provided', tostring(err))
     end)
 
-    it('with path on endpoint service list cannot be set', function()
-      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
-      env.set('APICAST_SERVICES_LIST', '11,42')
-
-      local config, err = loader:call()
-
-      assert.falsy(config)
-      assert.equal('APICAST_SERVICES_LIST cannot be used when proxy config path is provided', tostring(err))
-    end)
-
-    it('with path on endpoint service filter by url cannot be set', function()
-      loader = _M.new('http://example.com/something/with/path', { client = test_backend })
-      env.set('APICAST_SERVICES_FILTER_BY_URL','one.*')
-
-      local config, err = loader:call()
-
-      assert.falsy(config)
-      assert.equal('APICAST_SERVICES_FILTER_BY_URL cannot be used when proxy config path is provided', tostring(err))
-    end)
-
-    it('with service filter by url call index per service', function()
-      env.set('APICAST_SERVICES_FILTER_BY_URL','one.*')
-      test_backend.expect{ url = 'http://example.com/admin/api/services.json?'..
-      ngx.encode_args({ per_page = 500, page = 1 })}.
-        respond_with{ status = 200, body = cjson.encode({ services = {} }) }
-      local config = assert(loader:call())
-      assert.truthy(config)
-      assert.equals('string', type(config))
-      assert.equals(0, #(cjson.decode(config).services))
-    end)
-
-    it('with service list call index per service', function()
-      env.set('APICAST_SERVICES_LIST', '11,42')
-      test_backend.expect{ url = 'http://example.com/admin/api/services/11/proxy/configs/production/latest.json' }.
-        respond_with{ status = 200, body = cjson.encode(
-          {
-            proxy_config = {
-              version = 13,
-              environment = 'production',
-              content = { id = 11, backend_version = 1, proxy = { oidc_issuer_endpoint = ngx.null } }
-            }
-          }
-        ) }
-      test_backend.expect{ url = 'http://example.com/admin/api/services/42/proxy/configs/production/latest.json' }.
-        respond_with{ status = 200, body = cjson.encode(
-          {
-            proxy_config = {
-              version = 13,
-              environment = 'production',
-              content = { id = 42, backend_version = 1, proxy = { oidc_issuer_endpoint = ngx.null } }
-            }
-          }
-        ) }
-      local config = assert(loader:call())
-      assert.truthy(config)
-      assert.equals('string', type(config))
-      assert.equals(2, #(cjson.decode(config).services))
-    end)
-
     it('with service version call index per service', function()
       env.set('APICAST_SERVICE_42_CONFIGURATION_VERSION', '2')
       test_backend.expect{ url = 'http://example.com/admin/api/services.json?'..

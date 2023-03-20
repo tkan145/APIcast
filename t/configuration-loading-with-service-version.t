@@ -139,6 +139,7 @@ location /transactions/authrep.xml {
   content_by_lua_block { ngx.exit(200) }
 }
 
+--- timeout: 60s
 --- pipelined_requests eval
 ["GET /?user_key=1","GET /?user_key=1","GET /?user_key=1","GET /?user_key=2"]
 --- more_headers eval

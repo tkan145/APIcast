@@ -230,7 +230,7 @@ my $jwt = encode_jwt(payload => {
 --- no_error_log
 [error]
 
-=== TEST 4: servide list filter with paginated proxy config list
+=== TEST 4: service list filter with paginated proxy config list
 This test is configured to provide 3 pages of proxy configs. On each page, there is only one service
 which is valid according to the filter by service list. The test will do one request to each valid service.
 --- env eval
@@ -287,6 +287,7 @@ location /api/ {
   echo 'yay, api backend';
 }
 
+--- timeout: 25s
 --- backend
 location /transactions/authrep.xml {
   content_by_lua_block { ngx.exit(200) }

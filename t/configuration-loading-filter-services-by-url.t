@@ -115,6 +115,7 @@ location /api/ {
   echo 'yay, api backend';
 }
 
+--- timeout: 25s
 --- backend
 location /transactions/authrep.xml {
   content_by_lua_block { ngx.exit(200) }

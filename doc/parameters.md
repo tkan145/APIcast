@@ -337,6 +337,8 @@ In that case, the gateway would load service's proxy configuration one by one:
 
 Note that when the `THREESCALE_PORTAL_ENDPOINT` has no path, the gateway will iterate over the pages of `/admin/api/account/proxy_configs/${env}.json` sending `pages` and `per_page` query parameters.
 
+**Note**: Pages in 3scale API services and proxy config endpoints were implemented on 3scale 2.10 [THREESCALE-4528](https://issues.redhat.com/browse/THREESCALE-4528). Older releases should not be used.
+
 **Example:** `https://access-token@account-admin.3scale.net`.
 
 When `THREESCALE_PORTAL_ENDPOINT` environment variable is provided, the gateway will download the configuration from 3scale on initializing. The configuration includes all the settings provided on the Integration page of the API(s).

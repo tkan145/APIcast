@@ -46,6 +46,7 @@ Defines how to load the configuration.
 In `boot` mode APIcast will request the configuration to the API manager when the gateway starts.
 In `lazy` mode APIcast will load the configuration on demand for each incoming request (to guarantee a complete refresh on each request `APICAST_CONFIGURATION_CACHE` should be set to `0`).
 
+
 ### `APICAST_CUSTOM_CONFIG`
 
 **Deprecated:** Use [policies](./policies.md) instead.
@@ -241,6 +242,8 @@ Replace `${ID}` with the actual Service ID. The value should be the configuratio
 
 Setting it to a particular version will prevent it from auto-updating and will always use that version.
 
+**Note**: This env var cannot be used with `THREESCALE_PORTAL_ENDPOINT` pointing to custom path (i.e. master path).
+
 ### `APICAST_UPSTREAM_RETRY_CASES`
 
 **Default**:
@@ -319,6 +322,20 @@ The value will also be used in the header `X-3scale-User-Agent` in the authorize
 ### `THREESCALE_PORTAL_ENDPOINT`
 
 URI that includes your password and portal endpoint in the following format: `<schema>://<password>@<admin-portal-domain>`. The `<password>` can be either the provider key or an access token for the 3scale Account Management API. `<admin-portal-domain>` is the URL used to log into the admin portal.
+
+The path appended to `THREESCALE_PORTAL_ENDPOINT` is:
+
+|                      | `APICAST_CONFIGURATION_LOADER`=boot                            | `APICAST_CONFIGURATION_LOADER`=lazy                                     |
+|----------------------|----------------------------------------------------------------|-------------------------------------------------------------------------|
+| endpoint has no path | `/admin/api/account/proxy_configs/${env}.json?version=version&page=X&per_page=500` | `/admin/api/account/proxy_configs/${env}.json?host=host&version=version&page=X&per_page=500` |
+| endpoint has a path  | `/${env}.json`                                                 | `/${env}.json?host=host`                                                 |
+
+The exception to the logic in table above would be when the env var `APICAST_SERVICE_%s_CONFIGURATION_VERSION` is provided.
+In that case, the gateway would load service's proxy configuration one by one:
+* 1 request to `/admin/api/services.json?page=X&per_page=500` (which is paginated and the gateway will iterate over the pages)
+* N requests to `/admin/api/services/${SERVICE_ID}/proxy/configs/${ENVIRONMENT}/{VERSION}.json`.
+
+Note that when the `THREESCALE_PORTAL_ENDPOINT` has no path, the gateway will iterate over the pages of `/admin/api/account/proxy_configs/${env}.json` sending `pages` and `per_page` query parameters.
 
 **Example:** `https://access-token@account-admin.3scale.net`.
 

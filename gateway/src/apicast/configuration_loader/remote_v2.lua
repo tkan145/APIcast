@@ -250,7 +250,7 @@ end
 -- @param env gateway environment
 -- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
 -- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
-local proxy_configs_per_page = function(http_client, portal_endpoint, host, env, page, per_page)
+local function proxy_configs_per_page(http_client, portal_endpoint, host, env, page, per_page)
   local args = { host = host, version = "latest", page = page, per_page = per_page }
 
   local query_args = '?'..ngx.encode_args(args)
@@ -350,7 +350,7 @@ function _M:call(host)
   end
 end
 
-local services_subset = function()
+local function services_subset()
   local services = resty_env.value('APICAST_SERVICES_LIST') or resty_env.value('APICAST_SERVICES')
   if resty_env.value('APICAST_SERVICES') then ngx.log(ngx.WARN, 'DEPRECATION NOTICE: Use APICAST_SERVICES_LIST not APICAST_SERVICES as this will soon be unsupported') end
   if services and len(services) > 0 then
@@ -368,7 +368,7 @@ end
 -- @param portal_endpoint 3scale API endpoint
 -- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
 -- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
-local services_per_page = function(http_client, portal_endpoint, page, per_page)
+local function services_per_page(http_client, portal_endpoint, page, per_page)
   local encoded_args = ngx.encode_args({page = page, per_page = per_page})
   local query_args = encoded_args ~= '' and '?'..encoded_args
   local base_url = services_index_endpoint(portal_endpoint)

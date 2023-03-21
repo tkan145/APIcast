@@ -4,7 +4,6 @@ local len = string.len
 local ipairs = ipairs
 local insert = table.insert
 local rawset = rawset
-local encode_args = ngx.encode_args
 local tonumber = tonumber
 local pcall = pcall
 
@@ -88,6 +87,10 @@ local function services_index_endpoint(portal_endpoint)
   return resty_url.join(portal_endpoint, '/admin/api/services.json')
 end
 
+local function proxy_configs_index_endpoint(portal_endpoint, env)
+  return resty_url.join(portal_endpoint, '/admin/api/account/proxy_configs/'..env..'.json')
+end
+
 local function service_config_endpoint(portal_endpoint, service_id, env, version)
   local version_override = resty_env.get(
       format('APICAST_SERVICE_%s_CONFIGURATION_VERSION', service_id)
@@ -100,14 +103,8 @@ local function service_config_endpoint(portal_endpoint, service_id, env, version
   )
 end
 
-local function parse_resp_body(self, resp_body)
-  local ok, res = pcall(cjson.decode, resp_body)
-  if not ok then return nil, res end
-  local json = res
-
+local function parse_proxy_configs(self, proxy_configs)
   local config = { services = array(), oidc = array() }
-
-  local proxy_configs = json.proxy_configs or {}
 
   for i, proxy_conf in ipairs(proxy_configs) do
     local proxy_config = proxy_conf.proxy_config
@@ -137,20 +134,14 @@ local function parse_resp_body(self, resp_body)
   return cjson.encode(config)
 end
 
-local function is_service_filter_by_url_set()
-  if resty_env.value('APICAST_SERVICES_FILTER_BY_URL') then
-    return true
-  else
-    return false
-  end
-end
+local function parse_resp_body(self, resp_body)
+  local ok, res = pcall(cjson.decode, resp_body)
+  if not ok then return nil, res end
+  local json = res
 
-local function is_service_list_set()
-  if resty_env.value('APICAST_SERVICES_LIST') then
-    return true
-  else
-    return false
-  end
+  local proxy_configs = json.proxy_configs or {}
+
+  return parse_proxy_configs(self, proxy_configs)
 end
 
 local function is_service_version_set()
@@ -161,14 +152,6 @@ local function is_service_version_set()
     end
   end
   return false
-end
-
--- Returns a table that represents paths and query parameters for the current endpoint:
--- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
--- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=version
-local function configuration_endpoint_params(env, host, portal_endpoint_path)
-  return portal_endpoint_path and {path = env, args = {host = host}}
-    or {path = '/admin/api/account/proxy_configs/' .. env, args = {host = host, version = "latest"} }
 end
 
 function _M:index_per_service()
@@ -226,7 +209,7 @@ function _M:index_per_service()
   return cjson.encode(configs)
 end
 
-function _M:index(host)
+function _M:index_custom_path(host)
   local http_client = self.http_client
 
   if not http_client then
@@ -240,9 +223,10 @@ function _M:index(host)
     return nil, 'missing environment'
   end
 
-  local endpoint_params = configuration_endpoint_params(env, host, proxy_config_path)
-  local base_url = resty_url.join(self.endpoint, endpoint_params.path .. '.json')
-  local query_args = encode_args(endpoint_params.args) ~= '' and '?'..encode_args(endpoint_params.args)
+  -- http://${THREESCALE_PORTAL_ENDPOINT}/<env>.json?host=host
+  local base_url = resty_url.join(self.endpoint, env..'.json')
+  local encoded_args = ngx.encode_args({host = host})
+  local query_args = encoded_args ~= '' and '?'..encoded_args
   local url = query_args and base_url..query_args or base_url
 
   local res, err = http_client.get(url)
@@ -259,6 +243,83 @@ function _M:index(host)
   return nil, 'invalid status'
 end
 
+-- Returns existing proxy configs in a single page
+-- @param http_client the http client object
+-- @param portal_endpoint 3scale API endpoint
+-- @param host proxy config filter based on request hostname. Optional, can be nil.
+-- @param env gateway environment
+-- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
+-- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
+local function proxy_configs_per_page(http_client, portal_endpoint, host, env, page, per_page)
+  local args = { host = host, version = "latest", page = page, per_page = per_page }
+
+  local query_args = '?'..ngx.encode_args(args)
+  local base_url = proxy_configs_index_endpoint(portal_endpoint, env)
+  local url = base_url..query_args
+
+  -- http://${THREESCALE_PORTAL_ENDPOINT}/admin/api/account/proxy_configs/<env>.json?host=host&version=latest&page=1&per_page=500
+  local res, err = http_client.get(url)
+
+  if not res and err then
+    ngx.log(ngx.DEBUG, 'proxy configs get error: ', err, ' url: ', url)
+    return nil, err
+  end
+
+  ngx.log(ngx.DEBUG, 'proxy configs get status: ', res.status, ' url: ', url, ' body: ', res.body)
+
+  if res and res.status == 200 and res.body then
+    local ok, res = pcall(cjson.decode, res.body)
+    if not ok then return nil, res end
+    local json = res
+
+    return json.proxy_configs or array()
+  else
+    ngx.log(ngx.DEBUG, 'proxy configs get error: ', status_code_error(res), ' url: ', url)
+    return nil, 'invalid status'
+  end
+end
+
+function _M:index(host)
+  local http_client = self.http_client
+
+  if not http_client then
+    return nil, 'not initialized'
+  end
+
+  local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
+
+  if not env then
+    return nil, 'missing environment'
+  end
+
+  local PROXY_CONFIGS_PER_PAGE = 500
+  -- Keep asking until the results length is different than "per_page" param
+  -- If the 3scale API endpoint version does not support paginations AND
+  -- the number of  results equals to PROXY_CONFIGS_PER_PAGE, the gateway will keep fetching
+  -- configs indefinitely. The 3scale API endpoint version must support pagination to
+  -- avoid endless loop.
+
+  local all_results_per_page = false
+  local current_page = 1
+  local proxy_configs = array()
+
+  repeat
+    local page_proxy_configs, err = proxy_configs_per_page(http_client, self.endpoint, host, env, current_page, PROXY_CONFIGS_PER_PAGE)
+    if not page_proxy_configs and err then
+      return nil, err
+    end
+
+    for _, proxy_config in ipairs(page_proxy_configs) do
+      insert(proxy_configs, proxy_config)
+    end
+
+    all_results_per_page = #page_proxy_configs == PROXY_CONFIGS_PER_PAGE
+    current_page = current_page + 1
+  until(not  all_results_per_page)
+
+  return parse_proxy_configs(self, proxy_configs)
+end
+
 function _M:call(host)
   if self == _M  or not self then
     local m = _M.new()
@@ -271,37 +332,25 @@ function _M:call(host)
   -- When specific version for a specific service is defined,
   -- loading services one by one is required
   --
-  -- APICAST_SERVICE_%s_CONFIGURATION_VERSION does not work then THREESCALE_PORTAL_ENDPOINT
+  -- APICAST_SERVICE_%s_CONFIGURATION_VERSION does not work when the THREESCALE_PORTAL_ENDPOINT
   -- points to master (the API does not allow it), hence error is returned
 
   local use_service_version = is_service_version_set()
-  local use_service_list = is_service_list_set()
-  local use_service_filter_by_url = is_service_filter_by_url_set()
 
   if use_service_version and proxy_config_path then
     return nil, 'APICAST_SERVICE_%s_CONFIGURATION_VERSION cannot be used when proxy config path is provided'
   end
 
-  if use_service_list and proxy_config_path then
-    return nil, 'APICAST_SERVICES_LIST cannot be used when proxy config path is provided'
-  end
-
-  if use_service_filter_by_url and proxy_config_path then
-    return nil, 'APICAST_SERVICES_FILTER_BY_URL cannot be used when proxy config path is provided'
-  end
-
   if use_service_version then
     return self:index_per_service()
-  elseif use_service_list then
-    return self:index_per_service()
-  elseif use_service_filter_by_url then
-    return self:index_per_service()
+  elseif proxy_config_path then
+    return self:index_custom_path(host)
   else
     return self:index(host)
   end
 end
 
-local services_subset = function()
+local function services_subset()
   local services = resty_env.value('APICAST_SERVICES_LIST') or resty_env.value('APICAST_SERVICES')
   if resty_env.value('APICAST_SERVICES') then ngx.log(ngx.WARN, 'DEPRECATION NOTICE: Use APICAST_SERVICES_LIST not APICAST_SERVICES as this will soon be unsupported') end
   if services and len(services) > 0 then
@@ -310,6 +359,38 @@ local services_subset = function()
       ids[i] = { service = { id = tonumber(ids[i]) } }
     end
     return ids
+  end
+end
+
+
+-- Returns existing services in a single page
+-- @param http_client the http client object
+-- @param portal_endpoint 3scale API endpoint
+-- @param page page in the paginated list. Defaults to 1 for the API, as the client will not send the page param.
+-- @param per_page number of results per page. Default and max is 500 for the API, as the client will not send the per_page param.
+local function services_per_page(http_client, portal_endpoint, page, per_page)
+  local encoded_args = ngx.encode_args({page = page, per_page = per_page})
+  local query_args = encoded_args ~= '' and '?'..encoded_args
+  local base_url = services_index_endpoint(portal_endpoint)
+  local url = query_args and base_url..query_args or base_url
+
+  local res, err = http_client.get(url)
+
+  if not res and err then
+    ngx.log(ngx.DEBUG, 'services get error: ', err, ' url: ', url)
+    return nil, err
+  end
+
+  ngx.log(ngx.DEBUG, 'services get status: ', res.status, ' url: ', url, ' body: ', res.body)
+
+  if res.status == 200 then
+    local ok, res = pcall(cjson.decode, res.body)
+    if not ok then return nil, res end
+    local json = res
+
+    return json.services or array()
+  else
+    return nil, status_code_error(res)
   end
 end
 
@@ -341,23 +422,32 @@ function _M:services()
     return nil, 'no endpoint'
   end
 
-  local url = services_index_endpoint(endpoint)
-  local res, err = http_client.get(url)
+  local SERVICES_PER_PAGE = 500
+  -- Keep asking until the results length is different than "per_page" param
+  -- If the 3scale API endpoint version does not support paginations AND
+  -- the number of  results equals to SERVICES_PER_PAGE, the gateway will keep fetching
+  -- services indefinitely. The 3scale API endpoint version must support pagination to
+  -- avoid endless loop.
 
-  if not res and err then
-    ngx.log(ngx.DEBUG, 'services get error: ', err, ' url: ', url)
-    return nil, err
-  end
+  local all_results_per_page = false
+  local current_page = 1
+  local services = array()
 
-  ngx.log(ngx.DEBUG, 'services get status: ', res.status, ' url: ', url)
+  repeat
+    local page_services, err = services_per_page(http_client, endpoint, current_page, SERVICES_PER_PAGE)
+    if not page_services and err then
+      return nil, err
+    end
 
-  if res.status == 200 then
-    local json = cjson.decode(res.body)
+    for _, service in ipairs(page_services) do
+      insert(services, service)
+    end
 
-    return json.services or array()
-  else
-    return nil, status_code_error(res)
-  end
+    all_results_per_page = #page_services == SERVICES_PER_PAGE
+    current_page = current_page + 1
+  until(not  all_results_per_page)
+
+  return services
 end
 
 function _M:oidc_issuer_configuration(service)

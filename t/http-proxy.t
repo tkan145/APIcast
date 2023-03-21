@@ -91,8 +91,11 @@ content_by_lua_block {
 }
 
 --- error_code: 200
---- error_log env
-proxy request: GET http://test.lvh.me:$TEST_NGINX_SERVER_PORT/admin/api/account/proxy_configs/production.json?version=latest HTTP/1.1
+--- error_log env eval
+[
+qr/proxy request\: GET http\:\/\/test.lvh.me\:$TEST_NGINX_SERVER_PORT\/admin\/api\/account\/proxy_configs\/production.json\?.* HTTP\/1.1/
+]
+
 --- no_error_log
 [error]
 
@@ -490,7 +493,7 @@ ETag: foobar
 [[
     qr{GET \/test\?user_key=test3 HTTP\/1\.1},
     qr{ETag\: foobar},
-    qr{Connection\: close}, 
+    qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream.lvh.me\:\d+}
 ]]
@@ -647,7 +650,7 @@ ETag: foobar
 [[
     qr{GET \/test\?user_key=test3 HTTP\/1\.1},
     qr{ETag\: foobar},
-    qr{Connection\: close}, 
+    qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream\.lvh\.me\:\d+}
 ]]
@@ -757,7 +760,7 @@ User-Agent: Test::APIcast::Blackbox
 --- expected_response_body_like_multiple eval
 [[
     qr{POST \/test\?user_key=test3 HTTP\/1\.1},
-    qr{Connection\: close}, 
+    qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream\.lvh\.me\:\d+},
     qr{Content\-Length\: 25},
@@ -1001,7 +1004,7 @@ ETag: foobar
 [[
     qr{GET \/test HTTP\/1\.1},
     qr{ETag\: foobar},
-    qr{Connection\: close}, 
+    qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream\.lvh\.me\:\d+}
 ]]
@@ -1124,7 +1127,7 @@ ETag: foobar
 [[
     qr{GET \/somepath\/test\?user_key=test3 HTTP\/1\.1},
     qr{ETag\: foobar},
-    qr{Connection\: close}, 
+    qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream.lvh.me\:\d+}
 ]]
@@ -1136,7 +1139,7 @@ proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
 --- user_files fixture=tls.pl eval
 
 
-=== TEST 22: https upstream API connection routes to the upstream (host + path) 
+=== TEST 22: https upstream API connection routes to the upstream (host + path)
 + request path with routing policy also enabled
 --- env eval
 (
@@ -1214,7 +1217,7 @@ ETag: foobar
 [[
     qr{GET \/somepath\/foo\/bar\?user_key=test3 HTTP\/1\.1},
     qr{ETag\: foobar},
-    qr{Connection\: close}, 
+    qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream.lvh.me\:\d+}
 ]]

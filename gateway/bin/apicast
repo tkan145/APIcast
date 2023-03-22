@@ -96,7 +96,6 @@ for my $inc ($apicast_src, 'src') {
     }
 }
 
-my $apicast_cli_file = apicast_cli();
 my @args = ('resty', @resty_args, apicast_cli(), @ARGV);
 
 exec '/usr/bin/env', @args;

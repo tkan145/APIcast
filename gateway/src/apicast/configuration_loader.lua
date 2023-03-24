@@ -151,7 +151,7 @@ function boot.init(configuration)
   -- This is a reserved configuration injected at init time on boot mode
   -- When the worker process is (re-)spawned, it is a configuration item
   -- that can be checked for expiration. When expired, the worker process
-  -- known it needs to load fresh config
+  -- knows it needs to load fresh config
   local boot_init = _M.configure(configuration, require('cjson').encode({ services = {
     { id = -1, proxy = { hosts = { boot_reserved_domain } } }
   }}))
@@ -208,7 +208,6 @@ function boot.init_worker(configuration)
   -- If it is stale, refresh configuration
   -- When a worker process is (re-)spawned,
   -- it will start working with fresh (according the ttl semantics) configuration
-  -- In the current boot mode context, all the configuration services have the same TTL
   local boot_reserved_hosts = configuration:find_by_host(boot_reserved_domain, false)
   if(#boot_reserved_hosts == 0)
   then

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Opentelemetry support. Opentracing is now deprecated [PR #1379](https://github.com/3scale/APIcast/pull/1379) [THREESCALE-7735](https://issues.redhat.com/browse/THREESCALE-7735)
 - `/admin/api/account/proxy_configs` endpoint for configuration loading [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
 - Pagination of services and proxy config endpoints [PR #1397](https://github.com/3scale/APIcast/pull/1397) [THREESCALE-8373](https://issues.redhat.com/browse/THREESCALE-8373)
+- Upstream TLS v1.3 [PR #1400](https://github.com/3scale/APIcast/pull/1400) [THREESCALE-9193](https://issues.redhat.com/browse/THREESCALE-9193)
 
 ### Removed
 

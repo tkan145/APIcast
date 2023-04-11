@@ -1,0 +1,39 @@
+---
+version: '3.8'
+services:
+  gateway:
+    image: ${IMAGE_NAME:-apicast-test}
+    depends_on:
+    - proxy
+    - upstream
+    environment:
+      THREESCALE_CONFIG_FILE: /tmp/config.json
+      THREESCALE_DEPLOYMENT_ENV: staging
+      APICAST_CONFIGURATION_LOADER: lazy
+      APICAST_WORKERS: 1
+      APICAST_LOG_LEVEL: debug
+      APICAST_CONFIGURATION_CACHE: "0"
+    expose:
+      - "8080"
+      - "8090"
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    volumes:
+      - ./examples/forward-proxy/apicast-config.json:/tmp/config.json
+  upstream:
+    image: nginx:1.23.4
+    expose:
+      - "443"
+    volumes:
+      - ./examples/forward-proxy/proxy-nginx.conf:/etc/nginx/nginx.conf
+      - ./examples/forward-proxy/upstream-cert/upstream.key:/etc/pki/tls.key
+      - ./examples/forward-proxy/upstream-cert/upstream.crt:/etc/pki/tls.crt
+  proxy:
+    build:
+      dockerfile: ./examples/forward-proxy/tinyproxy.Dockerfile
+    expose:
+      - "3128:3128"
+      - "443:443"
+    volumes:
+      - ./examples/forward-proxy/tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf

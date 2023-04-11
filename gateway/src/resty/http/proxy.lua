@@ -83,9 +83,7 @@ local function connect_proxy(httpc, request, skip_https_connect)
         proxy_uri.port = default_port(proxy_uri)
     end
 
-    if not port then
-        port = default_port(uri)
-    end
+    local port = default_port(uri)
 
     -- TLS tunnel is verified only once, so we need to reuse connections only for the same Host header
     local options = { pool = format('%s:%s:%s:%s', proxy_uri.host, proxy_uri.port, uri.host, port) }

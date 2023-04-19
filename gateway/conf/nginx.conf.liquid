@@ -43,7 +43,7 @@ http {
   tcp_nodelay        on;
   server_tokens off;
 
-
+  variables_hash_max_size 2048;
 
   proxy_cache_path /tmp/cache levels=1:2 keys_zone=apicast_cache:10m;
   # Enabling the Lua code cache is strongly encouraged for production use

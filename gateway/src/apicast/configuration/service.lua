@@ -242,7 +242,10 @@ end
 -- Deprecated
 function _M:extract_usage(request)
   ngx.log(ngx.WARN, 'extract_usage is deprecated, please use get_usage(method, path)')
-  local req = re.split(request, " ", 'oj')
+  local req, err = re.split(request, " ", 'oj')
+  if not req then
+      return nil, err
+  end
   local method, url = req[1], req[2]
   local path = re.split(url, "\\?", 'oj')[1]
 

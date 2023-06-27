@@ -218,6 +218,10 @@ end
 
 function _M:rewrite(service, context)
   service = _M.set_service(service or ngx.ctx.service)
+  if not service then
+    ngx.log(ngx.WARN, "cannot set service")
+    return errors.no_credentials(service)
+  end
 
   -- handle_oauth can terminate the request
   self.oauth = handle_oauth(service)

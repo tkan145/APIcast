@@ -94,13 +94,13 @@ function _M.call(_, context, bal)
 
   upstream, err = get_upstream(context)
 
-  if err then
+  if not upstream then
     return nil, err
   end
 
   peer, err = get_peer(balancer, upstream)
 
-  if err then
+  if not peer then
     return nil, err
   end
 

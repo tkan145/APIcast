@@ -146,7 +146,10 @@ function _M.connect_redis(options)
   local host = opts.host or env.get('REDIS_HOST') or "127.0.0.1"
   local port = opts.port or env.get('REDIS_PORT') or 6379
 
-  local red = redis:new()
+  local red, err = redis:new()
+  if not red then
+    return nil, _M.error("failed to create redis object: ",  err)
+  end
 
   red:set_timeout(opts.timeout)
 

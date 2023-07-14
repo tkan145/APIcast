@@ -1,5 +1,4 @@
 local unpack = unpack
-local concat = table.concat
 local tostring = tostring
 local tonumber = tonumber
 
@@ -9,6 +8,7 @@ local socket_resolver = require('resty.resolver.socket')
 local configuration_parser = require 'apicast.configuration_parser'
 local user_agent = require 'apicast.user_agent'
 local env = require 'resty.env'
+local url_helper = require 'resty.url_helper'
 
 local _M = {
   version = '0.1'
@@ -69,25 +69,18 @@ function _M.wait(endpoint, timeout)
 end
 
 function _M.download(endpoint, _)
-  local url, err = resty_url.split(endpoint)
-
+  local url, auth, err = url_helper.parse_url_auth(endpoint)
   if not url and err then
     return nil, err
   end
-
-  local scheme, user, pass, host, port, path = unpack(url)
-  if port then host = concat({host, port}, ':') end
-
-  url = concat({ scheme, '://', host, path or '/admin/api/nginx/spec.json' }, '')
-
 
   local httpc = http.new()
   local headers = {}
 
   httpc:set_timeout(10000)
 
-  if user or pass then
-    headers['Authorization'] = "Basic " .. ngx.encode_base64(concat({ user or '', pass or '' }, ':'))
+  if auth then
+    headers['Authorization'] = auth
   end
 
   headers['User-Agent'] = user_agent()

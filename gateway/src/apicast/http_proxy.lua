@@ -1,10 +1,13 @@
 local format = string.format
+local unpack = unpack
+local concat = table.concat
 
 local resty_url = require "resty.url"
 local resty_resolver = require 'resty.resolver'
 local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
+local url_helper  = require("resty.url_helper")
 
 local _M = { }
 
@@ -155,9 +158,20 @@ end
 
 function _M.request(upstream, proxy_uri)
     local uri = upstream.uri
+    local proxy_auth, err
+
+    proxy_uri, proxy_auth, err = url_helper(proxy_uri)
+    if not proxy_uri and err then
+        ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', err)
+        return ngx.exit(ngx.HTTP_BAD_GATEWAY)
+    end
+
+    -- FIXME: should we check for the 'Proxy-Authorization' header before overwrite it?
+    if proxy_auth then
+        ngx.req.set_header("Proxy-Authorization", proxy_auth)
+    end
 
     if uri.scheme == 'http' then -- rewrite the request to use http_proxy
-        local err
         local host = upstream:set_host_header()
         upstream:use_host_header(host)
         upstream.servers, err = resolve_servers(proxy_uri)

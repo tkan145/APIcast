@@ -7,19 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.14.0] 2023-07-25
+
 ### Fixed
 
 - In boot mode on `init_worker` check configuration expiration [PR #1399](https://github.com/3scale/APIcast/pull/1399) [THREESCALE-9003](https://issues.redhat.com/browse/THREESCALE-9003)
 - Removes the warning message at the bootstrap [PR #1398](https://github.com/3scale/APIcast/pull/1398) [THREESCALE-7942](https://issues.redhat.com/browse/THREESCALE-7942)
 - Set NGiNX variable variables_hash_max_size to 2048 to avoid startup warning [PR #1395](https://github.com/3scale/APIcast/pull/1395) [THREESCALE-7941](https://issues.redhat.com/browse/THREESCALE-7941)
+- Dev environment on aarch64 host [PR #1381](https://github.com/3scale/APIcast/pull/1381) 
 
 ### Added
 
+- Doc: Policy Development Tutorial [PR #1384](https://github.com/3scale/APIcast/pull/1384) 
 - Opentelemetry support. Opentracing is now deprecated [PR #1379](https://github.com/3scale/APIcast/pull/1379) [THREESCALE-7735](https://issues.redhat.com/browse/THREESCALE-7735)
 - `/admin/api/account/proxy_configs` endpoint for configuration loading [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
 - Pagination of services and proxy config endpoints [PR #1397](https://github.com/3scale/APIcast/pull/1397) [THREESCALE-8373](https://issues.redhat.com/browse/THREESCALE-8373)
 - Upstream TLS v1.3 [PR #1400](https://github.com/3scale/APIcast/pull/1400) [THREESCALE-9193](https://issues.redhat.com/browse/THREESCALE-9193)
 - Updated policy list for v3.13.2 [PR #1404](https://github.com/3scale/APIcast/pull/1404)
+- Updated policy list for v3.14.0 [PR #1407](https://github.com/3scale/APIcast/pull/1407)
 
 ### Removed
 
@@ -952,7 +957,7 @@ Apart from the changes mentioned in this section, this version also includes the
 
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.10.0...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.14.0...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -1012,3 +1017,4 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.12.2]: https://github.com/3scale/apicast/compare/v3.12.0..v3.12.2
 [3.13.0]: https://github.com/3scale/apicast/compare/v3.12.2..v3.13.0
 [3.13.2]: https://github.com/3scale/apicast/compare/v3.13.0..v3.13.2
+[3.14.0]: https://github.com/3scale/apicast/compare/v3.13.2..v3.14.0

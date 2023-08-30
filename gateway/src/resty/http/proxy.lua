@@ -56,17 +56,22 @@ local function _connect_proxy_https(httpc, request, host, port)
 
     local uri = request.uri
 
-    local ok, err = httpc:request({
+    local res, err = httpc:request({
         method = 'CONNECT',
         path = format('%s:%s', host, port or default_port(uri)),
         headers = {
             ['Host'] = request.headers.host or format('%s:%s', uri.host, default_port(uri)),
+            ['Proxy-Authorization'] = request.headers["Proxy-Authorization"] or ''
         }
     })
-    if not ok then return nil, err end
+    if not res then return nil, err end
 
-    ok, err = httpc:ssl_handshake(nil, uri.host, request.ssl_verify)
-    if not ok then return nil, err end
+    if res.status < 200 or res.status > 299 then
+        return nil, "failed to establish a tunnel through a proxy: " .. res.status
+    end
+
+    res, err = httpc:ssl_handshake(nil, uri.host, request.ssl_verify)
+    if not res then return nil, err end
 
     return httpc
 end

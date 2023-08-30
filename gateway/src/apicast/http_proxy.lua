@@ -5,6 +5,7 @@ local resty_resolver = require 'resty.resolver'
 local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
+local concat = table.concat
 
 local _M = { }
 
@@ -155,6 +156,13 @@ end
 
 function _M.request(upstream, proxy_uri)
     local uri = upstream.uri
+
+    if not ngx.var.proxy_authorization then
+        if proxy_uri.user or proxy_uri.password then
+            local proxy_auth = "Basic " .. ngx.encode_base64(concat({ proxy_uri.user or '', proxy_uri.password or '' }, ':'))
+            ngx.req.set_header("Proxy-Authorization", proxy_auth)
+        end
+    end
 
     if uri.scheme == 'http' then -- rewrite the request to use http_proxy
         local err

@@ -157,7 +157,7 @@ end
 function _M.request(upstream, proxy_uri)
     local uri = upstream.uri
 
-    if not ngx.var.proxy_authorization then
+    if not ngx.var.http_proxy_authorization then
         if proxy_uri.user or proxy_uri.password then
             local proxy_auth = "Basic " .. ngx.encode_base64(concat({ proxy_uri.user or '', proxy_uri.password or '' }, ':'))
             ngx.req.set_header("Proxy-Authorization", proxy_auth)

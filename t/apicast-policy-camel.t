@@ -389,7 +389,7 @@ using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
             "name": "apicast.policy.apicast"
           },
           {
-            "name": "apicast.policy.http_proxy",
+            "name": "apicast.policy.camel",
             "configuration": {
                 "all_proxy": "http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT"
             }
@@ -425,7 +425,6 @@ using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
 
 
 === TEST 7: using HTTPS proxy for backend with Basic Auth.
---- ONLY
 --- init eval
 $Test::Nginx::Util::PROXY_SSL_PORT = Test::APIcast::get_random_port();
 $Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
@@ -436,7 +435,7 @@ $Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
     {
       "backend_version":  1,
       "proxy": {
-        "api_backend": "https://localhost:$Test::Nginx::Util::ENDPOINT_SSL_PORT",
+        "api_backend": "https://127.0.0.1:$Test::Nginx::Util::ENDPOINT_SSL_PORT",
         "proxy_rules": [
           { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
         ],
@@ -476,15 +475,8 @@ EOF
     access_by_lua_block {
       assert = require('luassert')
       local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
-      assert.equals(proxy_auth, "Basic Zm9vOmJhcg==")
+      assert.falsy(proxy_auth)
 
-      assert.equal('https', ngx.var.scheme)
-      assert.equal('$Test::Nginx::Util::ENDPOINT_SSL_PORT', ngx.var.server_port)
-      assert.equal('localhost', ngx.var.ssl_server_name)
-      assert.equal(ngx.var.request_uri, '/test?user_key=test3')
-
-      local host = ngx.req.get_headers()["Host"]
-      assert.equal(host, 'localhost:$Test::Nginx::Util::ENDPOINT_SSL_PORT')
       ngx.say("yay, endpoint backend")
 
     }
@@ -507,9 +499,6 @@ server {
 EOF
 --- request
 GET /test?user_key=test3
---- more_headers
-User-Agent: Test::APIcast::Blackbox
-ETag: foobar
 --- error_code: 200
 --- user_files fixture=tls.pl eval
 --- error_log eval

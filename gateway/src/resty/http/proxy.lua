@@ -61,7 +61,7 @@ local function _connect_proxy_https(httpc, request, host, port)
         path = format('%s:%s', host, port or default_port(uri)),
         headers = {
             ['Host'] = request.headers.host or format('%s:%s', uri.host, default_port(uri)),
-            ['Proxy-Authorization'] = request.headers["Proxy-Authorization"] or ''
+            ['Proxy-Authorization'] = request.proxy_auth or ''
         }
     })
     if not res then return nil, err end

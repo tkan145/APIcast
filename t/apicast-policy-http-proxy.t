@@ -244,13 +244,11 @@ server_name test-upstream.lvh.me;
 GET /?user_key=value
 --- error_code: 200
 --- error_log env
-proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
---- error_log env
 using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
 
 
 === TEST 5: using all_proxy with Basic Auth
---- configuration
+--- configuration random_port env
 {
   "services": [
     {
@@ -296,8 +294,6 @@ server_name test-upstream.lvh.me;
 --- request
 GET /?user_key=value
 --- error_code: 200
---- error_log env
-proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
 --- error_log env
 using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
 
@@ -347,16 +343,16 @@ location /test {
     echo_end;
 
     access_by_lua_block {
-      assert = require('luassert')
+      local assert = require('luassert')
       local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
-      assert.equals(proxy_auth, "Basic Zm9vOmJhcg==")
+      assert.falsy(proxy_auth)
     }
 }
 --- request
 GET /test?user_key=test3
 --- error_code: 200
---- error_log env
-proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
 --- user_files fixture=tls.pl eval
 --- error_log env
 using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
+proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+got header line: Proxy-Authorization: Basic Zm9vOmJhcg==

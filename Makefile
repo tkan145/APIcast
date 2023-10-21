@@ -24,7 +24,6 @@ DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE ?= docker-compose-devel-volmount-defa
 
 PROVE_DOCKER_COMPOSE_FILE ?= docker-compose.prove.yml
 FORWARD_PROXY_DOCKER_COMPOSE_FILE ?= docker-compose.forward-proxy.yml
-UPSTREAM_TLS_DOCKER_COMPOSE_FILE ?= docker-compose.upstream-tls.yml
 
 DOCKER_VOLUME_NAME ?= apicast-local-volume
 
@@ -177,10 +176,6 @@ opentracing-gateway: ## run gateway instrumented with opentracing
 forward-proxy-gateway: ## run gateway configured to run along with a forward proxy
 	$(DOCKER) compose -f $(FORWARD_PROXY_DOCKER_COMPOSE_FILE) run gateway
 
-# Environment described in ./examples/tlsv1.3-upstream
-upstream-tls-gateway: ## run gateway configured to access upstream powered with TLS
-	$(DOCKER) compose -f $(UPSTREAM_TLS_DOCKER_COMPOSE_FILE) run gateway
-
 test-runtime-image: export IMAGE_NAME ?= $(RUNTIME_IMAGE)
 test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any docker image in IMAGE_NAME parameter.
 	$(DOCKER) compose --version
@@ -248,7 +243,6 @@ clean-containers:
 	$(DOCKER) compose -f $(PROVE_DOCKER_COMPOSE_FILE) down --volumes --remove-orphans
 	$(DOCKER) compose -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) down --volumes --remove-orphans
 	$(DOCKER) compose -f $(FORWARD_PROXY_DOCKER_COMPOSE_FILE) down --volumes --remove-orphans
-	$(DOCKER) compose -f $(UPSTREAM_TLS_DOCKER_COMPOSE_FILE) down --volumes --remove-orphans
 
 clean-deps: ## Remove all local dependency folders
 	- rm -rf $(PROJECT_PATH)/lua_modules $(PROJECT_PATH)/local $(PROJECT_PATH)/.cpanm $(PROJECT_PATH)/vendor/cache $(PROJECT_PATH)/.cache :

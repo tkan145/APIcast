@@ -165,9 +165,6 @@ gateway-logs: export IMAGE_NAME = does-not-matter
 gateway-logs:
 	$(DOCKER) compose logs gateway
 
-opentelemetry-gateway: ## run gateway instrumented with opentelemetry
-	$(DOCKER) compose run opentelemetry-instrumented-gateway
-
 opentracing-gateway: ## run gateway instrumented with opentracing
 	$(DOCKER) compose run opentracing-instrumented-gateway
 

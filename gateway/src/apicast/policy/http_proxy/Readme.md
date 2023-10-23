@@ -54,8 +54,8 @@ The policy expect the URLS following the `http://[<username>[:<passwd>]@]<host>[
       "name": "apicast.policy.http_proxy",
       "configuration": {
           "all_proxy": "http://foo:bar@192.168.15.103:8888/",
-          "https_proxy": "https://foo:bar@192.168.15.103:8888/",
-          "http_proxy": "https://foo:bar@192.168.15.103:8888/"
+          "https_proxy": "http://foo:bar@192.168.15.103:8888/",
+          "http_proxy": "http://foo:bar@192.168.15.103:8888/"
       }
     }
 ]

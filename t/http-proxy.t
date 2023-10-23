@@ -1259,17 +1259,14 @@ server_name test_backend.lvh.me;
 --- upstream
 server_name test-upstream.lvh.me;
   location / {
-    access_by_lua_block {
-      local assert = require('luassert')
-      local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
-      assert.equals(proxy_auth, "Basic Zm9vOmJhcg==")
-    }
+    echo 'yay, api backend!';
   }
 --- request
 GET /?user_key=value
 --- error_code: 200
 --- error_log env
 using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
+proxy http request - got header line: Proxy-Authorization: Basic Zm9vOmJhcg==
 --- no_error_log
 [error]
 

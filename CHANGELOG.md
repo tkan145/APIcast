@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed CVE-2023-44487 (HTTP/2 Rapid Reset) [PR #393](https://github.com/3scale/apicast/pull/392) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-10224)
+
+### Added
+
+- Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)
+
+## [3.14.0] 2023-07-25
+
+### Fixed
+
+- In boot mode on `init_worker` check configuration expiration [PR #1399](https://github.com/3scale/APIcast/pull/1399) [THREESCALE-9003](https://issues.redhat.com/browse/THREESCALE-9003)
+- Removes the warning message at the bootstrap [PR #1398](https://github.com/3scale/APIcast/pull/1398) [THREESCALE-7942](https://issues.redhat.com/browse/THREESCALE-7942)
+- Set NGiNX variable variables_hash_max_size to 2048 to avoid startup warning [PR #1395](https://github.com/3scale/APIcast/pull/1395) [THREESCALE-7941](https://issues.redhat.com/browse/THREESCALE-7941)
+- Dev environment on aarch64 host [PR #1381](https://github.com/3scale/APIcast/pull/1381) 
+
+### Added
+
+- Doc: Policy Development Tutorial [PR #1384](https://github.com/3scale/APIcast/pull/1384) 
+- Opentelemetry support. Opentracing is now deprecated [PR #1379](https://github.com/3scale/APIcast/pull/1379) [THREESCALE-7735](https://issues.redhat.com/browse/THREESCALE-7735)
+- `/admin/api/account/proxy_configs` endpoint for configuration loading [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
+- Pagination of services and proxy config endpoints [PR #1397](https://github.com/3scale/APIcast/pull/1397) [THREESCALE-8373](https://issues.redhat.com/browse/THREESCALE-8373)
+- Upstream TLS v1.3 [PR #1400](https://github.com/3scale/APIcast/pull/1400) [THREESCALE-9193](https://issues.redhat.com/browse/THREESCALE-9193)
+- Updated policy list for v3.13.2 [PR #1404](https://github.com/3scale/APIcast/pull/1404)
+- Updated policy list for v3.14.0 [PR #1407](https://github.com/3scale/APIcast/pull/1407)
+
+### Removed
+
+- `APICAST_LOAD_SERVICES_WHEN_NEEDED` is dropped and the configuration is fetched "when needed" by default [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
+
+## [3.13.2] 2023-02-21
+
+### Fixed
+
+- Fixed: OIDC jwt key verification [PR #1392](https://github.com/3scale/APIcast/pull/1392) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)
+
+## [3.13.0] 2023-02-07
+
+### Fixed
+
+- Fixed NGINX filters policy error [PR #1339](https://github.com/3scale/APIcast/pull/1339) [THREESCALE-7349](https://issues.redhat.com/browse/THREESCALE-7349)
+- Fix to avoid uninitialized variables when request URI is too large [PR #1340](https://github.com/3scale/APIcast/pull/1340) [THREESCALE-7906](https://issues.redhat.com/browse/THREESCALE-7906)
+- Fixed issue where request path is stripped for proxied https requests [PR #1342](https://github.com/3scale/APIcast/pull/1342) [THREESCALE-8426](https://issues.redhat.com/browse/THREESCALE-8426)
+- Bumped liquid-lua to version 0.2.0-2 [PR #1369](https://github.com/3scale/APIcast/pull/1369) - includes: [THREESCALE-8483](https://issues.redhat.com/browse/THREESCALE-8483) and [THREESCALE-8484](https://issues.redhat.com/browse/THREESCALE-8484)
+- Fixed: APIcast could not retrieve the latest version of the proxy config [PR #1370](https://github.com/3scale/APIcast/pull/1370) [THREESCALE-8485](https://issues.redhat.com/browse/THREESCALE-8485)
+- Fixed: JWKs without alg field cause the JWT validation process to fail [PR #1371](https://github.com/3scale/APIcast/pull/1371) [THREESCALE-8601](https://issues.redhat.com/browse/THREESCALE-8601)
+
+### Added
+
+- Updated policy list [PR #1374](https://github.com/3scale/APIcast/pull/1374)
+
 ## [3.12.2] 2023-02-21
 
 - Fixed: OIDC jwt key verification [PR #1391](https://github.com/3scale/APIcast/pull/1391) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)

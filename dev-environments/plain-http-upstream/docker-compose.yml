@@ -4,7 +4,8 @@ services:
   gateway:
     image: ${IMAGE_NAME:-apicast-test}
     depends_on:
-    - one.upstream
+    - example.com
+    - two.upstream
     environment:
       THREESCALE_CONFIG_FILE: /tmp/config.json
       THREESCALE_DEPLOYMENT_ENV: staging
@@ -19,12 +20,15 @@ services:
       - "8080:8080"
       - "8090:8090"
     volumes:
-      - ./examples/tlsv1.3-upstream/apicast-config.json:/tmp/config.json
-  one.upstream:
-    image: nginx:1.23.4
+      - ./apicast-config.json:/tmp/config.json
+  example.com:
+    image: alpine/socat:1.7.4.4
+    container_name: example.com
+    command: "-d -v -d TCP-LISTEN:80,reuseaddr,fork TCP:two.upstream:80"
     expose:
-      - "443"
-    volumes:
-      - ./examples/tlsv1.3-upstream/proxy-nginx.conf:/etc/nginx/nginx.conf
-      - ./examples/tlsv1.3-upstream/upstream-cert/one.upstream.key:/etc/pki/tls.key
-      - ./examples/tlsv1.3-upstream/upstream-cert/one.upstream.crt:/etc/pki/tls.crt
+      - "80"
+    restart: unless-stopped
+  two.upstream:
+    image: kennethreitz/httpbin
+    expose:
+      - "80"

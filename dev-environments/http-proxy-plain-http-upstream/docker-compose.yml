@@ -5,7 +5,8 @@ services:
     image: ${IMAGE_NAME:-apicast-test}
     depends_on:
     - proxy
-    - upstream
+    - example.com
+    - two.upstream
     environment:
       THREESCALE_CONFIG_FILE: /tmp/config.json
       THREESCALE_DEPLOYMENT_ENV: staging
@@ -20,20 +21,23 @@ services:
       - "8080:8080"
       - "8090:8090"
     volumes:
-      - ./examples/forward-proxy/apicast-config.json:/tmp/config.json
-  upstream:
-    image: nginx:1.23.4
-    expose:
-      - "443"
-    volumes:
-      - ./examples/forward-proxy/proxy-nginx.conf:/etc/nginx/nginx.conf
-      - ./examples/forward-proxy/upstream-cert/upstream.key:/etc/pki/tls.key
-      - ./examples/forward-proxy/upstream-cert/upstream.crt:/etc/pki/tls.crt
+      - ./apicast-config.json:/tmp/config.json
   proxy:
     build:
-      dockerfile: ./examples/forward-proxy/tinyproxy.Dockerfile
+      dockerfile: ./tinyproxy.Dockerfile
     expose:
       - "3128:3128"
       - "443:443"
     volumes:
-      - ./examples/forward-proxy/tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf
+      - ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf
+  example.com:
+    image: alpine/socat:1.7.4.4
+    container_name: example.com
+    command: "-d -v -d TCP-LISTEN:80,reuseaddr,fork TCP:two.upstream:80"
+    expose:
+      - "443"
+    restart: unless-stopped
+  two.upstream:
+    image: kennethreitz/httpbin
+    expose:
+      - "80"

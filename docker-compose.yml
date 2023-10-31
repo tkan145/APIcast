@@ -69,21 +69,6 @@ services:
     volumes:
       - ./examples/opentracing/apicast-config.json:/tmp/config.json
       - ./examples/opentracing/jaeger-config.json:/opt/app-root/src/tracing-configs/tracing-config-jaeger-jaeger-config.json
-  opentelemetry-instrumented-gateway:
-    image: ${IMAGE_NAME:-apicast-test}
-    depends_on:
-    - jaeger
-    environment:
-      THREESCALE_CONFIG_FILE: /tmp/config.json
-      THREESCALE_DEPLOYMENT_ENV: staging
-      APICAST_CONFIGURATION_LOADER: lazy
-      APICAST_LOG_LEVEL: debug
-      APICAST_CONFIGURATION_CACHE: "0"
-      OPENTELEMETRY: "1"
-      OPENTELEMETRY_CONFIG: /opt/app-root/src/tracing-configs/otel.toml
-    volumes:
-      - ./examples/opentelemetry/apicast-config.json:/tmp/config.json
-      - ./examples/opentelemetry/otel.toml:/opt/app-root/src/tracing-configs/otel.toml
   jaeger:
     image: jaegertracing/all-in-one:latest
     environment:

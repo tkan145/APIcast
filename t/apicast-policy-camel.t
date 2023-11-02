@@ -318,6 +318,7 @@ EOF
 
 
 === TEST 5: API backend connection uses http proxy with Basic Auth
+Check that the Proxy Authorization header is not sent
 --- configuration
 {
   "services": [
@@ -358,7 +359,7 @@ EOF
     access_by_lua_block {
       assert = require('luassert')
       local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
-      assert.equals(proxy_auth, "Basic Zm9vOmJhcg==")
+      assert.falsy(proxy_auth)
       ngx.say("yay, api backend")
     }
   }
@@ -371,6 +372,7 @@ yay, api backend
 using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
 
 === TEST 6: API backend using all_proxy with Basic Auth
+Check that the Proxy Authorization header is not sent
 --- configuration
 {
   "services": [
@@ -411,7 +413,7 @@ using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
     access_by_lua_block {
       assert = require('luassert')
       local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
-      assert.equals(proxy_auth, "Basic Zm9vOmJhcg==")
+      assert.falsy(proxy_auth)
       ngx.say("yay, api backend")
     }
   }
@@ -425,6 +427,7 @@ using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
 
 
 === TEST 7: using HTTPS proxy for backend with Basic Auth.
+Check that the Proxy Authorization header is not sent
 --- init eval
 $Test::Nginx::Util::PROXY_SSL_PORT = Test::APIcast::get_random_port();
 $Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
@@ -473,10 +476,6 @@ EOF
 
   location /test {
     access_by_lua_block {
-      assert = require('luassert')
-      local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
-      assert.falsy(proxy_auth)
-
       ngx.say("yay, endpoint backend")
 
     }
@@ -505,3 +504,5 @@ GET /test?user_key=test3
 <<EOF
 using proxy: http://foo:bar\@127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT,
 EOF
+--- no_error_log eval
+[qr/\[error\]/, qr/\got header line: Proxy-Authorization: Basic Zm9vOmJhcg==/]

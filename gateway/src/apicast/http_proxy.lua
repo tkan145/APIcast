@@ -167,7 +167,10 @@ function _M.request(upstream, proxy_uri)
         -- Only set "Proxy-Authorization" when sending HTTP request. When sent over HTTPS,
         -- the `Proxy-Authorization` header must be sent in the CONNECT request as the proxy has
         -- no visibility into the tunneled request.
-        if not ngx.var.http_proxy_authorization and proxy_auth then
+        --
+        -- Also DO NOT set the header if using the camel proxy to avoid unintended leak of
+        -- Proxy-Authorization header in requests
+        if not ngx.var.http_proxy_authorization and proxy_auth and not upstream.skip_https_connect then
             ngx.req.set_header("Proxy-Authorization", proxy_auth)
         end
 

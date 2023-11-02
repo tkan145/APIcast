@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.12.3] 2023-11-02
+
+### Fixed
+
+- Fixed CVE-2023-44487 (HTTP/2 Rapid Reset) [PR #1420](https://github.com/3scale/apicast/pull/1420) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-10224)
+
 ## [3.12.2] 2023-02-21
 
 - Fixed: OIDC jwt key verification [PR #1391](https://github.com/3scale/APIcast/pull/1391) [THREESCALE-9009](https://issues.redhat.com/browse/THREESCALE-9009)

@@ -7,32 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-### Added
-
-- Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)
-
-## [3.14.0] 2023-07-25
+## [3.13.3] 2023-11-02
 
 ### Fixed
 
-- In boot mode on `init_worker` check configuration expiration [PR #1399](https://github.com/3scale/APIcast/pull/1399) [THREESCALE-9003](https://issues.redhat.com/browse/THREESCALE-9003)
-- Removes the warning message at the bootstrap [PR #1398](https://github.com/3scale/APIcast/pull/1398) [THREESCALE-7942](https://issues.redhat.com/browse/THREESCALE-7942)
-- Set NGiNX variable variables_hash_max_size to 2048 to avoid startup warning [PR #1395](https://github.com/3scale/APIcast/pull/1395) [THREESCALE-7941](https://issues.redhat.com/browse/THREESCALE-7941)
-- Dev environment on aarch64 host [PR #1381](https://github.com/3scale/APIcast/pull/1381) 
-
-### Added
-
-- Doc: Policy Development Tutorial [PR #1384](https://github.com/3scale/APIcast/pull/1384) 
-- Opentelemetry support. Opentracing is now deprecated [PR #1379](https://github.com/3scale/APIcast/pull/1379) [THREESCALE-7735](https://issues.redhat.com/browse/THREESCALE-7735)
-- `/admin/api/account/proxy_configs` endpoint for configuration loading [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
-- Pagination of services and proxy config endpoints [PR #1397](https://github.com/3scale/APIcast/pull/1397) [THREESCALE-8373](https://issues.redhat.com/browse/THREESCALE-8373)
-- Upstream TLS v1.3 [PR #1400](https://github.com/3scale/APIcast/pull/1400) [THREESCALE-9193](https://issues.redhat.com/browse/THREESCALE-9193)
-- Updated policy list for v3.13.2 [PR #1404](https://github.com/3scale/APIcast/pull/1404)
-- Updated policy list for v3.14.0 [PR #1407](https://github.com/3scale/APIcast/pull/1407)
-
-### Removed
-
-- `APICAST_LOAD_SERVICES_WHEN_NEEDED` is dropped and the configuration is fetched "when needed" by default [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
+- Fixed CVE-2023-44487 (HTTP/2 Rapid Reset) [PR #1421](https://github.com/3scale/apicast/pull/1421) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-10224)
 
 ## [3.13.2] 2023-02-21
 

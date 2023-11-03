@@ -2,6 +2,7 @@ local Service = require 'apicast.configuration.service'
 
 describe('Service object', function()
   describe(':credentials', function()
+    stub(ngx.req, 'http_version', function() return 1.1 end)
 
     describe('backend_version=1', function()
       it('returns only GET parameters', function()

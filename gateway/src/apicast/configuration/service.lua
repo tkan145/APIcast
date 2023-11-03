@@ -34,7 +34,7 @@ local http_methods_with_body = {
 }
 
 local function is_http2_request()
-  return ngx.req.http_version == '2.0'
+  return ngx.req.http_version() == 2.0
 end
 
 local function content_type_is_urlencoded(headers)
@@ -56,7 +56,6 @@ end
 local function read_body_args(...)
   local method = ngx.req.get_method()
 
-  ngx.log(ngx.WARN, "is_http2_request: ", is_http2_request())
   if is_http2_request() then
     return {}, 'not supported'
   end
@@ -206,7 +205,6 @@ end
 local function get_request_params(method)
   local params = ngx.req.get_uri_args()
 
-  ngx.log(ngx.WARN, "is_http2_request: ", is_http2_request())
   if is_http2_request() then
     return params
   end

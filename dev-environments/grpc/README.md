@@ -33,7 +33,10 @@ docker compose -p grpc logs -f one.upstream
 ## Testing
 
 
-Get `grpcurl`
+
+Get `grpcurl`. You need [Go SDK](https://golang.org/doc/install) installed.
+
+Golang version >= 1.18 (from [fullstorydev/grpcurl](https://github.com/fullstorydev/grpcurl/blob/v1.8.9/go.mod#L3))
 
 ```sh
 make grpcurl

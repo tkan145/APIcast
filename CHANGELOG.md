@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Fix GRPC on HTTP2 POST method [PR #1419](https://github.com/3scale/apicast/pull/1419) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-9976)
+
 - Fixed CVE-2023-44487 (HTTP/2 Rapid Reset) [PR #1417](https://github.com/3scale/apicast/pull/1417) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-10224)
 
 ### Added
@@ -22,11 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - In boot mode on `init_worker` check configuration expiration [PR #1399](https://github.com/3scale/APIcast/pull/1399) [THREESCALE-9003](https://issues.redhat.com/browse/THREESCALE-9003)
 - Removes the warning message at the bootstrap [PR #1398](https://github.com/3scale/APIcast/pull/1398) [THREESCALE-7942](https://issues.redhat.com/browse/THREESCALE-7942)
 - Set NGiNX variable variables_hash_max_size to 2048 to avoid startup warning [PR #1395](https://github.com/3scale/APIcast/pull/1395) [THREESCALE-7941](https://issues.redhat.com/browse/THREESCALE-7941)
-- Dev environment on aarch64 host [PR #1381](https://github.com/3scale/APIcast/pull/1381) 
+- Dev environment on aarch64 host [PR #1381](https://github.com/3scale/APIcast/pull/1381)
 
 ### Added
 
-- Doc: Policy Development Tutorial [PR #1384](https://github.com/3scale/APIcast/pull/1384) 
+- Doc: Policy Development Tutorial [PR #1384](https://github.com/3scale/APIcast/pull/1384)
 - Opentelemetry support. Opentracing is now deprecated [PR #1379](https://github.com/3scale/APIcast/pull/1379) [THREESCALE-7735](https://issues.redhat.com/browse/THREESCALE-7735)
 - `/admin/api/account/proxy_configs` endpoint for configuration loading [PR #1352](https://github.com/3scale/APIcast/pull/1352) [THREESCALE-8508](https://issues.redhat.com/browse/THREESCALE-8508)
 - Pagination of services and proxy config endpoints [PR #1397](https://github.com/3scale/APIcast/pull/1397) [THREESCALE-8373](https://issues.redhat.com/browse/THREESCALE-8373)

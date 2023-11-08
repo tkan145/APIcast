@@ -5,6 +5,7 @@ local resty_resolver = require 'resty.resolver'
 local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
+local concat = table.concat
 
 local _M = { }
 
@@ -81,7 +82,7 @@ local function absolute_url(uri)
     )
 end
 
-local function forward_https_request(proxy_uri, uri, skip_https_connect)
+local function forward_https_request(proxy_uri, proxy_auth, uri, skip_https_connect)
     -- This is needed to call ngx.req.get_body_data() below.
     ngx.req.read_body()
 
@@ -101,7 +102,8 @@ local function forward_https_request(proxy_uri, uri, skip_https_connect)
         -- nil, so after this we need to read the temp file.
         -- https://github.com/openresty/lua-nginx-module#ngxreqget_body_data
         body = ngx.req.get_body_data(),
-        proxy_uri = proxy_uri
+        proxy_uri = proxy_uri,
+        proxy_auth = proxy_auth
     }
 
     if not request.body then
@@ -155,8 +157,23 @@ end
 
 function _M.request(upstream, proxy_uri)
     local uri = upstream.uri
+    local proxy_auth
+
+    if proxy_uri.user or proxy_uri.password then
+        proxy_auth = "Basic " .. ngx.encode_base64(concat({ proxy_uri.user or '', proxy_uri.password or '' }, ':'))
+    end
 
     if uri.scheme == 'http' then -- rewrite the request to use http_proxy
+        -- Only set "Proxy-Authorization" when sending HTTP request. When sent over HTTPS,
+        -- the `Proxy-Authorization` header must be sent in the CONNECT request as the proxy has
+        -- no visibility into the tunneled request.
+        --
+        -- Also DO NOT set the header if using the camel proxy to avoid unintended leak of
+        -- Proxy-Authorization header in requests
+        if not ngx.var.http_proxy_authorization and proxy_auth and not upstream.skip_https_connect then
+            ngx.req.set_header("Proxy-Authorization", proxy_auth)
+        end
+
         local err
         local host = upstream:set_host_header()
         upstream:use_host_header(host)
@@ -169,7 +186,7 @@ function _M.request(upstream, proxy_uri)
         return
     elseif uri.scheme == 'https' then
         upstream:rewrite_request()
-        forward_https_request(proxy_uri, uri, upstream.skip_https_connect)
+        forward_https_request(proxy_uri, proxy_auth, uri, upstream.skip_https_connect)
         return ngx.exit(ngx.OK) -- terminate phase
     else
         ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', 'invalid request scheme')

@@ -315,3 +315,194 @@ ETag: foobar
 <<EOF
 using proxy: http://127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT,
 EOF
+
+
+=== TEST 5: API backend connection uses http proxy with Basic Auth
+Check that the Proxy Authorization header is not sent
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "http_proxy": "http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+  server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
+      assert.falsy(proxy_auth)
+      ngx.say("yay, api backend")
+    }
+  }
+--- request
+GET /?user_key=value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- error_log env
+using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
+
+=== TEST 6: API backend using all_proxy with Basic Auth
+Check that the Proxy Authorization header is not sent
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "all_proxy": "http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+  server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local proxy_auth = ngx.req.get_headers()['Proxy-Authorization']
+      assert.falsy(proxy_auth)
+      ngx.say("yay, api backend")
+    }
+  }
+--- request
+GET /?user_key=value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- error_log env
+using proxy: http://foo:bar@127.0.0.1:$TEST_NGINX_HTTP_PROXY_PORT
+
+
+=== TEST 7: using HTTPS proxy for backend with Basic Auth.
+Check that the Proxy Authorization header is not sent
+--- init eval
+$Test::Nginx::Util::PROXY_SSL_PORT = Test::APIcast::get_random_port();
+$Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
+--- configuration random_port env eval
+<<EOF
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://127.0.0.1:$Test::Nginx::Util::ENDPOINT_SSL_PORT",
+        "proxy_rules": [
+          { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "https_proxy": "http://foo:bar\@127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+EOF
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream eval
+<<EOF
+  # Endpoint config
+  listen $Test::Nginx::Util::ENDPOINT_SSL_PORT ssl;
+
+  ssl_certificate $Test::Nginx::Util::ServRoot/html/server.crt;
+  ssl_certificate_key $Test::Nginx::Util::ServRoot/html/server.key;
+
+  server_name _ default_server;
+
+  location /test {
+    access_by_lua_block {
+      ngx.say("yay, endpoint backend")
+
+    }
+  }
+}
+server {
+  # Proxy config
+  listen $Test::Nginx::Util::PROXY_SSL_PORT ssl;
+
+  ssl_certificate $Test::Nginx::Util::ServRoot/html/server.crt;
+  ssl_certificate_key $Test::Nginx::Util::ServRoot/html/server.key;
+
+
+  server_name _ default_server;
+
+  location ~ /.* {
+    proxy_http_version 1.1;
+    proxy_pass https://\$http_host;
+  }
+EOF
+--- request
+GET /test?user_key=test3
+--- error_code: 200
+--- user_files fixture=tls.pl eval
+--- error_log eval
+<<EOF
+using proxy: http://foo:bar\@127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT,
+EOF
+--- no_error_log eval
+[qr/\[error\]/, qr/\got header line: Proxy-Authorization: Basic Zm9vOmJhcg==/]

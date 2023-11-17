@@ -217,6 +217,22 @@ describe('Upstream', function()
             assert.spy(ngx.exec).was_called_with(upstream.location_name)
         end)
 
+        it('executes the upstream location when request_unbuffered provided in the context', function()
+            local contexts = {
+                ["buffered_request"] = {ctx={}, upstream_location="@upstream"},
+                ["unbuffered_request"] = {ctx={request_unbuffered=true}, upstream_location="@upstream_request_unbuffered"},
+                ["upstream_location and buffered_request"] = {ctx={upstream_location_name="@grpc", request_unbuffered=true}, upstream_location="@grpc"},
+                ["upstream_location and unbuffered_request"] = {ctx={upstream_location_name="@grpc"}, upstream_location="@grpc"},
+            }
+
+            for _, value in pairs(contexts) do
+                local upstream = Upstream.new('http://localhost')
+                upstream:call(value.ctx)
+
+                assert.spy(ngx.exec).was_called_with(value.upstream_location)
+            end
+        end)
+
         it('skips executing the upstream location when missing', function()
             local upstream = Upstream.new('http://localhost')
             upstream.location_name = nil

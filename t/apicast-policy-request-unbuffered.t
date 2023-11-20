@@ -61,9 +61,10 @@ server_name test-upstream.lvh.me;
 --- response_body eval chomp
 $ENV{LARGE_BODY}
 --- error_code: 200
---- grep_error_log
-a client request body is buffered to a temporary file
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
 --- grep_error_log_out
+a client request body is buffered to a temporary file
 --- no_error_log
 [error]
 
@@ -107,7 +108,6 @@ server_name test-upstream.lvh.me;
   location / {
     access_by_lua_block {
       assert = require('luassert')
-      ngx.say("yay, api backend")
 
       -- Nginx will read the entire body in one chunk, the upstream request will not be chunked
       -- and Content-Length header will be added.
@@ -116,6 +116,8 @@ server_name test-upstream.lvh.me;
       assert.equal('12', content_length)
       assert.falsy(encoding, "chunked")
     }
+    echo_read_request_body;
+    echo_request_body;
   }
 --- more_headers
 Transfer-Encoding: chunked
@@ -128,6 +130,8 @@ world\r
 0\r
 \r
 "
+--- response_body chomp
+hello, world
 --- error_code: 200
 --- no_error_log
 [error]
@@ -203,8 +207,9 @@ $s
 --- response_body eval
 $::data
 --- error_code: 200
---- grep_error_log
-a client request body is buffered to a temporary file
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
 --- grep_error_log_out
+a client request body is buffered to a temporary file
 --- no_error_log
 [error]

@@ -16,9 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)
-### Added
 
-* Add support to use Basic Authentication with the forward proxy. [PR #1409](https://github.com/3scale/APIcast/pull/1409)
+- Add support to use Basic Authentication with the forward proxy. [PR #1409](https://github.com/3scale/APIcast/pull/1409)
+
+- Added request unbuffered policy [PR #1408](https://github.com/3scale/APIcast/pull/1408) [THREESCALE-9542](https://issues.redhat.com/browse/THREESCALE-9542)
 
 ## [3.14.0] 2023-07-25
 

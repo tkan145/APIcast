@@ -506,3 +506,239 @@ using proxy: http://foo:bar\@127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT,
 EOF
 --- no_error_log eval
 [qr/\[error\]/, qr/\got header line: Proxy-Authorization: Basic Zm9vOmJhcg==/]
+
+
+
+=== TEST 8: API backend connection uses http proxy with chunked request
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "http_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+  server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local content_length = ngx.req.get_headers()["Content-Length"]
+      local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+      assert.equal('12', content_length)
+      assert.falsy(encoding)
+    }
+    echo_read_request_body;
+    echo $request_body;
+  }
+--- more_headers
+Transfer-Encoding: chunked
+--- request eval
+"POST /?user_key=value
+7\r
+hello, \r
+5\r
+world\r
+0\r
+\r
+"
+--- response_body
+hello, world
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+--- no_error_log
+[error]
+
+
+
+=== TEST 9: API backend using all_proxy with chunked request
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "all_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- upstream
+  server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local content_length = ngx.req.get_headers()["Content-Length"]
+      local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+      assert.equal('12', content_length)
+      assert.falsy(encoding)
+    }
+    echo_read_request_body;
+    echo $request_body;
+  }
+--- more_headers
+Transfer-Encoding: chunked
+--- request eval
+"POST /?user_key=value
+7\r
+hello, \r
+5\r
+world\r
+0\r
+\r
+"
+--- response_body
+hello, world
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+--- no_error_log
+[error]
+
+
+
+=== TEST 10: using HTTPS proxy for backend with chunked request
+--- init eval
+$Test::Nginx::Util::PROXY_SSL_PORT = Test::APIcast::get_random_port();
+$Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
+--- configuration random_port env eval
+<<EOF
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://test-upstream.lvh.me:$Test::Nginx::Util::ENDPOINT_SSL_PORT",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "https_proxy": "http://127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+EOF
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream eval
+<<EOF
+  # Endpoint config
+  server_name test-upstream.lvh.me;
+
+  listen $Test::Nginx::Util::ENDPOINT_SSL_PORT ssl;
+  ssl_certificate $Test::Nginx::Util::ServRoot/html/server.crt;
+  ssl_certificate_key $Test::Nginx::Util::ServRoot/html/server.key;
+
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local content_length = ngx.req.get_headers()["Content-Length"]
+      local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+      assert.equal('12', content_length)
+      assert.falsy(encoding)
+    }
+    echo_read_request_body;
+    echo_request_body;
+  }
+}
+server {
+  # Proxy config
+  listen $Test::Nginx::Util::PROXY_SSL_PORT ssl;
+
+  ssl_certificate $Test::Nginx::Util::ServRoot/html/server.crt;
+  ssl_certificate_key $Test::Nginx::Util::ServRoot/html/server.key;
+
+
+  server_name _ default_server;
+
+  location ~ /.* {
+    proxy_http_version 1.1;
+    proxy_pass https://\$http_host;
+  }
+EOF
+--- more_headers
+Transfer-Encoding: chunked
+--- request eval
+"POST /?user_key=value
+7\r
+hello, \r
+5\r
+world\r
+0\r
+\r
+"
+--- response_body chomp
+hello, world
+--- error_code: 200
+--- error_log eval
+<<EOF
+using proxy: http://127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT,
+EOF
+--- no_error_log
+[error]
+--- user_files fixture=tls.pl eval

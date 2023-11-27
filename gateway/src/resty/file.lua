@@ -28,4 +28,20 @@ function _M.file_reader(filename)
     end)
 end
 
+function _M.file_size(filename)
+  local handle, err = open(filename)
+
+  if err then
+    return nil, err
+  end
+
+  local current = handle:seek()
+  local size = handle:seek("end")
+
+  handle:seek("set", current)
+  handle:close()
+
+  return size
+end
+
 return _M

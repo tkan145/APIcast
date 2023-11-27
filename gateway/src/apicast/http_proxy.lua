@@ -1,10 +1,12 @@
 local format = string.format
+local tostring = tostring
 
 local resty_url = require "resty.url"
 local resty_resolver = require 'resty.resolver'
 local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
+local file_size = require("resty.file").file_size
 local concat = table.concat
 
 local _M = { }
@@ -86,39 +88,59 @@ local function forward_https_request(proxy_uri, proxy_auth, uri, skip_https_conn
     -- This is needed to call ngx.req.get_body_data() below.
     ngx.req.read_body()
 
+    -- We cannot use resty.http's .get_client_body_reader().
+    -- In POST requests with HTTPS, the result of that call is nil, and it
+    -- results in a time-out.
+    --
+    --
+    -- If ngx.req.get_body_data is nil, can be that the body is too big to
+    -- read and need to be cached in a local file. This request will return
+    -- nil, so after this we need to read the temp file.
+    -- https://github.com/openresty/lua-nginx-module#ngxreqget_body_data
+    local body = ngx.req.get_body_data()
+    local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+
+    if not body then
+        local temp_file_path = ngx.req.get_body_file()
+        ngx.log(ngx.INFO, "HTTPS Proxy: Request body is bigger than client_body_buffer_size, read the content from path='", temp_file_path, "'")
+
+        if temp_file_path then
+          body, err = file_reader(temp_file_path)
+          if err then
+            ngx.log(ngx.ERR, "HTTPS proxy: Failed to read temp body file, err: ", err)
+            ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+          end
+
+          if encoding == "chunked" then
+            -- If the body is smaller than "client_boby_buffer_size" the Content-Length header is
+            -- set based on the size of the buffer. However, when the body is rendered to a file,
+            -- we will need to calculate and manually set the Content-Length header based on the
+            -- file size
+            local contentLength, err = file_size(temp_file_path)
+            if err then
+                ngx.log(ngx.ERR, "HTTPS proxy: Failed to set content length, err: ", err)
+                ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+            end
+
+            ngx.req.set_header("Content-Length", tostring(contentLength))
+          end
+        end
+    end
+
+    -- The whole request is buffered in the memory so remove the Transfer-Encoding: chunked
+    if ngx.var.http_transfer_encoding == "chunked" then
+        ngx.req.set_header("Transfer-Encoding", nil)
+    end
+
     local request = {
         uri = uri,
         method = ngx.req.get_method(),
         headers = ngx.req.get_headers(0, true),
         path = format('%s%s%s', ngx.var.uri, ngx.var.is_args, ngx.var.query_string or ''),
-
-        -- We cannot use resty.http's .get_client_body_reader().
-        -- In POST requests with HTTPS, the result of that call is nil, and it
-        -- results in a time-out.
-        --
-        --
-        -- If ngx.req.get_body_data is nil, can be that the body is too big to
-        -- read and need to be cached in a local file. This request will return
-        -- nil, so after this we need to read the temp file.
-        -- https://github.com/openresty/lua-nginx-module#ngxreqget_body_data
-        body = ngx.req.get_body_data(),
+        body = body,
         proxy_uri = proxy_uri,
         proxy_auth = proxy_auth
     }
-
-    if not request.body then
-        local temp_file_path = ngx.req.get_body_file()
-        ngx.log(ngx.INFO, "HTTPS Proxy: Request body is bigger than client_body_buffer_size, read the content from path='", temp_file_path, "'")
-
-        if temp_file_path then
-          local body, err = file_reader(temp_file_path)
-          if err then
-            ngx.log(ngx.ERR, "HTTPS proxy: Failed to read temp body file, err: ", err)
-            ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-          end
-          request.body = body
-        end
-    end
 
     local httpc, err = http_proxy.new(request, skip_https_connect)
 

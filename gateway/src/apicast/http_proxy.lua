@@ -1,5 +1,9 @@
 local format = string.format
 local tostring = tostring
+local ngx_flush = ngx.flush
+local ngx_get_method = ngx.req.get_method
+local ngx_http_version = ngx.req.http_version
+local ngx_send_headers = ngx.send_headers
 
 local resty_url = require "resty.url"
 local resty_resolver = require 'resty.resolver'
@@ -7,9 +11,19 @@ local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
 local file_size = require("resty.file").file_size
+local client_body_reader = require("resty.http.request_reader").get_client_body_reader
+local send_response = require("resty.http.response_writer").send_response
 local concat = table.concat
 
 local _M = { }
+
+local http_methods_with_body = {
+  POST = true,
+  PUT = true,
+  PATCH = true
+}
+
+local DEFAULT_CHUNKSIZE = 32 * 1024
 
 function _M.reset()
     _M.balancer = round_robin.new()
@@ -84,52 +98,105 @@ local function absolute_url(uri)
     )
 end
 
-local function forward_https_request(proxy_uri, proxy_auth, uri, skip_https_connect)
-    -- This is needed to call ngx.req.get_body_data() below.
-    ngx.req.read_body()
-
-    -- We cannot use resty.http's .get_client_body_reader().
-    -- In POST requests with HTTPS, the result of that call is nil, and it
-    -- results in a time-out.
-    --
-    --
-    -- If ngx.req.get_body_data is nil, can be that the body is too big to
-    -- read and need to be cached in a local file. This request will return
-    -- nil, so after this we need to read the temp file.
-    -- https://github.com/openresty/lua-nginx-module#ngxreqget_body_data
-    local body = ngx.req.get_body_data()
-    local encoding = ngx.req.get_headers()["Transfer-Encoding"]
-
-    if not body then
-        local temp_file_path = ngx.req.get_body_file()
-        ngx.log(ngx.INFO, "HTTPS Proxy: Request body is bigger than client_body_buffer_size, read the content from path='", temp_file_path, "'")
-
-        if temp_file_path then
-          body, err = file_reader(temp_file_path)
-          if err then
-            ngx.log(ngx.ERR, "HTTPS proxy: Failed to read temp body file, err: ", err)
-            ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-          end
-
-          if encoding == "chunked" then
-            -- If the body is smaller than "client_boby_buffer_size" the Content-Length header is
-            -- set based on the size of the buffer. However, when the body is rendered to a file,
-            -- we will need to calculate and manually set the Content-Length header based on the
-            -- file size
-            local contentLength, err = file_size(temp_file_path)
-            if err then
-                ngx.log(ngx.ERR, "HTTPS proxy: Failed to set content length, err: ", err)
-                ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-            end
-
-            ngx.req.set_header("Content-Length", tostring(contentLength))
-          end
-        end
+local function handle_expect()
+    local expect = ngx.req.get_headers()["Expect"]
+    if type(expect) == "table" then
+        expect = expect[1]
     end
 
-    -- The whole request is buffered in the memory so remove the Transfer-Encoding: chunked
-    if ngx.var.http_transfer_encoding == "chunked" then
-        ngx.req.set_header("Transfer-Encoding", nil)
+    if expect and expect:lower() == "100-continue" then
+        ngx.status = 100
+        local ok, err = ngx_send_headers()
+
+        if not ok then
+            return nil, "failed to send response header: " .. (err or "unknown")
+        end
+
+        ok, err = ngx_flush(true)
+        if not ok then
+            return nil, "failed to flush response header: " .. (err or "unknown")
+        end
+    end
+end
+
+local function forward_https_request(proxy_uri, uri, proxy_opts)
+    local body, err
+    local sock
+    local opts = proxy_opts or {}
+    local req_method = ngx_get_method()
+    local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+    local is_chunked = encoding and encoding:lower() == "chunked"
+
+    if http_methods_with_body[req_method] then
+      if opts.request_unbuffered and ngx_http_version() == 1.1 then
+        local _, err = handle_expect()
+        if err then
+            ngx.log(ngx.ERR, "failed to handle expect header, err: ", err)
+            return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+        end
+
+        if is_chunked then
+            -- The default ngx reader does not support chunked request
+            -- so we will need to get the raw request socket and manually
+            -- decode the chunked request
+            sock, err = ngx.req.socket(true)
+        else
+            sock, err = ngx.req.socket()
+        end
+
+        if not sock then
+            ngx.log(ngx.ERR, "unable to obtain request socket: ", err)
+            return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+        end
+
+        body = client_body_reader(sock, DEFAULT_CHUNKSIZE, is_chunked)
+      else
+        -- This is needed to call ngx.req.get_body_data() below.
+        ngx.req.read_body()
+
+        -- We cannot use resty.http's .get_client_body_reader().
+        -- In POST requests with HTTPS, the result of that call is nil, and it
+        -- results in a time-out.
+        --
+        --
+        -- If ngx.req.get_body_data is nil, can be that the body is too big to
+        -- read and need to be cached in a local file. This request will return
+        -- nil, so after this we need to read the temp file.
+        -- https://github.com/openresty/lua-nginx-module#ngxreqget_body_data
+        body = ngx.req.get_body_data()
+
+        if not body then
+            local temp_file_path = ngx.req.get_body_file()
+            ngx.log(ngx.INFO, "HTTPS Proxy: Request body is bigger than client_body_buffer_size, read the content from path='", temp_file_path, "'")
+
+            if temp_file_path then
+              body, err = file_reader(temp_file_path)
+              if err then
+                ngx.log(ngx.ERR, "HTTPS proxy: Failed to read temp body file, err: ", err)
+                ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+              end
+
+              if is_chunked then
+                -- If the body is smaller than "client_boby_buffer_size" the Content-Length header is
+                -- set based on the size of the buffer. However, when the body is rendered to a file,
+                -- we will need to calculate and manually set the Content-Length header based on the
+                -- file size
+                local contentLength, err = file_size(temp_file_path)
+                if err then
+                    ngx.log(ngx.ERR, "HTTPS proxy: Failed to set content length, err: ", err)
+                    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+                end
+
+                ngx.req.set_header("Content-Length", tostring(contentLength))
+              end
+            end
+        end
+
+        -- The whole request is buffered in the memory so remove the Transfer-Encoding: chunked
+        if is_chunked then
+            ngx.req.set_header("Transfer-Encoding", nil)
+        end
+      end
     end
 
     local request = {
@@ -139,10 +206,10 @@ local function forward_https_request(proxy_uri, proxy_auth, uri, skip_https_conn
         path = format('%s%s%s', ngx.var.uri, ngx.var.is_args, ngx.var.query_string or ''),
         body = body,
         proxy_uri = proxy_uri,
-        proxy_auth = proxy_auth
+        proxy_auth = opts.proxy_auth
     }
 
-    local httpc, err = http_proxy.new(request, skip_https_connect)
+    local httpc, err = http_proxy.new(request, opts.skip_https_connect)
 
     if not httpc then
         ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', err)
@@ -154,8 +221,16 @@ local function forward_https_request(proxy_uri, proxy_auth, uri, skip_https_conn
     res, err = httpc:request(request)
 
     if res then
-        httpc:proxy_response(res)
-        httpc:set_keepalive()
+        if opts.request_unbuffered and is_chunked then
+            local bytes, err = send_response(sock, res, DEFAULT_CHUNKSIZE)
+            if not bytes then
+                ngx.log(ngx.ERR, "failed to send response: ", err)
+                return sock:send("HTTP/1.1 502 Bad Gateway")
+            end
+        else
+            httpc:proxy_response(res)
+            httpc:set_keepalive()
+        end
     else
         ngx.log(ngx.ERR, 'failed to proxy request to: ', proxy_uri, ' err : ', err)
         return ngx.exit(ngx.HTTP_BAD_GATEWAY)
@@ -208,7 +283,13 @@ function _M.request(upstream, proxy_uri)
         return
     elseif uri.scheme == 'https' then
         upstream:rewrite_request()
-        forward_https_request(proxy_uri, proxy_auth, uri, upstream.skip_https_connect)
+        local proxy_opts = {
+            proxy_auth = proxy_auth,
+            skip_https_connect = upstream.skip_https_connect,
+            request_unbuffered = upstream.request_unbuffered
+        }
+
+        forward_https_request(proxy_uri, uri, proxy_opts)
         return ngx.exit(ngx.OK) -- terminate phase
     else
         ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', 'invalid request scheme')

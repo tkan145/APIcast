@@ -3,6 +3,17 @@ use Test::APIcast::Blackbox 'no_plan';
 
 require("http_proxy.pl");
 
+sub large_body {
+  my $res = "";
+  for (my $i=0; $i <= 1024; $i++) {
+    $res = $res . "1111111 1111111 1111111 1111111\n";
+  }
+  return $res;
+}
+
+
+$ENV{'LARGE_BODY'} = large_body();
+
 repeat_each(3);
 
 run_tests();
@@ -564,4 +575,432 @@ proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
 using proxy: $TEST_NGINX_HTTPS_PROXY
 --- no_error_log
 [error]
+--- user_files fixture=tls.pl eval
+
+
+
+=== TEST 10: http_proxy with request_unbuffered policy
+--- configuration
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "request_unbuffered"
+          },
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "http_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+server_name test_backend.lvh.me;
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+server_name test-upstream.lvh.me;
+  location /test {
+    echo_read_request_body;
+    echo_request_body;
+  }
+--- request eval
+"POST /test?user_key= \n" . $ENV{LARGE_BODY}
+--- response_body eval chomp
+$ENV{LARGE_BODY}
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+--- no_error_log
+[error]
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
+--- grep_error_log_out
+a client request body is buffered to a temporary file
+
+
+
+=== TEST 11: http_proxy with request_unbuffered policy + chunked request
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "request_unbuffered"
+          },
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "http_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local content_length = ngx.req.get_headers()["Content-Length"]
+      local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+      assert.equal('chunked', encoding)
+      assert.falsy(content_length)
+    }
+    echo_read_request_body;
+    echo_request_body;
+  }
+--- more_headers
+Transfer-Encoding: chunked
+--- request eval
+my $s = "POST /test?user_key=value
+".
+sprintf("%x\r\n", length $ENV{"LARGE_BODY"}).
+$ENV{LARGE_BODY}
+."\r
+0\r
+\r
+";
+open my $out, '>/tmp/out.txt' or die $!;
+print $out $s;
+close $out;
+$s
+--- response_body eval
+$ENV{"LARGE_BODY"}
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+--- no_error_log
+[error]
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
+--- grep_error_log_out
+a client request body is buffered to a temporary file
+
+
+
+=== TEST 12: all_proxy with request_unbuffered policy
+--- configuration
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "request_unbuffered"
+          },
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "all_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+server_name test_backend.lvh.me;
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+server_name test-upstream.lvh.me;
+  location /test {
+    echo_read_request_body;
+    echo_request_body;
+  }
+--- request eval
+"POST /test?user_key= \n" . $ENV{LARGE_BODY}
+--- response_body eval chomp
+$ENV{LARGE_BODY}
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+--- no_error_log
+[error]
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
+--- grep_error_log_out
+a client request body is buffered to a temporary file
+
+
+
+=== TEST 13: all_proxy with request_unbuffered policy + chunked request
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "request_unbuffered"
+          },
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "all_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      assert = require('luassert')
+      local content_length = ngx.req.get_headers()["Content-Length"]
+      local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+      assert.equal('chunked', encoding)
+      assert.falsy(content_length)
+    }
+    echo_read_request_body;
+    echo_request_body;
+  }
+--- more_headers
+Transfer-Encoding: chunked
+--- request eval
+my $s = "POST /test?user_key=value
+".
+sprintf("%x\r\n", length $ENV{"LARGE_BODY"}).
+$ENV{LARGE_BODY}
+."\r
+0\r
+\r
+";
+open my $out, '>/tmp/out.txt' or die $!;
+print $out $s;
+close $out;
+$s
+--- response_body eval
+$ENV{"LARGE_BODY"}
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+--- no_error_log
+[error]
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
+--- grep_error_log_out
+a client request body is buffered to a temporary file
+
+
+
+=== TEST 14: https_proxy with request_unbuffered policy
+--- configuration random_port env
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "request_unbuffered"
+          },
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "https_proxy": "$TEST_NGINX_HTTPS_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend env
+  server_name test-backend.lvh.me;
+  listen $TEST_NGINX_RANDOM_PORT ssl;
+  ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+  ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream env
+server_name test-upstream.lvh.me;
+listen $TEST_NGINX_RANDOM_PORT ssl;
+ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+location /test {
+    echo_read_request_body;
+    echo_request_body;
+}
+--- request eval
+"POST /test?user_key= \n" . $ENV{LARGE_BODY}
+--- response_body eval chomp
+$ENV{LARGE_BODY}
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTPS_PROXY
+proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+--- no_error_log
+[error]
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
+--- grep_error_log_out
+a client request body is buffered to a temporary file
+--- user_files fixture=tls.pl eval
+
+
+
+=== TEST 15: https_proxy with request_unbuffered policy
+--- configuration random_port env
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "POST", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "request_unbuffered"
+          },
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "https_proxy": "$TEST_NGINX_HTTPS_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend env
+  server_name test-backend.lvh.me;
+  listen $TEST_NGINX_RANDOM_PORT ssl;
+  ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+  ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream env
+server_name test-upstream.lvh.me;
+listen $TEST_NGINX_RANDOM_PORT ssl;
+ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+location /test {
+    access_by_lua_block {
+      assert = require('luassert')
+      local content_length = ngx.req.get_headers()["Content-Length"]
+      local encoding = ngx.req.get_headers()["Transfer-Encoding"]
+      assert.equal('chunked', encoding)
+      assert.falsy(content_length)
+    }
+    echo_read_request_body;
+    echo_request_body;
+}
+--- more_headers
+Transfer-Encoding: chunked
+--- request eval
+"POST /test?user_key=value
+".
+sprintf("%x\r\n", length $ENV{"LARGE_BODY"}).
+$ENV{LARGE_BODY}
+."\r
+0\r
+\r
+"
+--- response_body eval
+$ENV{LARGE_BODY}
+--- error_code: 200
+--- error_log env
+using proxy: $TEST_NGINX_HTTPS_PROXY
+proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+--- no_error_log
+[error]
+--- grep_error_log eval
+qr/a client request body is buffered to a temporary file/
+--- grep_error_log_out
+a client request body is buffered to a temporary file
 --- user_files fixture=tls.pl eval

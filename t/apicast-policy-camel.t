@@ -1222,3 +1222,218 @@ qr/a client request body is buffered to a temporary file/
 --- grep_error_log_out
 a client request body is buffered to a temporary file
 a client request body is buffered to a temporary file
+
+
+
+=== TEST 17: http proxy and upstream_connection policy
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.upstream_connection",
+            "configuration": {
+              "connect_timeout": 1,
+              "send_timeout": 1,
+              "read_timeout": 1
+            }
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "http_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+        ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+  server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+       ngx.say("first part")
+       ngx.flush(true)
+       ngx.sleep(3)
+       ngx.say("yay, second part")
+    }
+  }
+--- request
+GET /?user_key=value
+--- ignore_response
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+upstream timed out
+
+
+
+=== TEST 18: all_proxy and upstream_connection policy
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.upstream_connection",
+            "configuration": {
+              "connect_timeout": 1,
+              "send_timeout": 1,
+              "read_timeout": 1
+            }
+          },
+          {
+            "name": "apicast.policy.http_proxy",
+            "configuration": {
+                "all_proxy": "$TEST_NGINX_HTTP_PROXY"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+  server_name test-upstream.lvh.me;
+  location / {
+    access_by_lua_block {
+      ngx.say("first part")
+      ngx.flush(true)
+      ngx.sleep(3)
+      ngx.say("yay, second part")
+    }
+  }
+--- request
+GET /?user_key=value
+--- ignore_response
+--- error_log env
+using proxy: $TEST_NGINX_HTTP_PROXY
+upstream timed out
+
+
+
+=== TEST 19: https_proxy and upstream_connection policy
+--- init eval
+$Test::Nginx::Util::PROXY_SSL_PORT = Test::APIcast::get_random_port();
+$Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
+--- configuration random_port env eval
+<<EOF
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://127.0.0.1:$Test::Nginx::Util::ENDPOINT_SSL_PORT",
+        "proxy_rules": [
+          { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.upstream_connection",
+            "configuration": {
+              "connect_timeout": 1,
+              "send_timeout": 1,
+              "read_timeout": 1
+            }
+          },
+          {
+            "name": "apicast.policy.camel",
+            "configuration": {
+                "https_proxy": "http://127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+EOF
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream eval
+<<EOF
+      # Endpoint config
+  listen $Test::Nginx::Util::ENDPOINT_SSL_PORT ssl;
+
+  ssl_certificate $Test::Nginx::Util::ServRoot/html/server.crt;
+  ssl_certificate_key $Test::Nginx::Util::ServRoot/html/server.key;
+
+  server_name _ default_server;
+
+  location /test {
+    access_by_lua_block {
+      ngx.say("first part")
+      ngx.flush(true)
+      ngx.sleep(3)
+      ngx.say("yay, second part")
+    }
+  }
+}
+server {
+  # Proxy config
+  listen $Test::Nginx::Util::PROXY_SSL_PORT ssl;
+
+  ssl_certificate $Test::Nginx::Util::ServRoot/html/server.crt;
+  ssl_certificate_key $Test::Nginx::Util::ServRoot/html/server.key;
+
+
+  server_name _ default_server;
+
+  location ~ /.* {
+    proxy_http_version 1.1;
+    proxy_pass https://\$http_host;
+  }
+EOF
+--- request
+GET /test?user_key=test3
+--- ignore_response
+--- user_files fixture=tls.pl eval
+--- error_log eval
+<<EOF
+using proxy: http://127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT,
+could not connect to proxy: http://127.0.0.1:$Test::Nginx::Util::PROXY_SSL_PORT err: timeout
+EOF

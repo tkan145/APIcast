@@ -2083,3 +2083,131 @@ qr/a client request body is buffered to a temporary file/
 --- grep_error_log_out
 a client request body is buffered to a temporary file
 --- user_files fixture=tls.pl eval
+
+
+
+=== TEST 8: upstream API connection uses proxy
+--- env eval
+(
+  "http_proxy" => $ENV{TEST_NGINX_HTTP_PROXY},
+  'BACKEND_ENDPOINT_OVERRIDE' => "http://test_backend.lvh.me:$ENV{TEST_NGINX_SERVER_PORT}"
+)
+--- configuration
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT",
+        "proxy_rules": [
+          { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.upstream_connection",
+            "configuration": {
+              "connect_timeout": 1,
+              "send_timeout": 1,
+              "read_timeout": 1
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+server_name test_backend.lvh.me;
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream
+server_name test-upstream.lvh.me;
+  location /test {
+    access_by_lua_block {
+      ngx.say("first part")
+      ngx.flush(true)
+      ngx.sleep(3)
+      ngx.say("yay, second part")
+    }
+  }
+--- request
+GET /test?user_key=value
+--- ignore_response
+--- error_log env
+proxy request: GET http://test-upstream.lvh.me:$TEST_NGINX_SERVER_PORT/test?user_key=value HTTP/1.1
+upstream timed out
+
+
+
+=== TEST 9: upstream API connection uses proxy for https
+--- ONLY
+--- env eval
+(
+  "https_proxy" => $ENV{TEST_NGINX_HTTPS_PROXY},
+  'BACKEND_ENDPOINT_OVERRIDE' => "http://test_backend.lvh.me:$ENV{TEST_NGINX_SERVER_PORT}"
+)
+--- configuration random_port env
+{
+  "services": [
+    {
+      "backend_version":  1,
+      "proxy": {
+        "api_backend": "https://test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT",
+        "proxy_rules": [
+          { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          },
+          {
+            "name": "apicast.policy.upstream_connection",
+            "configuration": {
+              "connect_timeout": 1,
+              "send_timeout": 1,
+              "read_timeout": 1
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+server_name test_backend.lvh.me;
+
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(ngx.OK)
+    }
+  }
+--- upstream env
+server_name test-upstream.lvh.me;
+
+listen $TEST_NGINX_RANDOM_PORT ssl;
+ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+location /test {
+    echo_foreach_split '\r\n' $echo_client_request_headers;
+    echo $echo_it;
+    echo_end;
+    access_by_lua_block {
+      ngx.say("first part")
+      ngx.flush(true)
+      ngx.sleep(3)
+      ngx.say("yay, second part")
+    }
+}
+--- request
+GET /test?user_key=test3
+--- ignore_response
+--- error_log env
+proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+could not connect to proxy: $TEST_NGINX_HTTPS_PROXY err: timeout
+--- user_files fixture=tls.pl eval

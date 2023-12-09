@@ -133,9 +133,14 @@ end
 local function connect(request, skip_https_connect)
     local httpc = http.new()
     local proxy_uri = find_proxy_url(request)
+    local timeouts = request.connection_timeouts
 
     request.ssl_verify = request.options and request.options.ssl and request.options.ssl.verify
     request.proxy = proxy_uri
+
+    if timeouts then
+      httpc:set_timeouts(timeouts.connect_timeout, timeouts.send_timeout, timeouts.read_timeout)
+    end
 
     if proxy_uri then
         return connect_proxy(httpc, request, skip_https_connect)

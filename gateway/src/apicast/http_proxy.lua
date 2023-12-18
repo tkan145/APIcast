@@ -32,45 +32,6 @@ local function resolve_servers(uri)
     return resolver:get_servers(uri.host, uri)
 end
 
-function _M.resolve(uri)
-    local balancer = _M.balancer
-
-    if not balancer then
-        return nil, 'not initialized'
-    end
-
-    local servers, err = resolve_servers(uri)
-
-    if err then
-        return nil, err
-    end
-
-    local peers = balancer:peers(servers)
-    local peer = balancer:select_peer(peers)
-
-    local ip = uri.host
-    local port = uri.port
-
-    if peer then
-        ip = peer[1]
-        port = peer[2]
-    end
-
-    return ip, port
-end
-
--- #TODO: This local function is no longer called as of PR#1323 and should be removed
-local function resolve(uri)
-    local host = uri.host
-    local port = uri.port
-
-    if _M.dns_resolution == 'apicast' then
-        host, port = _M.resolve(uri)
-    end
-
-    return host, port or resty_url.default_port(uri.scheme)
-end
-
 local function absolute_url(uri)
 -- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
 -- https://httpwg.org/specs/rfc7231.html#CONNECT

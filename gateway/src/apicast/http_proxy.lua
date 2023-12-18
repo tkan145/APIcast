@@ -2,7 +2,6 @@ local format = string.format
 
 local resty_url = require "resty.url"
 local resty_resolver = require 'resty.resolver'
-local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
 local concat = table.concat
@@ -10,7 +9,6 @@ local concat = table.concat
 local _M = { }
 
 function _M.reset()
-    _M.balancer = round_robin.new()
     _M.resolver = resty_resolver
     _M.http_backend = require('resty.http_ng.backend.resty')
     _M.dns_resolution = 'apicast' -- can be set to 'proxy' to let proxy do the name resolution

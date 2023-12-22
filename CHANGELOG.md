@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- Fix GRPC on HTTP2 POST method [PR #1419](https://github.com/3scale/apicast/pull/1419) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-9976)
+- Fix GRPC on HTTP2 POST method [PR #1419](https://github.com/3scale/apicast/pull/1419) [THREESCALE-9976](https://issues.redhat.com/browse/THREESCALE-9976)
 
 - Fixed CVE-2023-44487 (HTTP/2 Rapid Reset) [PR #1417](https://github.com/3scale/apicast/pull/1417) [THREESCALE-10224](https://issues.redhat.com/browse/THREESCALE-10224)
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)
 
-- Add support to use Basic Authentication with the forward proxy. [PR #1409](https://github.com/3scale/APIcast/pull/1409)
+- Add support to use Basic Authentication with the forward proxy. [PR #1409](https://github.com/3scale/APIcast/pull/1409) [THREESCALE-4393](https://issues.redhat.com/browse/THREESCALE-4393)
 
 - Added request unbuffered policy [PR #1408](https://github.com/3scale/APIcast/pull/1408) [THREESCALE-9542](https://issues.redhat.com/browse/THREESCALE-9542)
 

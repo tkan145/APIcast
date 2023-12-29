@@ -126,20 +126,30 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
     local req_method = ngx_get_method()
     local encoding = ngx.req.get_headers()["Transfer-Encoding"]
     local is_chunked = encoding and encoding:lower() == "chunked"
+    local content_type = ngx.req.get_headers()["Content-Type"]
+    local content_type_is_urlencoded = content_type and content_type:lower() == "application/x-www-form-urlencoded"
+    local raw = false
 
     if http_methods_with_body[req_method] then
-      if opts.request_unbuffered and ngx_http_version() == 1.1 then
+
+      -- When the content type is "application/x-www-form-urlencoded" the body is always pre-read.
+      -- See: gateway/src/apicast/configuration/service.lua:214
+      --
+      -- Due to this, ngx.req.socket() will fail with "request body already exists" error or return
+      -- socket but hang on read in case of raw socket. Therefore, we only retrieve body from the
+      -- socket if the content type is not "application/x-www-form-urlencoded"
+      if opts.request_unbuffered and ngx_http_version() == 1.1 and not content_type_is_urlencoded then
         local _, err = handle_expect()
         if err then
             ngx.log(ngx.ERR, "failed to handle expect header, err: ", err)
             return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
-
         if is_chunked then
             -- The default ngx reader does not support chunked request
             -- so we will need to get the raw request socket and manually
             -- decode the chunked request
             sock, err = ngx.req.socket(true)
+            raw = true
         else
             sock, err = ngx.req.socket()
         end
@@ -151,6 +161,11 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
 
         body = client_body_reader(sock, DEFAULT_CHUNKSIZE, is_chunked)
       else
+        -- TODO: Due to ngx.req.read_body(). The current implementation will not work with grpc service
+        -- See: https://github.com/3scale/APIcast/pull/1419
+        -- Should we get the body from socket by default and only read buffered body if
+        -- "Content-Type: application/x-www-form-urlencoded"?
+        --
         -- This is needed to call ngx.req.get_body_data() below.
         ngx.req.read_body()
 
@@ -178,9 +193,9 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
 
               if is_chunked then
                 -- If the body is smaller than "client_boby_buffer_size" the Content-Length header is
-                -- set based on the size of the buffer. However, when the body is rendered to a file,
-                -- we will need to calculate and manually set the Content-Length header based on the
-                -- file size
+                -- set by openresty based on the size of the buffer. However, when the body is rendered
+                -- to a file, we will need to calculate and manually set the Content-Length header based
+                -- on the file size
                 local contentLength, err = file_size(temp_file_path)
                 if err then
                     ngx.log(ngx.ERR, "HTTPS proxy: Failed to set content length, err: ", err)
@@ -192,7 +207,9 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
             end
         end
 
-        -- The whole request is buffered in the memory so remove the Transfer-Encoding: chunked
+        -- The whole request is buffered with chunked encoding removed, so remove the Transfer-Encoding: chunked
+        -- header, otherwise the upstream won't be able to read the body as it expected chunk encoded
+        -- body
         if is_chunked then
             ngx.req.set_header("Transfer-Encoding", nil)
         end
@@ -221,7 +238,7 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
     res, err = httpc:request(request)
 
     if res then
-        if opts.request_unbuffered and is_chunked then
+        if opts.request_unbuffered and raw then
             local bytes, err = send_response(sock, res, DEFAULT_CHUNKSIZE)
             if not bytes then
                 ngx.log(ngx.ERR, "failed to send response: ", err)

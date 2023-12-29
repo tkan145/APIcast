@@ -12,3 +12,8 @@ This policy allows to disable request buffering
 }
 ```
 
+## Caveats
+
+- Because APIcast allows defining mapping rules based on request content, POST requests with
+  `Content-type: application/x-www-form-urlencoded` will always be buffered regardless of the
+  `request_unbuffered` policy is enabled or not.

@@ -98,27 +98,6 @@ local function absolute_url(uri)
     )
 end
 
-local function handle_expect()
-    local expect = ngx.req.get_headers()["Expect"]
-    if type(expect) == "table" then
-        expect = expect[1]
-    end
-
-    if expect and expect:lower() == "100-continue" then
-        ngx.status = 100
-        local ok, err = ngx_send_headers()
-
-        if not ok then
-            return nil, "failed to send response header: " .. (err or "unknown")
-        end
-
-        ok, err = ngx_flush(true)
-        if not ok then
-            return nil, "failed to flush response header: " .. (err or "unknown")
-        end
-    end
-end
-
 local function forward_https_request(proxy_uri, uri, proxy_opts)
     local body, err
     local sock
@@ -139,11 +118,6 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
       -- socket but hang on read in case of raw socket. Therefore, we only retrieve body from the
       -- socket if the content type is not "application/x-www-form-urlencoded"
       if opts.request_unbuffered and ngx_http_version() == 1.1 and not content_type_is_urlencoded then
-        local _, err = handle_expect()
-        if err then
-            ngx.log(ngx.ERR, "failed to handle expect header, err: ", err)
-            return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-        end
         if is_chunked then
             -- The default ngx reader does not support chunked request
             -- so we will need to get the raw request socket and manually

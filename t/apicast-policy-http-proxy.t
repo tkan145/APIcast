@@ -127,6 +127,7 @@ using proxy: $TEST_NGINX_HTTP_PROXY
     {
       "backend_version":  1,
       "proxy": {
+        "secret_token": "token",
         "api_backend": "https://test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT",
         "proxy_rules": [
           { "pattern": "/test", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
@@ -187,6 +188,8 @@ ETag: foobar
     qr{Connection\: close},
     qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
     qr{Host\: test-upstream.lvh.me\:\d+}
+    qr{X\-Real\-IP\: 127.0.0.1},
+    qr{X\-3scale\-proxy\-secret\-token\: 127.0.0.1},
 ]]
 --- error_code: 200
 --- error_log env

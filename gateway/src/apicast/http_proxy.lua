@@ -1,4 +1,5 @@
 local format = string.format
+local var = ngx.var
 
 local resty_url = require "resty.url"
 local resty_resolver = require 'resty.resolver'
@@ -83,6 +84,10 @@ local function absolute_url(uri)
 end
 
 local function forward_https_request(proxy_uri, proxy_auth, uri, skip_https_connect)
+    ngx.req.set_header("X-Real-IP", var.remote_addr)
+    ngx.req.set_header("X-3scale-debug", "")
+    ngx.req.set_header("X-3scale-proxy-secret-token", var.secret_token)
+
     -- This is needed to call ngx.req.get_body_data() below.
     ngx.req.read_body()
 

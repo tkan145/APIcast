@@ -2,7 +2,6 @@ local format = string.format
 
 local resty_url = require "resty.url"
 local resty_resolver = require 'resty.resolver'
-local round_robin = require 'resty.balancer.round_robin'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
 local concat = table.concat
@@ -10,7 +9,6 @@ local concat = table.concat
 local _M = { }
 
 function _M.reset()
-    _M.balancer = round_robin.new()
     _M.resolver = resty_resolver
     _M.http_backend = require('resty.http_ng.backend.resty')
     _M.dns_resolution = 'apicast' -- can be set to 'proxy' to let proxy do the name resolution
@@ -30,45 +28,6 @@ local function resolve_servers(uri)
     end
 
     return resolver:get_servers(uri.host, uri)
-end
-
-function _M.resolve(uri)
-    local balancer = _M.balancer
-
-    if not balancer then
-        return nil, 'not initialized'
-    end
-
-    local servers, err = resolve_servers(uri)
-
-    if err then
-        return nil, err
-    end
-
-    local peers = balancer:peers(servers)
-    local peer = balancer:select_peer(peers)
-
-    local ip = uri.host
-    local port = uri.port
-
-    if peer then
-        ip = peer[1]
-        port = peer[2]
-    end
-
-    return ip, port
-end
-
--- #TODO: This local function is no longer called as of PR#1323 and should be removed
-local function resolve(uri)
-    local host = uri.host
-    local port = uri.port
-
-    if _M.dns_resolution == 'apicast' then
-        host, port = _M.resolve(uri)
-    end
-
-    return host, port or resty_url.default_port(uri.scheme)
 end
 
 local function absolute_url(uri)

@@ -170,7 +170,7 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
                 -- set by openresty based on the size of the buffer. However, when the body is rendered
                 -- to a file, we will need to calculate and manually set the Content-Length header based
                 -- on the file size
-                local contentLength, err = file_size(temp_file_path)
+                local contentLength, err = file_size(temp_file_path)()
                 if err then
                     ngx.log(ngx.ERR, "HTTPS proxy: Failed to set content length, err: ", err)
                     ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)

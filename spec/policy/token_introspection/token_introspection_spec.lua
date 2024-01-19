@@ -1,6 +1,6 @@
 local TokenIntrospection = require('apicast.policy.token_introspection')
 local TokensCache = require('apicast.policy.token_introspection.tokens_cache')
-
+local format = string.format
 local test_backend_client = require('resty.http_ng.backend.test')
 local cjson = require('cjson')
 describe("token introspection policy", function()
@@ -215,21 +215,19 @@ describe("token introspection policy", function()
       end)
     end)
 
-    describe('use_3scale_oidc_issuer_endpoint introspection auth type', function()
+    describe('use_3scale_oidc_issuer_endpoint auth type', function()
       local auth_type = "use_3scale_oidc_issuer_endpoint"
-      local introspection_url = "http://example/token/introspection"
       local policy_config = {
         auth_type = auth_type,
-        introspection_url = introspection_url,
-        client_id = test_client_id,
-        client_secret = test_client_secret
       }
 
-      it('no oauth content in the context', function()
+      it('when no oauth content in the context', function()
         context = {
           service = {
             auth_failed_status = 403,
             error_auth_failed = "auth failed"
+          },
+          proxy = {
           }
         }
 
@@ -240,6 +238,94 @@ describe("token introspection policy", function()
         token_policy.http_client.backend = test_backend
         token_policy:access(context)
         assert_authentication_failed()
+      end)
+
+      it('using deprecated token_introspection_endpoint', function()
+        test_backend
+          .expect{
+            url = "http://example.com/token/introspection",
+            method = 'POST',
+            headers = {
+              ['Authorization'] = test_basic_auth
+            }
+          }
+          .respond_with{
+            status = 200,
+            body = cjson.encode({
+                active = true
+            })
+          }
+        context = {
+          service = {
+            auth_failed_status = 403,
+            error_auth_failed = "auth failed",
+            oidc = {
+              issuer_endpoint = format('http://%s:%s@example.com/issuer/endpoint', test_client_id, test_client_secret)
+            }
+          },
+          proxy = {
+            oauth = {
+              config = {
+                token_introspection_endpoint = "http://example.com/token/introspection"
+              }
+            }
+          }
+        }
+
+        stub(ngx, 'say')
+        stub(ngx, 'exit')
+
+        local token_policy = TokenIntrospection.new(policy_config)
+        token_policy.http_client.backend = test_backend
+        token_policy:access(context)
+        assert.stub(ngx.exit).was_not.called_with(403)
+        assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+            { token = "test", token_type_hint = "access_token" })
+      end)
+
+      it('using introspection_endpoint', function()
+        test_backend
+          .expect{
+            url = "http://example.com/token/introspection",
+            method = 'POST',
+            headers = {
+              ['Authorization'] = test_basic_auth
+            }
+          }
+          .respond_with{
+            status = 200,
+            body = cjson.encode({
+                active = true
+            })
+          }
+        context = {
+          service = {
+            auth_failed_status = 403,
+            error_auth_failed = "auth failed",
+            oidc = {
+              issuer_endpoint = format('http://%s:%s@example.com/issuer/endpoint', test_client_id, test_client_secret)
+            }
+          },
+          proxy = {
+            oauth = {
+              config = {
+                introspection_endpoint = "http://example.com/token/introspection",
+                --- deprecated field
+                token_introspection_endpoint = "http://example.com/token/deprecated_introspection"
+              }
+            }
+          }
+        }
+
+        stub(ngx, 'say')
+        stub(ngx, 'exit')
+
+        local token_policy = TokenIntrospection.new(policy_config)
+        token_policy.http_client.backend = test_backend
+        token_policy:access(context)
+        assert.stub(ngx.exit).was_not.called_with(403)
+        assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+            { token = "test", token_type_hint = "access_token" })
       end)
 
     end)

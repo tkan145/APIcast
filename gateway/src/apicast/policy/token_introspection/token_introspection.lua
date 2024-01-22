@@ -111,6 +111,8 @@ function _M:access(context)
     end
 
     ngx.log(ngx.INFO, 'token introspection for access token ', access_token, ': token not active')
+  else
+    ngx.log(ngx.WARN, 'token instropection cannot be performed as introspection endpoint is not available')
   end
 
   ngx.status = context.service.auth_failed_status

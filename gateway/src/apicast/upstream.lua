@@ -241,6 +241,7 @@ function _M:call(context)
           self:set_skip_https_connect_on_proxy();
         end
 
+        self.request_unbuffered = context.request_unbuffered
         http_proxy.request(self, proxy_uri)
     else
         local err = self:rewrite_request()

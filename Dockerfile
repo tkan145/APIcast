@@ -44,7 +44,7 @@ ENV PATH="./lua_modules/bin:/usr/local/openresty/luajit/bin/:${PATH}" \
     LUA_CPATH="./lua_modules/lib/lua/5.1/?.so;;" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/app-root/lib"
 
-RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/pintsized/lua-resty-http-0.15-0.src.rock
+RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/pintsized/lua-resty-http-0.17.1-0.src.rock
 RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/kikito/router-2.1-0.src.rock
 RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/kikito/inspect-3.1.1-0.src.rock
 RUN luarocks install --deps-mode=none --tree /usr/local https://luarocks.org/manifests/cdbattags/lua-resty-jwt-0.2.0-0.src.rock

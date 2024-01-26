@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fixed issue where the proxy policy could not handle requests with "Transfer-Encoding: chunked" header [PR #1403](https://github.com/3scale/APIcast/pull/1403) [THREESCALE-9542](https://issues.redhat.com/browse/THREESCALE-9542)
 
+- Fixed custom-config.t conversion to APIcast::Blackbox [PR #1425](https://github.com/3scale/APIcast/pull/1425)
+
+- Fixed resty-ctx.t conversion to APIcast::Blackbox [PR #1424](https://github.com/3scale/APIcast/pull/1424)
+
+- Fixed backend-cache-handler.t conversion to APIcast::Blackbox [PR #1431](https://github.com/3scale/APIcast/pull/1431)
+
+- Fixed apicast-mapping-rules.t conversion to APIcast::Blackbox [PR #1430](https://github.com/3scale/APIcast/pull/1430)
+
+- gateway/src/apicast/http_proxy.lua: remove unused code [PR #1435](https://github.com/3scale/APIcast/pull/1435)
+
+- Fixed token instrospection field removed [PR #1438](https://github.com/3scale/APIcast/pull/1438) [THREESCALE-10591](https://issues.redhat.com/browse/THREESCALE-10591)
+
 ### Added
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)
@@ -22,6 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add support to use Basic Authentication with the forward proxy. [PR #1409](https://github.com/3scale/APIcast/pull/1409) [THREESCALE-4393](https://issues.redhat.com/browse/THREESCALE-4393)
 
 - Added request unbuffered policy [PR #1408](https://github.com/3scale/APIcast/pull/1408) [THREESCALE-9542](https://issues.redhat.com/browse/THREESCALE-9542)
+
+- Dev environment: keycloak [PR #1439](https://github.com/3scale/APIcast/pull/1439)
 
 ## [3.14.0] 2023-07-25
 

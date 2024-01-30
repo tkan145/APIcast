@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Docker compose up instead of docker compose run [PR #1442](https://github.com/3scale/APIcast/pull/1442)
 
 - Fix integration of upstream connection policy with camel policy [PR #1443](https://github.com/3scale/APIcast/pull/1443) [THREESCALE-10582](https://issues.redhat.com/browse/THREESCALE-10582)
+- Upgrade lua-resty-http to 0.17.1 to fix 100 response header are not handled when using `HTTPS_PROXY` [PR #1434](https://github.com/3scale/APIcast/pull/1434) [THREESCALE-10278](https://issues.redhat.com/browse/THREESCALE-10278)
 
 ### Added
 

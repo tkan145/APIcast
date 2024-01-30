@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fixed token instrospection field removed [PR #1438](https://github.com/3scale/APIcast/pull/1438) [THREESCALE-10591](https://issues.redhat.com/browse/THREESCALE-10591)
 
+- Fixed issue with URL was not correctly escaped when using the JWT claim check policy [THREESCALE-10308](https://issues.redhat.com/browse/THREESCALE-10308) [PR #1428](https://github.com/3scale/APIcast/pull/1428)
+
 ### Added
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)

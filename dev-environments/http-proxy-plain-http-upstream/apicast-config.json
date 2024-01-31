@@ -14,7 +14,7 @@
           {
             "name": "apicast.policy.http_proxy",
             "configuration": {
-              "http_proxy": "http://proxy:443/"
+              "http_proxy": "http://proxy:8080/"
             }
           },
           {

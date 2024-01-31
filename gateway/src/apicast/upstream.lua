@@ -86,16 +86,6 @@ function _M:resolve()
     return res
 end
 
---- Return port to use when connecting to upstream.
---- @treturn number port number
-function _M:port()
-    if not self or not self.uri then
-        return nil, 'not initialized'
-    end
-
-    return self.uri.port or resty_url.default_port(self.uri.scheme)
-end
-
 local root_uri = {
     ['/'] = true,
     [''] = true,

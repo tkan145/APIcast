@@ -3,6 +3,7 @@
 local http = require 'resty.resolver.http'
 local resty_url = require 'resty.url'
 local resty_env = require 'resty.env'
+local url_helper = require('resty.url_helper')
 local format = string.format
 
 local _M = {
@@ -105,11 +106,11 @@ local function connect_proxy(httpc, request, skip_https_connect)
         request.path = format('%s://%s:%s%s', uri.scheme, uri.host, uri.port, uri.path or '/')
         return httpc
     elseif uri.scheme == 'https' and skip_https_connect then
-        request.path = format('%s://%s:%s%s', uri.scheme, uri.host, uri.port, request.path or '/')
+        local custom_uri = { scheme = uri.scheme, host = uri.host, port = uri.port, path = request.path }
+        request.path = url_helper.absolute_url(custom_uri)
         return _connect_tls_direct(httpc, request, uri.host, uri.port)
     elseif uri.scheme == 'https' then
         return _connect_proxy_https(httpc, request, uri.host, uri.port)
-
     else
         return nil, 'invalid scheme'
     end

@@ -18,7 +18,7 @@ Running custom apicast image
 make gateway IMAGE_NAME=quay.io/3scale/apicast:latest
 ```
 
-Traffic between APIcast and the proxy ucan be inspected looking at logs from `proxy` service
+Traffic between APIcast and the proxy can be inspected looking at logs from `proxy` service
 
 ```
 docker compose -p http-proxy-plain-http-upstream logs -f proxy

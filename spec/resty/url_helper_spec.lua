@@ -75,5 +75,25 @@ describe('URL parser', function()
       assert.same('https://example.com/some/path',
         absolute_url(uri))
     end)
+
+    it('when uri is nil, asserts', function()
+      local uri = nil
+      local res, err = pcall(absolute_url, uri)
+
+      assert.is_falsy(res)
+      assert.is_truthy(err)
+    end)
+
+    it('when uri is not a table, asserts', function()
+      local uri = "some string"
+      local res, err = pcall(absolute_url, uri)
+      assert.is_falsy(res)
+      assert.is_truthy(err)
+
+      uri = 1
+      local res, err = pcall(absolute_url, uri)
+      assert.is_falsy(res)
+      assert.is_truthy(err)
+    end)
   end)
 end)

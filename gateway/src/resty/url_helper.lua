@@ -49,6 +49,7 @@ end
 -- @param uri the table
 -- @return absolute URI
 function _M.absolute_url(uri)
+    assert(type(uri) == 'table', 'the value of uri is not table')
     local port = uri.port
     local default_port = resty_url.default_port(uri.scheme)
 

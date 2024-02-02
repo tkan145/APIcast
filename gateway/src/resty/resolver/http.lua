@@ -8,8 +8,14 @@ local _M = setmetatable({}, { __index = resty_http })
 
 local mt = { __index = _M }
 
-function _M.new()
+function _M.new(opts)
+  opts = opts or { }
   local http = resty_http:new()
+
+  local timeouts = opts.timeouts
+  if timeouts then
+    http:set_timeouts(timeouts.connect_timeout, timeouts.send_timeout, timeouts.read_timeout)
+  end
 
   http.resolver = resty_resolver:instance()
   http.balancer = round_robin.new()

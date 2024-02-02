@@ -232,6 +232,7 @@ function _M:call(context)
         end
 
         self.request_unbuffered = context.request_unbuffered
+        self.upstream_connection_opts = context.upstream_connection_opts
         http_proxy.request(self, proxy_uri)
     else
         local err = self:rewrite_request()

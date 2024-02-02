@@ -146,7 +146,8 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
         path = format('%s%s%s', ngx.var.uri, ngx.var.is_args, ngx.var.query_string or ''),
         body = body,
         proxy_uri = proxy_uri,
-        proxy_auth = opts.proxy_auth
+        proxy_auth = opts.proxy_auth,
+        upstream_connection_opts = opts.upstream_connection_opts
     }
 
     local httpc, err = http_proxy.new(request, opts.skip_https_connect)
@@ -226,7 +227,8 @@ function _M.request(upstream, proxy_uri)
         local proxy_opts = {
             proxy_auth = proxy_auth,
             skip_https_connect = upstream.skip_https_connect,
-            request_unbuffered = upstream.request_unbuffered
+            request_unbuffered = upstream.request_unbuffered,
+            upstream_connection_opts = upstream.upstream_connection_opts
         }
 
         forward_https_request(proxy_uri, uri, proxy_opts)

@@ -132,7 +132,9 @@ local function find_proxy_url(request)
 end
 
 local function connect(request, skip_https_connect)
-    local httpc = http.new()
+    request = request or { }
+    local opts = { timeouts = request.upstream_connection_opts }
+    local httpc = http.new(opts)
     local proxy_uri = find_proxy_url(request)
 
     request.ssl_verify = request.options and request.options.ssl and request.options.ssl.verify

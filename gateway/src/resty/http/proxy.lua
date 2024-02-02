@@ -77,11 +77,12 @@ local function _connect_proxy_https(httpc, request, host, port)
     return httpc
 end
 
-local function connect_proxy(httpc, request, skip_https_connect)
+local function connect_proxy(httpc, request)
     -- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
     -- https://httpwg.org/specs/rfc7231.html#CONNECT
     local uri = request.uri
     local proxy_uri = request.proxy
+    local skip_https_connect = request.skip_https_connect
 
     if proxy_uri.scheme ~= 'http' then
         return nil, 'proxy connection supports only http'
@@ -131,7 +132,7 @@ local function find_proxy_url(request)
     return request.proxy_uri or _M.find(uri)
 end
 
-local function connect(request, skip_https_connect)
+local function connect(request)
     request = request or { }
     local opts = { timeouts = request.upstream_connection_opts }
     local httpc = http.new(opts)
@@ -141,7 +142,7 @@ local function connect(request, skip_https_connect)
     request.proxy = proxy_uri
 
     if proxy_uri then
-        return connect_proxy(httpc, request, skip_https_connect)
+        return connect_proxy(httpc, request)
     else
         return connect_direct(httpc, request)
     end

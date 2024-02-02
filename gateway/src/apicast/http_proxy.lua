@@ -27,7 +27,6 @@ local DEFAULT_CHUNKSIZE = 32 * 1024
 
 function _M.reset()
     _M.resolver = resty_resolver
-    _M.http_backend = require('resty.http_ng.backend.resty')
     _M.dns_resolution = 'apicast' -- can be set to 'proxy' to let proxy do the name resolution
 
     return _M
@@ -147,10 +146,11 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
         body = body,
         proxy_uri = proxy_uri,
         proxy_auth = opts.proxy_auth,
-        upstream_connection_opts = opts.upstream_connection_opts
+        upstream_connection_opts = opts.upstream_connection_opts,
+        skip_https_connect = opts.skip_https_connect
     }
 
-    local httpc, err = http_proxy.new(request, opts.skip_https_connect)
+    local httpc, err = http_proxy.new(request)
 
     if not httpc then
         ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', err)

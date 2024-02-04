@@ -14,7 +14,15 @@ function _M.new(opts)
 
   local timeouts = opts.timeouts
   if timeouts then
-    http:set_timeouts(timeouts.connect_timeout, timeouts.send_timeout, timeouts.read_timeout)
+    ngx.log(ngx.DEBUG, 'setting timeouts (secs), connect_timeout: ', timeouts.connect_timeout,
+      ' send_timeout: ', timeouts.send_timeout, ' read_timeout: ', timeouts.read_timeout)
+    -- lua-resty-http uses nginx API for lua sockets
+    -- in milliseconds
+    -- https://github.com/openresty/lua-nginx-module?tab=readme-ov-file#tcpsocksettimeouts
+    local connect_timeout = timeouts.connect_timeout and timeouts.connect_timeout * 1000
+    local send_timeout = timeouts.send_timeout and timeouts.send_timeout * 1000
+    local read_timeout = timeouts.read_timeout and timeouts.read_timeout * 1000
+    http:set_timeouts(connect_timeout, send_timeout, read_timeout)
   end
 
   http.resolver = resty_resolver:instance()

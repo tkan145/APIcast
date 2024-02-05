@@ -75,12 +75,12 @@ local function connect(request)
             proxy_uri.port = default_port(proxy_uri)
         end
 
-        -- Resolve the proxy IP/Port
-        local proxy_host, proxy_port = httpc:resolve(proxy_uri.host, proxy_uri.port)
-        local proxy_url = format("%s://%s:%s", proxy_uri.scheme, proxy_host, proxy_port)
+        local proxy_url = format("%s://%s:%s", proxy_uri.scheme, proxy_uri.host, proxy_uri.port)
         local proxy_auth = request.proxy_auth
 
         if scheme == 'http' then
+            -- Used by http_ng module to send request to 3scale backend through proxy.
+
             -- http proxy needs absolute URL as the request path, lua-resty-http 1.17.1 will
             -- construct a path_prefix based on host and port so we only set request path here
             --
@@ -128,6 +128,7 @@ local function connect(request)
         ngx.log(ngx.DEBUG, 'targeting server ', host, ':', port)
     else
         -- Connect direct
+        -- Mostly used by http_ng module to connect 3scale backend module.
         local ok, err = httpc:connect(options)
         if not ok then return nil, err end
 

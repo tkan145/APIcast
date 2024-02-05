@@ -1,6 +1,8 @@
 local resty_http = require 'resty.http'
 local resty_resolver = require 'resty.resolver'
 local round_robin = require 'resty.balancer.round_robin'
+local url_helper = require('resty.url_helper')
+local format = string.format
 
 local setmetatable = setmetatable
 
@@ -53,6 +55,21 @@ function _M.connect(self, options, ...)
     ip, real_port = self:resolve(options.host, options.port)
     options.host = ip
     options.port = real_port
+  else
+    local proxy_uri, err = url_helper.parse_url(proxy)
+    if not proxy_uri then
+      return nil, 'invalid proxy: ' .. err
+    end
+
+    -- Resolve the proxy IP/Port
+    local proxy_host, proxy_port = self:resolve(proxy_uri.host, proxy_uri.port)
+    local proxy_url = format("%s://%s:%s", proxy_uri.scheme, proxy_host, proxy_port)
+
+    if proxy_opts.http_proxy then
+      options.proxy_opts.http_proxy =  proxy_url
+    elseif proxy_opts.https_proxy then
+      options.proxy_opts.https_proxy =  proxy_url
+    end
   end
 
   local ok, err = resty_http.connect(self, options, ...)

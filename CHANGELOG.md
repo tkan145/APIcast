@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fix upstream default port when HTTP_PROXY [PR #1440](https://github.com/3scale/APIcast/pull/1440)
 
+- Docker compose up instead of docker compose run [PR #1442](https://github.com/3scale/APIcast/pull/1442)
+
 ### Added
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)

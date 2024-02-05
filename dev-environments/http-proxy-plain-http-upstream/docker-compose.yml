@@ -5,6 +5,7 @@ services:
     image: ${IMAGE_NAME:-apicast-test}
     depends_on:
     - proxy
+    - actual.proxy
     - example.com
     - two.upstream
     environment:
@@ -23,6 +24,14 @@ services:
     volumes:
       - ./apicast-config.json:/tmp/config.json
   proxy:
+    image: alpine/socat:1.7.4.4
+    container_name: proxy
+    command: "-d -v -d TCP-LISTEN:8080,reuseaddr,fork TCP:actual.proxy:443"
+    expose:
+      - "8080"
+    restart: unless-stopped
+  actual.proxy:
+    container_name: actual.proxy
     build:
       dockerfile: ./tinyproxy.Dockerfile
     expose:

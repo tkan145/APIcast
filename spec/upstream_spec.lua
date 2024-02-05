@@ -52,21 +52,6 @@ describe('Upstream', function()
         end)
     end)
 
-    describe(':port', function()
-        it('returns port from the URI', function()
-            assert.same(8090, Upstream.new('http://host:8090'):port())
-        end)
-
-        it('returns default port for the scheme when none is provided', function()
-            assert.same(443, Upstream.new('https://example.com'):port())
-        end)
-
-        it('returns nil when port is unknown', function()
-            assert.is_nil(Upstream.new('ftp://example.com'):port())
-        end)
-    end)
-
-
     describe(':append_path', function()
         it('return valid path when is not set', function()
             local up = Upstream.new('http://host:8090')

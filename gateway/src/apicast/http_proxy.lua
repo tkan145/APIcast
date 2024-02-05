@@ -6,6 +6,7 @@ local ngx_http_version = ngx.req.http_version
 local ngx_send_headers = ngx.send_headers
 
 local resty_url = require "resty.url"
+local url_helper = require('resty.url_helper')
 local resty_resolver = require 'resty.resolver'
 local http_proxy = require 'resty.http.proxy'
 local file_reader = require("resty.file").file_reader
@@ -44,17 +45,6 @@ local function resolve_servers(uri)
     end
 
     return resolver:get_servers(uri.host, uri)
-end
-
-local function absolute_url(uri)
--- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
--- https://httpwg.org/specs/rfc7231.html#CONNECT
-    return format('%s://%s:%s%s',
-            uri.scheme,
-            uri.host,
-            uri.port,
-            uri.path or '/'
-    )
 end
 
 local function forward_https_request(proxy_uri, uri, proxy_opts)
@@ -228,7 +218,7 @@ function _M.request(upstream, proxy_uri)
         if err then
           ngx.log(ngx.WARN, "HTTP proxy is set, but no servers have been resolved, err: ", err)
         end
-        upstream.uri.path = absolute_url(uri)
+        upstream.uri.path = url_helper.absolute_url(uri)
         upstream:rewrite_request()
         return
     elseif uri.scheme == 'https' then

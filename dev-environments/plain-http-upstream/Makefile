@@ -6,7 +6,7 @@ WORKDIR := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 DOCKER ?= $(shell which docker 2> /dev/null || echo "docker")
 
 gateway: ## run gateway configured to access plain HTTP 1.1 upstream
-	$(DOCKER) compose -f docker-compose.yml run --service-ports gateway
+	$(DOCKER) compose -f docker-compose.yml up --attach gateway
 
 clean:
 	$(DOCKER) compose down --volumes --remove-orphans

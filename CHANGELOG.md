@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Dev environment: keycloak [PR #1439](https://github.com/3scale/APIcast/pull/1439)
 
+- Dev environment: Camel proxy [PR #1441](https://github.com/3scale/APIcast/pull/1441)
+
 ## [3.14.0] 2023-07-25
 
 ### Fixed

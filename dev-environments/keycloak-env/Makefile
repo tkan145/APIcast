@@ -6,7 +6,7 @@ WORKDIR := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 DOCKER ?= $(shell which docker 2> /dev/null || echo "docker")
 
 gateway: ## run gateway configured to keycloak integration
-	$(DOCKER) compose -f docker-compose.yml run --service-ports gateway
+	$(DOCKER) compose -f docker-compose.yml up --attach gateway
 
 keycloak-data: ## Keycloak provisioning
 	# Keycloak 23.0.4 REST API reference

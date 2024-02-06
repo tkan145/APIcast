@@ -60,7 +60,6 @@ GET /
 --- ignore_response
 --- error_log
 upstream timed out
---- error_code:
 
 === TEST 2: Set timeouts using HTTPS proxy for backend
 In this test we set some timeouts to 1s. To force a read timeout, the upstream
@@ -140,7 +139,6 @@ GET /test?user_key=test3
 --- more_headers
 User-Agent: Test::APIcast::Blackbox
 ETag: foobar
---- error_code:
 --- error_log env
 proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
 using proxy: $TEST_NGINX_HTTPS_PROXY

@@ -8,22 +8,8 @@ local _M = setmetatable({}, { __index = resty_http })
 
 local mt = { __index = _M }
 
-function _M.new(opts)
-  opts = opts or { }
+function _M.new()
   local http = resty_http:new()
-
-  local timeouts = opts.timeouts
-  if timeouts then
-    ngx.log(ngx.DEBUG, 'setting timeouts (secs), connect_timeout: ', timeouts.connect_timeout,
-      ' send_timeout: ', timeouts.send_timeout, ' read_timeout: ', timeouts.read_timeout)
-    -- lua-resty-http uses nginx API for lua sockets
-    -- in milliseconds
-    -- https://github.com/openresty/lua-nginx-module?tab=readme-ov-file#tcpsocksettimeouts
-    local connect_timeout = timeouts.connect_timeout and timeouts.connect_timeout * 1000
-    local send_timeout = timeouts.send_timeout and timeouts.send_timeout * 1000
-    local read_timeout = timeouts.read_timeout and timeouts.read_timeout * 1000
-    http:set_timeouts(connect_timeout, send_timeout, read_timeout)
-  end
 
   http.resolver = resty_resolver:instance()
   http.balancer = round_robin.new()

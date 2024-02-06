@@ -19,7 +19,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: API backend connection uses http proxy 
+=== TEST 1: API backend connection uses http proxy
 --- configuration
 {
   "services": [

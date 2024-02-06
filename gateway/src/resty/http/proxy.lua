@@ -134,8 +134,21 @@ end
 
 local function connect(request)
     request = request or { }
-    local opts = { timeouts = request.upstream_connection_opts }
-    local httpc = http.new(opts)
+    local httpc = http.new()
+
+    if request.upstream_connection_opts then
+      local con_opts = request.upstream_connection_opts
+      ngx.log(ngx.DEBUG, 'setting timeouts (secs), connect_timeout: ', con_opts.connect_timeout,
+        ' send_timeout: ', con_opts.send_timeout, ' read_timeout: ', con_opts.read_timeout)
+      -- lua-resty-http uses nginx API for lua sockets
+      -- in milliseconds
+      -- https://github.com/openresty/lua-nginx-module?tab=readme-ov-file#tcpsocksettimeouts
+      local connect_timeout = con_opts.connect_timeout and con_opts.connect_timeout * 1000
+      local send_timeout = con_opts.send_timeout and con_opts.send_timeout * 1000
+      local read_timeout = con_opts.read_timeout and con_opts.read_timeout * 1000
+      httpc:set_timeouts(connect_timeout, send_timeout, read_timeout)
+    end
+
     local proxy_uri = find_proxy_url(request)
 
     request.ssl_verify = request.options and request.options.ssl and request.options.ssl.verify

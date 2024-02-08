@@ -507,6 +507,16 @@ directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_
 This parameter is only used by the services that are using content caching
 policy.
 
+### `APICAST_LARGE_CLIENT_HEADER_BUFFERS`
+
+**Default:** 4 8k
+**Value:** string
+
+Sets the maximum number and size of buffers used for reading large client request header.
+
+The format for this value is defined by the [`large_client_header_buffers` NGINX
+directive](https://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers)
+
 ### `OPENTELEMETRY`
 
 This environment variable enables NGINX instrumentation using OpenTelemetry tracing library.

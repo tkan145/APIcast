@@ -202,10 +202,8 @@ ETag: foobar
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT test-upstream.lvh.me:$TEST_NGINX_RANDOM_PORT HTTP/1.1
---- user_files fixture=tls.pl eval
---- error_log env
 using proxy: $TEST_NGINX_HTTPS_PROXY
-
+--- user_files fixture=tls.pl eval
 
 === TEST 4: using HTTP proxy with Basic Auth
 --- configuration

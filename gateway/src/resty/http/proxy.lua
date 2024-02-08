@@ -77,11 +77,12 @@ local function _connect_proxy_https(httpc, request, host, port)
     return httpc
 end
 
-local function connect_proxy(httpc, request, skip_https_connect)
+local function connect_proxy(httpc, request)
     -- target server requires hostname not IP and DNS resolution is left to the proxy itself as specified in the RFC #7231
     -- https://httpwg.org/specs/rfc7231.html#CONNECT
     local uri = request.uri
     local proxy_uri = request.proxy
+    local skip_https_connect = request.skip_https_connect
 
     if proxy_uri.scheme ~= 'http' then
         return nil, 'proxy connection supports only http'
@@ -131,15 +132,30 @@ local function find_proxy_url(request)
     return request.proxy_uri or _M.find(uri)
 end
 
-local function connect(request, skip_https_connect)
+local function connect(request)
+    request = request or { }
     local httpc = http.new()
+
+    if request.upstream_connection_opts then
+      local con_opts = request.upstream_connection_opts
+      ngx.log(ngx.DEBUG, 'setting timeouts (secs), connect_timeout: ', con_opts.connect_timeout,
+        ' send_timeout: ', con_opts.send_timeout, ' read_timeout: ', con_opts.read_timeout)
+      -- lua-resty-http uses nginx API for lua sockets
+      -- in milliseconds
+      -- https://github.com/openresty/lua-nginx-module?tab=readme-ov-file#tcpsocksettimeouts
+      local connect_timeout = con_opts.connect_timeout and con_opts.connect_timeout * 1000
+      local send_timeout = con_opts.send_timeout and con_opts.send_timeout * 1000
+      local read_timeout = con_opts.read_timeout and con_opts.read_timeout * 1000
+      httpc:set_timeouts(connect_timeout, send_timeout, read_timeout)
+    end
+
     local proxy_uri = find_proxy_url(request)
 
     request.ssl_verify = request.options and request.options.ssl and request.options.ssl.verify
     request.proxy = proxy_uri
 
     if proxy_uri then
-        return connect_proxy(httpc, request, skip_https_connect)
+        return connect_proxy(httpc, request)
     else
         return connect_direct(httpc, request)
     end

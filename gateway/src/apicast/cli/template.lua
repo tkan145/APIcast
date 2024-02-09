@@ -8,7 +8,6 @@ local ipairs = ipairs
 local sub = string.sub
 local len = string.len
 local pack = table.pack
-local fs = require('apicast.cli.filesystem')
 local pl = { dir = require('pl.dir'), path = require('pl.path'), file = require('pl.file') }
 local Liquid = require 'liquid'
 local resty_env = require('resty.env')
@@ -84,7 +83,7 @@ local function dirtree(dir, cache)
     return pairs(cached)
   else
     cache[dir] = {}
-    return fs(dir)
+    return pl.dir.dirtree(dir)
   end
 end
 

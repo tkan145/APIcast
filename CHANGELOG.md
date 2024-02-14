@@ -49,6 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Dev environment: Camel proxy [PR #1441](https://github.com/3scale/APIcast/pull/1441)
 
+- Bump penlight to 1.31.1 [PR #1447](https://github.com/3scale/APIcast/pull/1447)
+
 ## [3.14.0] 2023-07-25
 
 ### Fixed

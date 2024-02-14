@@ -5,7 +5,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: large header (the header exceed exceed the size of one buffer)
+=== TEST 1: large header (the header exceed the size of one buffer)
 Default configuration for large_client_header_buffers: 4 8k
 --- configuration env
 {
@@ -32,7 +32,6 @@ Default configuration for large_client_header_buffers: 4 8k
   }
 --- upstream
 
-  client_header_buffer_size 10;
   location / {
     content_by_lua_block {
         ngx.print(ngx.req.raw_header())
@@ -80,7 +79,6 @@ GET /?user_key=value
   }
 --- upstream
 
-  client_header_buffer_size 10;
   location / {
     content_by_lua_block {
         ngx.print(ngx.req.raw_header())
@@ -132,7 +130,6 @@ Large-Header: " . ("ABCDEFGH" x 1024) . "\r\n\r\n"
   }
 --- upstream
 
-  client_header_buffer_size 10;
   location / {
     content_by_lua_block {
         ngx.print(ngx.req.raw_header())
@@ -181,7 +178,6 @@ client sent too long URI while reading client request line
   }
 --- upstream
 
-  client_header_buffer_size 10;
   location / {
     content_by_lua_block {
         ngx.print(ngx.req.raw_header())

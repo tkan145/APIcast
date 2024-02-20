@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Bump penlight to 1.31.1 [PR #1447](https://github.com/3scale/APIcast/pull/1447)
 
+- Added `APICAST_CLIENT_REQUEST_HEADER_BUFFERS` variable to allow configure of the NGINX `client_request_header_buffers` directive: [PR #1446](https://github.com/3scale/APIcast/pull/1446), [THREESCALE-10164](https://issues.redhat.com/browse/THREESCALE-10164)
+
 ## [3.14.0] 2023-07-25
 
 ### Fixed

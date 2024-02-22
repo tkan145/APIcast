@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Replace luafilesystem-ffi with [luafilesystem](https://github.com/lunarmodules/luafilesystem) [PR #1445](https://github.com/3scale/APIcast/pull/1445) [THREESCALE-10662](https://issues.redhat.com/browse/THREESCALE-10662)
 
+- Fix "Upstream cannot be null" error in APIcast logs [PR #1449](https://github.com/3scale/APIcast/pull/1449) [THREESCALE-5225](https://issues.redhat.com/browse/THREESCALE-5225)
+
 ### Added
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)

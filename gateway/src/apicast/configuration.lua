@@ -18,19 +18,12 @@ local util = require 'apicast.util'
 local policy_chain = require 'apicast.policy_chain'
 local mapping_rule = require 'apicast.mapping_rule'
 local tab_new = require('resty.core.base').new_tab
+local pl_tablex = require("pl.tablex")
 
 local re = require 'ngx.re'
 local match = ngx.re.match
 
 local mt = { __index = _M, __tostring = function() return 'Configuration' end }
-
-local function map(func, tbl)
-  local newtbl = {}
-  for i,v in pairs(tbl) do
-    newtbl[i] = func(v)
-  end
-  return newtbl
-end
 
 local function value(val)
     if val ~= null then return val end
@@ -38,13 +31,8 @@ end
 
 local Service = require 'apicast.configuration.service'
 
-local noop = function() end
-local function readonly_table(table)
-    return setmetatable({}, { __newindex = noop, __index = table })
-end
-
-local empty_t = readonly_table()
-local fake_backend = readonly_table({ endpoint = 'http://127.0.0.1:8081' })
+local empty_t = pl_tablex.readonly()
+local fake_backend = pl_tablex.readonly({ endpoint = 'http://127.0.0.1:8081' })
 
 local function backend_endpoint(proxy)
     local backend_endpoint_override = resty_url.parse(env.get("BACKEND_ENDPOINT_OVERRIDE"))
@@ -120,7 +108,7 @@ function _M.parse_service(service)
         app_id = lower(proxy.auth_app_id or 'app_id'),
         app_key = lower(proxy.auth_app_key or 'app_key') -- TODO: use App-Key if location is headers
       },
-      rules = map(mapping_rule.from_proxy_rule, proxy.proxy_rules or {}),
+      rules = pl_tablex.map(mapping_rule.from_proxy_rule, proxy.proxy_rules or {}),
 
       -- I'm not happy about this, but we need a way how to serialize back the object for the management API.
       -- And returning the original back is the easiest option for now.
@@ -195,7 +183,7 @@ end
 function _M.new(configuration)
   configuration = configuration or {}
   local services = (configuration or {}).services or {}
-  local final_services = _M.filter_services(map(_M.parse_service, services))
+  local final_services = _M.filter_services(pl_tablex.map(_M.parse_service, services))
 
   return setmetatable({
     version = configuration.timestamp,

@@ -82,11 +82,6 @@ function _M.dump(o)
   end
 end
 
-function _M.sha1_digest(s)
-  local str = require "resty.string"
-  return str.to_hex(ngx.sha1_bin(s))
-end
-
 -- returns true iif all elems of f_req are among actual's keys
 function _M.required_params_present(f_req, actual)
   local req = {}

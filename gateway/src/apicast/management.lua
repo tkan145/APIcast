@@ -51,11 +51,8 @@ end
 
 function _M.config()
   local config = context_configuration()
-  local contents = cjson.encode(config.configured and { services = config:all() } or nil)
-
-  ngx.header.content_type = 'application/json; charset=utf-8'
-  ngx.status = ngx.HTTP_OK
-  ngx.say(contents)
+  local body = config.configured and { services = config:all() } or nil
+  json_response(body, ngx.HTTP_OK)
 end
 
 function _M.update_config()
@@ -89,9 +86,7 @@ function _M.delete_config()
 
   context_configuration():reset()
   -- TODO: respond with proper 304 Not Modified when config is the same
-  local response = cjson.encode({ status = 'ok', config = cjson.null })
-  ngx.header.content_type = 'application/json; charset=utf-8'
-  ngx.say(response)
+  json_response({status = 'ok', config = cjson.null})
 end
 
 local util = require 'apicast.util'
@@ -99,13 +94,12 @@ local util = require 'apicast.util'
 function _M.boot()
   local data = util.timer('configuration.boot', configuration_loader.boot)
   local config = configuration_parser.decode(data)
-  local response = cjson.encode({ status = 'ok', config = config or cjson.null })
 
   ngx.log(ngx.DEBUG, 'management boot config:' .. inspect(data))
 
   configuration_loader.configure(context_configuration(), config)
 
-  ngx.say(response)
+  json_response({status = 'ok', config = config or cjson.null})
 end
 
 function _M.dns_cache()

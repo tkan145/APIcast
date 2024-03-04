@@ -60,10 +60,13 @@ function _M.update_config()
 
   ngx.log(ngx.DEBUG, 'management config update')
   local data = ngx.req.get_body_data()
-  local file = ngx.req.get_body_file()
 
   if not data then
-    data = assert(io.open(file)):read('*a')
+    local file = ngx.req.get_body_file()
+    ngx.log(ngx.INFO, "Management: request body is bigger than client_body_buffer_size, read the content from path='", file, "'")
+    if file then
+      data = assert(io.open(file)):read('*a')
+    end
   end
 
   local config, err = configuration_parser.decode(data)

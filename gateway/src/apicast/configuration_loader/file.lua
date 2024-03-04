@@ -6,6 +6,7 @@ local assert = assert
 local sub = string.sub
 local util = require 'apicast.util'
 local env = require 'resty.env'
+local pl_path = require 'pl.path'
 
 local _M = {
   _VERSION = '0.1'
@@ -21,19 +22,6 @@ end
 
 local pwd = strip_trailing_slash(env.get('PWD') or util.system('pwd'))
 
-local function abs_path(path)
-  local relative_path = sub(path, 1, 1) ~= '/'
-  local absolute_path
-
-  if relative_path and pwd then
-    absolute_path = format("%s/%s", pwd, path)
-  else
-    absolute_path = path
-  end
-
-  return absolute_path
-end
-
 local function is_path(path)
   return path and len(tostring(path)) > 0
 end
@@ -47,7 +35,7 @@ local function read(path)
     return nil, 'invalid or missing path'
   end
 
-  local absolute_path = abs_path(path)
+  local absolute_path = pl_path.abspath(path, pwd)
 
   ngx.log(ngx.INFO, 'configuration loading file ', absolute_path)
 

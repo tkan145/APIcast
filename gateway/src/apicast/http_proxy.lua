@@ -1,9 +1,7 @@
 local format = string.format
 local tostring = tostring
-local ngx_flush = ngx.flush
 local ngx_get_method = ngx.req.get_method
 local ngx_http_version = ngx.req.http_version
-local ngx_send_headers = ngx.send_headers
 
 local resty_url = require "resty.url"
 local url_helper = require('resty.url_helper')

@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Upgrade lua-resty-http to 0.17.1 to fix 100 response header are not handled when using `HTTPS_PROXY` [PR #1434](https://github.com/3scale/APIcast/pull/1434) [THREESCALE-10278](https://issues.redhat.com/browse/THREESCALE-10278)
 
+- Replace luafilesystem-ffi with [luafilesystem](https://github.com/lunarmodules/luafilesystem) [PR #1445](https://github.com/3scale/APIcast/pull/1445) [THREESCALE-10662](https://issues.redhat.com/browse/THREESCALE-10662)
+
 ### Added
 
 - Detect number of CPU shares when running on Cgroups V2 [PR #1410](https://github.com/3scale/apicast/pull/1410) [THREESCALE-10167](https://issues.redhat.com/browse/THREESCALE-10167)

@@ -64,7 +64,6 @@ function _M:rewrite(context)
     p:rewrite(service, context)
   end
 
-  local err
   context[self] = context[self] or {}
   context[self].upstream, err = p.get_upstream(service, context)
   context.get_upstream = function()

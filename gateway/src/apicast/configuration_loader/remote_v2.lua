@@ -216,7 +216,6 @@ function _M:index_custom_path(host)
     return nil, 'not initialized'
   end
 
-  local proxy_config_path = self.path
   local env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
 
   if not env then

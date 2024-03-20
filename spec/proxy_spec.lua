@@ -1,5 +1,6 @@
 local http_ng_response = require('resty.http_ng.response')
 local lrucache = require('resty.lrucache')
+local cjson = require('cjson')
 
 local configuration_store = require 'apicast.configuration_store'
 local Service = require 'apicast.configuration.service'
@@ -60,6 +61,18 @@ describe('Proxy', function()
 
     it("on no api_backend return nil and no error", function()
       local upstream, err = get_upstream({})
+      assert.falsy(upstream)
+      assert.falsy(err)
+    end)
+
+    it("on no api_backend return empty string and no error", function()
+      local upstream, err = get_upstream({api_backend = ''})
+      assert.falsy(upstream)
+      assert.falsy(err)
+    end)
+
+    it("on no api_backend return null and no error", function()
+      local upstream, err = get_upstream({api_backend = cjson.null})
       assert.falsy(upstream)
       assert.falsy(err)
     end)

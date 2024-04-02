@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Replace luafilesystem-ffi with [luafilesystem](https://github.com/lunarmodules/luafilesystem) [PR #1445](https://github.com/3scale/APIcast/pull/1445) [THREESCALE-10662](https://issues.redhat.com/browse/THREESCALE-10662)
 
 - Fix "Upstream cannot be null" error in APIcast logs [PR #1449](https://github.com/3scale/APIcast/pull/1449) [THREESCALE-5225](https://issues.redhat.com/browse/THREESCALE-5225)
+- Fixed 3scale Batcher policy unable to handle base64 encoded `user_key` [PR #1453](https://github.com/3scale/APIcast/pull/1453) [THREESCALE-10934](https://issues.redhat.com/browse/THREESCALE-10934)
 
 ### Added
 

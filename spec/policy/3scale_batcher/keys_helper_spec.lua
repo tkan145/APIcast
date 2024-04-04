@@ -34,6 +34,11 @@ describe('Keys Helper', function()
 
       local report = keys_helper.report_from_key_batched_report(key)
       assert.same({ service_id = 's1', app_id = 'ai', app_key = 'ak', metric = 'm1' }, report)
+
+      -- special chars
+      key = 'service_id:s1,app_id:ai,app_key:!#$%&\'()*+,-.:;<=>?@[]^_`{|}~,metric:m1'
+      report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', app_id = 'ai', app_key = '!#$%&\'()*+,-.:;<=>?@[]^_`{|}~', metric = 'm1' }, report)
     end)
 
     it('returns a valid metric in case of special chars', function()
@@ -56,6 +61,24 @@ describe('Keys Helper', function()
 
       local report = keys_helper.report_from_key_batched_report(key)
       assert.same({ service_id = 's1', user_key = 'uk', metric = 'm1' }, report)
+
+      key = 'service_id:s1,user_key:you-&$#!!!,metric:m1'
+      report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', user_key = 'you-&$#!!!', metric = 'm1' }, report)
+
+      -- Base64
+      key = 'service_id:s1,user_key:aGVsbG93b3JsZAo=,metric:m1'
+      report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', user_key = 'aGVsbG93b3JsZAo=', metric = 'm1' }, report)
+
+    end)
+
+    it('returns an error when user_key has space', function()
+      local key = 'service_id:s1,app_id:ai,app_key:I have spaces,metric:m%1'
+      assert.returns_error('credentials not found', keys_helper.report_from_key_batched_report(key))
+
+      key = 'service_id:s1,user_key:I have spaces,metric:m1'
+      assert.returns_error('credentials not found', keys_helper.report_from_key_batched_report(key))
     end)
 
     it('returns a report given a key of a batched report with access token', function()

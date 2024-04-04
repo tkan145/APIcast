@@ -1,3 +1,8 @@
+--- These lines to avoid _G write guard issues, external depencies
+--  See https://github.com/openresty/lua-nginx-module/issues/1558 for more info
+rawset(_G, 'lfs', false)
+rawset(_G, 'warn', false)
+
 local _M = {}
 
 local setmetatable = setmetatable

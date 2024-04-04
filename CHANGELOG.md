@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.15.0] 2024-04-04
+
 ### Fixed
 
 - Fix GRPC on HTTP2 POST method [PR #1419](https://github.com/3scale/apicast/pull/1419) [THREESCALE-9976](https://issues.redhat.com/browse/THREESCALE-9976)
@@ -40,7 +42,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Replace luafilesystem-ffi with [luafilesystem](https://github.com/lunarmodules/luafilesystem) [PR #1445](https://github.com/3scale/APIcast/pull/1445) [THREESCALE-10662](https://issues.redhat.com/browse/THREESCALE-10662)
 
 - Fix "Upstream cannot be null" error in APIcast logs [PR #1449](https://github.com/3scale/APIcast/pull/1449) [THREESCALE-5225](https://issues.redhat.com/browse/THREESCALE-5225)
+
 - Fixed 3scale Batcher policy unable to handle base64 encoded `user_key` [PR #1453](https://github.com/3scale/APIcast/pull/1453) [THREESCALE-10934](https://issues.redhat.com/browse/THREESCALE-10934)
+
+- Update luacheck settings and fix issues reported [PR #1451](https://github.com/3scale/APIcast/pull/1451)
+
+- Disable \_G write guard warning [PR #1454](https://github.com/3scale/APIcast/pull/1454)
 
 ### Added
 
@@ -1010,7 +1017,7 @@ Apart from the changes mentioned in this section, this version also includes the
 
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.14.0...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.15.0...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -1071,3 +1078,4 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.13.0]: https://github.com/3scale/apicast/compare/v3.12.2..v3.13.0
 [3.13.2]: https://github.com/3scale/apicast/compare/v3.13.0..v3.13.2
 [3.14.0]: https://github.com/3scale/apicast/compare/v3.13.2..v3.14.0
+[3.15.0]: https://github.com/3scale/apicast/compare/v3.14.0..v3.15.0

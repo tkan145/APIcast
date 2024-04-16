@@ -40,9 +40,9 @@ end
 
 local regexes_report_key = {
   [[service_id:(?<service_id>[\w-]+),user_key:(?<user_key>[\S-]+),metric:(?<metric>[\S-]+)]],
-  [[service_id:(?<service_id>[\w-]+),access_token:(?<access_token>[\w-]+),metric:(?<metric>[\S-]+)]],
-  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\w-]+),app_key:(?<app_key>[\S-]+),metric:(?<metric>[\S-]+)]],
-  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\w-]+),metric:(?<metric>[\S-]+)]],
+  [[service_id:(?<service_id>[\w-]+),access_token:(?<access_token>[\S-]+),metric:(?<metric>[\S-]+)]],
+  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\S-]+),app_key:(?<app_key>[\S-]+),metric:(?<metric>[\S-]+)]],
+  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\S-]+),metric:(?<metric>[\S-]+)]],
 }
 
 function _M.key_for_cached_auth(transaction)

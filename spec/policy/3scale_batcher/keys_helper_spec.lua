@@ -1,6 +1,18 @@
 local keys_helper = require 'apicast.policy.3scale_batcher.keys_helper'
 local Usage = require 'apicast.usage'
 local Transaction = require 'apicast.policy.3scale_batcher.transaction'
+local JWT = require('resty.jwt')
+local rsa = require('fixtures.rsa')
+
+local access_token = setmetatable({
+  header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
+  payload = {
+    iss = 'http://example.com/issuer',
+    sub = 'some',
+    aud = 'one',
+    exp = ngx.now() + 3600,
+  },
+}, { __tostring = function(jwt) return JWT:sign(rsa.private, jwt) end })
 
 describe('Keys Helper', function()
   describe('.key_for_cached_auth', function()
@@ -35,10 +47,10 @@ describe('Keys Helper', function()
       local report = keys_helper.report_from_key_batched_report(key)
       assert.same({ service_id = 's1', app_id = 'ai', app_key = 'ak', metric = 'm1' }, report)
 
-      -- special chars
-      key = 'service_id:s1,app_id:ai,app_key:!#$%&\'()*+,-.:;<=>?@[]^_`{|}~,metric:m1'
+      -- app_key and app_id contain special chars
+      key = 'service_id:s1,app_id:!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~,app_key:!#$%&\'()*+,-.:;<=>?@[]^_`{|}~,metric:m1'
       report = keys_helper.report_from_key_batched_report(key)
-      assert.same({ service_id = 's1', app_id = 'ai', app_key = '!#$%&\'()*+,-.:;<=>?@[]^_`{|}~', metric = 'm1' }, report)
+      assert.same({ service_id = 's1', app_id = '!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~', app_key = '!#$%&\'()*+,-.:;<=>?@[]^_`{|}~', metric = 'm1' }, report)
     end)
 
     it('returns a valid metric in case of special chars', function()
@@ -82,10 +94,10 @@ describe('Keys Helper', function()
     end)
 
     it('returns a report given a key of a batched report with access token', function()
-      local key = 'service_id:s1,access_token:at,metric:m1'
+      local key = 'service_id:s1,access_token:'..tostring(access_token)..',metric:m1'
 
       local report = keys_helper.report_from_key_batched_report(key)
-      assert.same({ service_id = 's1', access_token = 'at', metric = 'm1' }, report)
+      assert.same({ service_id = 's1', access_token = tostring(access_token), metric = 'm1' }, report)
     end)
 
     it('returns a report given a key of a batched report with app ID only', function()
@@ -93,6 +105,11 @@ describe('Keys Helper', function()
 
       local report = keys_helper.report_from_key_batched_report(key)
       assert.same({ service_id = 's1', app_id = 'ai', metric = 'm1'}, report)
+
+      -- special chars
+      key = 'service_id:s1,app_id:!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~,metric:m1'
+      report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', app_id = '!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~', metric = 'm1'}, report)
     end)
 
     it('returns an error when key has no credentials', function()

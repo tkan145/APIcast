@@ -28,9 +28,10 @@ function _M.new(config)
   --- authorization for the token introspection endpoint.
   -- https://tools.ietf.org/html/rfc7662#section-2.2
   if self.auth_type == "client_id+client_secret" then
-    self.credential = create_credential(self.config.client_id or '', self.config.client_secret or '')
-    self.introspection_url = config.introspection_url
+    self.client_id = self.config.client_id or ''
+    self.client_secret = self.config.client_secret or ''
   end
+  self.introspection_url = config.introspection_url
   self.http_client = http_ng.new{
     backend = config.client,
     options = {
@@ -60,10 +61,14 @@ local function introspect_token(self, token)
   local cached_token_info = self.tokens_cache:get(token)
   if cached_token_info then return cached_token_info end
 
+  local headers = {}
+  if self.client_id and self.client_secret then
+    headers['Authorization'] = create_credential(self.client_id or '', self.client_secret or '')
+  end
   --- Parameters for the token introspection endpoint.
   -- https://tools.ietf.org/html/rfc7662#section-2.1
   local res, err = self.http_client.post{self.introspection_url , { token = token, token_type_hint = 'access_token'},
-    headers = {['Authorization'] = self.credential}}
+    headers = headers}
   if err then
     ngx.log(ngx.WARN, 'token introspection error: ', err, ' url: ', self.introspection_url)
     return { active = false }
@@ -93,7 +98,8 @@ function _M:access(context)
     end
 
     local components = resty_url.parse(context.service.oidc.issuer_endpoint)
-    self.credential = create_credential(components.user, components.password)
+    self.client_id = components.user
+    self.client_secret = components.password
     local oauth_config = context.proxy.oauth.config
     -- token_introspection_endpoint being deprecated in RH SSO 7.4 and removed in 7.5
     -- https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.5/html-single/upgrading_guide/index#non_standard_token_introspection_endpoint_removed

@@ -58,13 +58,7 @@ local function read_certificate(value, value_type)
 end
 
 local function read_certificate_key(value, value_type)
-
   local data = get_cert(value, value_type)
-
-  if data == nil then
-    ngx.log(ngx.ERR, "Certificate value is invalid")
-    return
-  end
 
   if data == nil then
     ngx.log(ngx.ERR, "Certificate key value is invalid")
@@ -72,7 +66,6 @@ local function read_certificate_key(value, value_type)
   end
 
   return ssl.parse_pem_priv_key(data)
-
 end
 
 local function read_ca_certificates(ca_certificates)
@@ -115,13 +108,7 @@ end
 -- Set the certs for the upstream connection. Need to receive the pointers from
 -- parse_* functions.
 --- Public function to be able to unittest this.
-function _M.set_certs(cert, key)
-  local r = get_request()
-  if not r then
-    ngx.log(ngx.ERR, "Invalid request")
-    return
-  end
-
+function _M.set_certs(r, cert, key)
   local val = C.ngx_http_apicast_ffi_set_proxy_cert_key(r, cert, key)
   if val ~= ngx.OK then
     ngx.log(ngx.ERR, "Certificate cannot be set correctly")
@@ -140,17 +127,17 @@ end
 --to @upstream, so the request need to be the one that connects to the
 --upstream0
 function _M:balancer(context)
-  if self.cert and self.cert_key then
-    self.set_certs(self.cert, self.cert_key)
-  end
-
-  if not self.verify then
-    return
-  end
-
   local r = get_request()
   if not r then
     ngx.log(ngx.WARN, "Invalid request")
+    return
+  end
+
+  if self.cert and self.cert_key then
+    self.set_certs(r, self.cert, self.cert_key)
+  end
+
+  if not self.verify then
     return
   end
 

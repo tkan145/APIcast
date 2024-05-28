@@ -4,10 +4,10 @@ local ssl = require('ngx.ssl')
 local ffi = require "ffi"
 local base = require "resty.core.base"
 local data_url = require('resty.data_url')
+local util = require 'apicast.util'
 
 local C = ffi.C
 local get_request = base.get_request
-local open = io.open
 local pairs = pairs
 
 local X509_STORE = require('resty.openssl.x509.store')
@@ -31,25 +31,11 @@ local embedded_type = "embedded"
 
 local new = _M.new
 
-
-local function read_file(path)
-  ngx.log(ngx.DEBUG, "reading path:", path)
-
-  local file = open(path, "rb")
-  if not file then
-    ngx.log(ngx.ERR, "Cannot read path: ", path)
-    return nil
-  end
-
-  local content = file:read("*a")
-  file:close()
-  return content
-end
-
-
 local function get_cert(value, value_type)
+
   if value_type == path_type then
-    return read_file(value)
+    ngx.log(ngx.DEBUG, "reading path:", value)
+    return util.read_file(value)
   end
 
   if value_type == embedded_type then

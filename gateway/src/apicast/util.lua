@@ -22,17 +22,14 @@ function _M.timer(name, fun, ...)
   return unpack(ret)
 end
 
-local function read(file)
-  local handle, err = open(file)
-  local output
-
-  if handle then
-    output = handle:read("*a")
-    handle:close()
-  else
-    return nil, err
+function _M.read_file(file)
+  local handle, err = open(file, 'r')
+  if not handle then return nil, err end
+  local output, read_err = handle:read("*a")
+  handle:close()
+  if not output then
+    return nil, read_err
   end
-
   return output
 end
 
@@ -46,13 +43,13 @@ function _M.system(command)
   local success, exit, code = execute('(' .. command .. ')' .. ' > ' .. tmpout .. ' 2> ' .. tmperr)
   local err
 
-  tmpout, err = read(tmpout)
+  tmpout, err = _M.read_file(tmpout)
 
   if err then
     return nil, err
   end
 
-  tmperr, err = read(tmperr)
+  tmperr, err = _M.read_file(tmperr)
 
   if err then
     return nil, err

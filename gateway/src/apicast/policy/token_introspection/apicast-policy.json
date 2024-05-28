@@ -11,7 +11,7 @@
     "properties": {
       "auth_type": {
         "type": "string",
-        "enum": ["use_3scale_oidc_issuer_endpoint", "client_id+client_secret", "client_secret_jwt"],
+        "enum": ["use_3scale_oidc_issuer_endpoint", "client_id+client_secret", "client_secret_jwt", "private_key_jwt"],
         "default": "client_id+client_secret"
       },
       "max_ttl_tokens": {
@@ -86,6 +86,77 @@
           },
           "required": [
             "client_id", "client_secret", "audience", "introspection_url"
+          ]
+        }, {
+          "properties": {
+            "auth_type": {
+              "describe": "Specify the Token Introspection Endpoint, Client Secret.",
+              "enum": ["private_key_jwt"]
+            },
+            "client_id": {
+              "description": "Client ID for the Token Introspection Endpoint",
+              "type": "string"
+            },
+            "client_secret": {
+              "description": "Client Secret for the Token Introspection Endpoint",
+              "type": "string"
+            },
+            "audience": {
+              "description": "The audience passed to the Token Introspection Endpoint",
+              "type": "string"
+            },
+            "introspection_url": {
+              "description": "Introspection Endpoint URL",
+              "type": "string"
+            },
+            "certificate_type": {
+              "title": "Certificate type",
+              "type": "string",
+              "enum": [
+                "path",
+                "embedded"
+              ],
+              "default": "path"
+            }
+          },
+          "dependencies": {
+            "certificate_type": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "certificate_type": {
+                      "const": "embedded"
+                    },
+                    "certificate": {
+                      "title": "Certificate",
+                      "description": "Pulic Key used to sign JWT for the Token Introspection Endpoint",
+                      "format": "data-url",
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "certificate_type": {
+                      "const": "path"
+                    },
+                    "certificate": {
+                      "title": "Certificate",
+                      "description": "Pulic Key used to sign JWT for the Token Introspection Endpoint",
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "client_id",
+            "client_secret",
+            "audience",
+            "introspection_url",
+            "certificate_type",
+            "certificate_key_type"
           ]
         }]
       }

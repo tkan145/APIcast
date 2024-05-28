@@ -32,7 +32,9 @@ function _M.new(config)
   self.client_secret = self.config.client_secret or ''
   self.client_aud = self.config.audience or ''
   self.client_jwt_assertion_expires_in = self.config.client_jwt_assertion_expires_in or 60
+  self.client_rsa_private_key = self.config.public_key or ''
   self.introspection_url = config.introspection_url
+
   self.http_client = http_ng.new{
     backend = config.client,
     options = {
@@ -63,27 +65,33 @@ local function introspect_token(self, token)
   if cached_token_info then return cached_token_info end
 
   local headers = {}
+  local auth_type = self.auth_type
+  local client_id = self.client_id
+  local client_secret = self.client_secret
+
   local body = {}
   body.token = token
   body.token_type_hint = 'access_token'
 
-  if self.auth_type == "client_id+client_secret" or self.auth_type == "use_3scale_oidc_issuer_endpoint" then
-    if self.client_id and self.client_secret then
-      headers['Authorization'] = create_credential(self.client_id or '', self.client_secret or '')
+  if auth_type == "client_id+client_secret" or auth_type == "use_3scale_oidc_issuer_endpoint" then
+    if client_id and client_secret then
+      headers['Authorization'] = create_credential(client_id or '', client_secret or '')
     end
-  elseif self.auth_type == "client_secret_jwt" then
-    local key = self.client_secret
-    body.client_id = self.client_id
+  elseif auth_type == "client_secret_jwt" or auth_type == "private_key_jwt" then
+    local key = auth_type == "private_key_jwt" and self.client_rsa_private_key or client_secret
+    local alg = auth_type == "private_key_jwt" and "RS256" or "HS256"
+
+    body.client_id = client_id
     body.client_assertion_type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
     local now = ngx.time()
     local assertion = {
       header = {
         typ = "JWT",
-        alg = "HS256",
+        alg = alg,
       },
       payload = {
-        iss = self.client_id,
-        sub = self.client_id,
+        iss = client_id,
+        sub = client_id,
         aud = self.client_aud,
         jti = ngx.var.request_id,
         exp = now + (self.client_jwt_assertion_expires_in and self.client_jwt_assertion_expires_in or 60),

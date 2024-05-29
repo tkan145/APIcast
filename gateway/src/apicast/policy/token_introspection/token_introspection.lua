@@ -7,6 +7,7 @@ local http_ng = require 'resty.http_ng'
 local user_agent = require 'apicast.user_agent'
 local resty_env = require('resty.env')
 local resty_url = require('resty.url')
+local resty_jwt = require('resty.jwt')
 
 local tokens_cache = require('tokens_cache')
 
@@ -27,11 +28,12 @@ function _M.new(config)
   self.auth_type = config.auth_type or "client_id+client_secret"
   --- authorization for the token introspection endpoint.
   -- https://tools.ietf.org/html/rfc7662#section-2.2
-  if self.auth_type == "client_id+client_secret" then
-    self.client_id = self.config.client_id or ''
-    self.client_secret = self.config.client_secret or ''
-    self.introspection_url = config.introspection_url
-  end
+  -- TODO: check what if multiple values if provided
+  self.client_id = self.config.client_id or ''
+  self.client_secret = self.config.client_secret or ''
+  self.introspection_url = config.introspection_url
+  self.client_jwt_assertion_expires_in = self.config.client_jwt_assertion_expires_in or 60
+  self.client_aud = config.client_jwt_assertion_audience or ''
   self.http_client = http_ng.new{
     backend = config.client,
     options = {
@@ -62,14 +64,43 @@ local function introspect_token(self, token)
   if cached_token_info then return cached_token_info end
 
   local headers = {}
-  if self.client_id and self.client_secret then
-    headers['Authorization'] = create_credential(self.client_id or '', self.client_secret or '')
+
+  local body = {
+    token = token,
+    token_type_hint = 'access_token'
+  }
+
+  if self.auth_type == "client_id+client_secret" or self.auth_type == "use_3scale_oidc_issuer_endpoint" then
+    if self.client_id and self.client_secret then
+      headers['Authorization'] = create_credential(self.client_id or '', self.client_secret or '')
+    end
+  elseif self.auth_type == "client_secret_jwt" then
+    local key = self.client_secret
+    body.client_id = self.client_id
+    body.client_assertion_type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+    local now = ngx.time()
+
+    local assertion = {
+      header = {
+        typ = "JWT",
+        alg = "HS256",
+      },
+      payload = {
+        iss = self.client_id,
+        sub = self.client_id,
+        aud = self.client_aud,
+        jti = ngx.var.request_id,
+        exp = now + (self.client_jwt_assertion_expires_in and self.client_jwt_assertion_expires_in or 60),
+        iat = now
+      }
+    }
+
+    body.client_assertion = resty_jwt:sign(key, assertion)
   end
 
   --- Parameters for the token introspection endpoint.
   -- https://tools.ietf.org/html/rfc7662#section-2.1
-  local res, err = self.http_client.post{self.introspection_url , { token = token, token_type_hint = 'access_token'},
-    headers = headers}
+  local res, err = self.http_client.post{self.introspection_url , body, headers = headers}
   if err then
     ngx.log(ngx.WARN, 'token introspection error: ', err, ' url: ', self.introspection_url)
     return { active = false }

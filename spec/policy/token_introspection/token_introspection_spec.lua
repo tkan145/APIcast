@@ -3,6 +3,7 @@ local TokensCache = require('apicast.policy.token_introspection.tokens_cache')
 local format = string.format
 local test_backend_client = require('resty.http_ng.backend.test')
 local cjson = require('cjson')
+local resty_jwt = require "resty.jwt"
 describe("token introspection policy", function()
   describe("execute introspection", function()
     local context
@@ -22,6 +23,7 @@ describe("token introspection policy", function()
       test_backend = test_backend_client.new()
       ngx.var = {}
       ngx.var.http_authorization = "Bearer "..test_access_token
+      ngx.var.request_id = "1234"
       context = {
         service = {
           auth_failed_status = 403,
@@ -328,6 +330,93 @@ describe("token introspection policy", function()
             { token = "test", token_type_hint = "access_token" })
       end)
 
+    end)
+
+    describe('ONLY client_secret_jwt introspection auth type', function()
+      local auth_type = "client_secret_jwt"
+      local introspection_url = "http://example/token/introspection"
+      local audience = "http://example/auth/realm/basic"
+      local policy_config = {
+        auth_type = auth_type,
+        introspection_url = introspection_url,
+        client_id = test_client_id,
+        client_secret = test_client_secret,
+        audience = audience
+      }
+
+      describe('success with valid token', function()
+        local token_policy = TokenIntrospection.new(policy_config)
+        before_each(function()
+          test_backend
+            .expect{
+              url = introspection_url,
+              method = 'POST',
+            }
+            .respond_with{
+              status = 200,
+              body = cjson.encode({
+                  active = true
+              })
+            }
+          token_policy.http_client.backend = test_backend
+          token_policy:access(context)
+        end)
+
+        it('the request does not contains basic auth header', function()
+          assert.is_nil(test_backend.get_requests()[1].headers['Authorization'])
+        end)
+
+        it('the request does not contains client_secret in body', function()
+          local body = ngx.decode_args(test_backend.get_requests()[1].body)
+          assert.is_nil(body.client_secret)
+        end)
+
+        it('the request contains correct fields in body', function()
+          local body = ngx.decode_args(test_backend.get_requests()[1].body)
+          assert.same(body.client_id, test_client_id)
+          assert.same(body.client_assertion_type, "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
+          assert.is_not_nil(body.client_assertion)
+        end)
+
+        it("has correct JWT headers", function()
+          local body = ngx.decode_args(test_backend.get_requests()[1].body)
+          local jwt_obj = resty_jwt:load_jwt(body.client_assertion)
+          assert.same(jwt_obj.header.typ, "JWT")
+          assert.same(jwt_obj.header.alg, "HS256")
+        end)
+
+        it("has correct JWT body", function()
+          local body = ngx.decode_args(test_backend.get_requests()[1].body)
+          local jwt_obj = resty_jwt:load_jwt(body.client_assertion)
+          assert.same(jwt_obj.payload.sub, test_client_id)
+          assert.same(jwt_obj.payload.iss, test_client_id)
+          assert.truthy(jwt_obj.signature)
+          assert.truthy(jwt_obj.payload.jti)
+          assert.truthy(jwt_obj.payload.exp)
+          assert.is_true(jwt_obj.payload.exp > os.time())
+        end)
+      end)
+
+      it('failed with invalid token', function()
+        test_backend
+          .expect{
+            url = introspection_url,
+            method = 'POST',
+          }
+          .respond_with{
+            status = 200,
+            body = cjson.encode({
+                active = false
+            })
+          }
+        stub(ngx, 'say')
+        stub(ngx, 'exit')
+
+        local token_policy = TokenIntrospection.new(policy_config)
+        token_policy.http_client.backend = test_backend
+        token_policy:access(context)
+        assert_authentication_failed()
+      end)
     end)
 
     describe('when caching is enabled', function()

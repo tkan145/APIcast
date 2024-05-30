@@ -332,7 +332,7 @@ describe("token introspection policy", function()
 
     end)
 
-    describe('ONLY client_secret_jwt introspection auth type', function()
+    describe('client_secret_jwt introspection auth type', function()
       local auth_type = "client_secret_jwt"
       local introspection_url = "http://example/token/introspection"
       local audience = "http://example/auth/realm/basic"

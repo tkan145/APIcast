@@ -8,6 +8,9 @@ local user_agent = require 'apicast.user_agent'
 local resty_env = require('resty.env')
 local resty_url = require('resty.url')
 local resty_jwt = require('resty.jwt')
+local data_url = require('resty.data_url')
+local util = require 'apicast.util'
+local pcall = pcall
 
 local tokens_cache = require('tokens_cache')
 
@@ -17,6 +20,35 @@ local new = _M.new
 
 local noop = function() end
 local noop_cache = { get = noop, set = noop }
+local path_type = "path"
+local embedded_type = "embedded"
+
+local function get_cert(value, value_type)
+  if value_type == path_type then
+    ngx.log(ngx.DEBUG, "reading path:", value)
+    return util.read_file(value)
+  end
+
+  if value_type == embedded_type then
+    local parsed_data, err = data_url.parse(value)
+    if err then
+      ngx.log(ngx.ERR, "Cannot parse certificate content: ", err)
+      return nil
+    end
+    return parsed_data.data
+  end
+end
+
+-- lua-resty-jwt expects certificate as a string, thereforce we will return the certificate key
+-- as is
+local function read_certificate_key(value, value_type)
+  local data, err = get_cert(value, value_type)
+  if data == nil then
+    ngx.log(ngx.ERR, "Certificate value is invalid, err: ", err)
+    return
+  end
+  return data
+end
 
 local function create_credential(client_id, client_secret)
   return 'Basic ' .. ngx.encode_base64(table.concat({ client_id, client_secret }, ':'))
@@ -33,9 +65,16 @@ function _M.new(config)
     self.client_secret = self.config.client_secret or ''
     self.introspection_url = config.introspection_url
 
-    if self.auth_type == "client_secret_jwt" then
+    if self.auth_type == "client_secret_jwt" or self.auth_type == "private_key_jwt" then
       self.client_jwt_assertion_expires_in = self.config.client_jwt_assertion_expires_in or 60
       self.client_aud = config.client_jwt_assertion_audience or ''
+      self.client_algorithm = config.client_jwt_assertion_algorithm
+    end
+
+    if self.auth_type == "private_key_jwt" then
+      self.client_rsa_private_key = read_certificate_key(
+        config.certificate,
+        config.certificate_type or path_type)
     end
   end
   self.http_client = http_ng.new{
@@ -76,8 +115,13 @@ local function introspect_token(self, token)
 
   if self.auth_type == "client_id+client_secret" or self.auth_type == "use_3scale_oidc_issuer_endpoint" then
       headers['Authorization'] = create_credential(self.client_id or '', self.client_secret or '')
-  elseif self.auth_type == "client_secret_jwt" then
-    local key = self.client_secret
+  elseif self.auth_type == "client_secret_jwt" or self.auth_type == "private_key_jwt" then
+    local key = self.auth_type == "client_secret_jwt" and self.client_secret or self.client_rsa_private_key
+    if not key then
+      ngx.log(ngx.WARN, "token introspection can't use " .. self.auth_type .. " without a key.")
+      return {active = false}
+    end
+
     body.client_id = self.client_id
     body.client_assertion_type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
     local now = ngx.time()
@@ -85,7 +129,7 @@ local function introspect_token(self, token)
     local assertion = {
       header = {
         typ = "JWT",
-        alg = "HS256",
+        alg = self.client_algorithm,
       },
       payload = {
         iss = self.client_id,
@@ -97,7 +141,15 @@ local function introspect_token(self, token)
       }
     }
 
-    body.client_assertion = resty_jwt:sign(key, assertion)
+    -- use pcall here to catch error throw by lua-rest-jwt sign method.
+    local ok, client_assertion  = pcall(resty_jwt.sign, _M, key, assertion)
+
+    if not ok then
+      ngx.log(ngx.WARN, "token introspection failed to sign JWT token ,err: ", client_assertion.reason)
+      return {active = false}
+    end
+
+    body.client_assertion = client_assertion
   end
 
   --- Parameters for the token introspection endpoint.

@@ -204,3 +204,107 @@ x-fapi-transaction-id: [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+
+=== TEST 5: Validate x-fapi-customer-ip-address header
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.fapi",
+            "configuration": {
+              "validate_x_fapi_customer_ip_address": true
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- upstream
+  location / {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- more_headers
+x-fapi-customer-ip-address: 192.168.0.1
+--- request
+GET /?user_key=value
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+
+=== TEST 6: Reject request with invalid x-fapi-customer-ip-address header
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.fapi",
+            "configuration": {
+              "validate_x_fapi_customer_ip_address": true
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- upstream
+  location / {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- more_headers
+x-fapi-customer-ip-address: something
+--- request
+GET /?user_key=value
+--- error_code: 403
+--- response_body chomp
+{"error": "invalid_request"}
+--- no_error_log
+[error]

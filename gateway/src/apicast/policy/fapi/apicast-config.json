@@ -7,6 +7,12 @@
   "version": "builtin",
   "configuration": {
     "type": "object",
-    "properties": {}
+    "properties": {
+      "validate_x_fapi_customer_ip_address": {
+        "description": "Validate x-fapi-customer-ip-address header",
+        "type": "boolean",
+        "default": "false"
+      }
+    }
   }
 }

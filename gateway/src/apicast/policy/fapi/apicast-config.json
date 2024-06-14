@@ -1,0 +1,18 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "The Financial-grade API (FAPI)",
+  "summary": "Support FAPI profiles",
+  "description": ["This policy adding support for Financial-grade API (API) profiles"
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "validate_x_fapi_customer_ip_address": {
+        "description": "Validate x-fapi-customer-ip-address header",
+        "type": "boolean",
+        "default": "false"
+      }
+    }
+  }
+}

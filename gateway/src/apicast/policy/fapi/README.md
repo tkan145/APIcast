@@ -4,6 +4,9 @@
 
 The FAPI policy supports various features of the Financial-grade API (FAPI) standard.
 
+* FAPI 1.0 Baseline Profile
+* FAPI 1.0 Advance Profile
+
 ## Example configuration
 
 ```
@@ -23,6 +26,22 @@ The FAPI policy supports various features of the Financial-grade API (FAPI) stan
       "name": "apicast.policy.fapi",
       "configuration": {
         "validate_x_fapi_customer_ip_address": true
+      }
+    },
+    {
+      "name": "apicast.policy.apicast"
+    }
+]
+```
+
+### Validate certificate-bound access tokens
+
+```
+"policy_chain": [
+    {
+      "name": "apicast.policy.fapi",
+      "configuration": {
+        "enable_oauth2_mtls": true
       }
     },
     {

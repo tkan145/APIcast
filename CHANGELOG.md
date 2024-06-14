@@ -17,7 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Bump openresty to 1.21.4.3 [PR #1461](https://github.com/3scale/APIcast/pull/1461) [THREESCALE-10601](https://issues.redhat.com/browse/THREESCALE-10601)
 
-- Support Financial-grade API (FAPI) - Baseline profile [PR #1465](https://github.com/3scale/APIcast/pull/1465) [THREESCALE-10973](https://issues.redhat.com/browse/THREESCALE-10973)
+- Support Financial-grade API (FAPI) 1.0 - Baseline profile [PR #1465](https://github.com/3scale/APIcast/pull/1465) [THREESCALE-10973](https://issues.redhat.com/browse/THREESCALE-10973)
+
+- Support Financial-grade API (FAPI) 1.0 - Advance profile [PR #1465](https://github.com/3scale/APIcast/pull/1466) [THREESCALE-11019](https://issues.redhat.com/browse/THREESCALE-11019)
 
 ## [3.15.0] 2024-04-04
 

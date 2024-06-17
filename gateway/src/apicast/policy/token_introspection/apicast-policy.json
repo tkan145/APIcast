@@ -84,11 +84,6 @@
                 "description": "Audience. The aud claim of the singed JWT. The audience SHOULD be the URL of the Authorization Server’s Token Endpoint.",
                 "type": "string"
               },
-              "client_jwt_assertion_algorithm": {
-                "type": "string",
-                "enum": ["HS256"],
-                "default": "HS256"
-              },
               "introspection_url": {
                 "description": "Introspection Endpoint URL",
                 "type": "string"
@@ -119,11 +114,6 @@
             "client_jwt_assertion_audience": {
               "description": "Audience. The aud claim of the singed JWT. The audience SHOULD be the URL of the Authorization Server’s Token Endpoint.",
               "type": "string"
-            },
-            "client_jwt_assertion_algorithm": {
-              "type": "string",
-              "enum": ["RS256"],
-              "default": "RS256"
             },
             "certificate_type": {
               "title": "Certificate type",

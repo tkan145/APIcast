@@ -68,7 +68,6 @@ function _M.new(config)
     if self.auth_type == "client_secret_jwt" or self.auth_type == "private_key_jwt" then
       self.client_jwt_assertion_expires_in = self.config.client_jwt_assertion_expires_in or 60
       self.client_aud = config.client_jwt_assertion_audience or ''
-      self.client_algorithm = config.client_jwt_assertion_algorithm
     end
 
     if self.auth_type == "private_key_jwt" then
@@ -129,7 +128,7 @@ local function introspect_token(self, token)
     local assertion = {
       header = {
         typ = "JWT",
-        alg = self.client_algorithm,
+        alg = self.auth_type == "client_secret_jwt" and "HS256" or "RS256",
       },
       payload = {
         iss = self.client_id,

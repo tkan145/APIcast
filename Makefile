@@ -15,6 +15,7 @@ SEPARATOR="\n=============================================\n"
 
 DEVEL_IMAGE ?= quay.io/3scale/apicast-ci:openresty-1.21.4-1
 DEVEL_DOCKERFILE ?= Dockerfile.devel
+PROFILING_DOCKERFILE ?= Dockerfile.profiling
 
 RUNTIME_IMAGE ?= quay.io/3scale/apicast:latest
 
@@ -77,6 +78,16 @@ dev-build: ## Build development image
 		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
 		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
 		$(PROJECT_PATH) -f $(DEVEL_DOCKERFILE)
+
+.PHONY: profiling-build
+profiling-build: export OPENRESTY_RPM_VERSION?=1.21.4
+profiling-build: export LUAROCKS_VERSION?=2.3.0
+profiling-build: IMAGE_NAME ?= apicast-profiling:latest
+profiling-build: ## Build development image
+	$(DOCKER) build --platform linux/amd64 -t $(IMAGE_NAME) \
+		--build-arg OPENRESTY_RPM_VERSION=$(OPENRESTY_RPM_VERSION) \
+		--build-arg LUAROCKS_VERSION=$(LUAROCKS_VERSION) \
+		$(PROJECT_PATH) -f $(PROFILING_DOCKERFILE)
 
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove dev-build prove-docker runtime-image test-runtime-image

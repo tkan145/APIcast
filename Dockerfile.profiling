@@ -30,7 +30,8 @@ RUN dnf install -y wget \
     && dnf install -y dnf-plugins-core \
     && dnf config-manager --add-repo ${OPENRESTY_YUM_REPO} \
     && dnf config-manager --add-repo ${THREESCALE_YUM_REPO} \
-    && dnf --enablerepo=powertools install -y libyaml-devel \
+    && dnf --enablerepo="powertools" install -y libyaml-devel \
+    && dnf --enablerepo="debuginfo" install -y kernel-devel kernel-debuginfo \
     && dnf install -y \
         gcc gcc-c++ make git which iputils bind-utils expat-devel kernel-headers openssl-devel m4 \
         tar unzip libyaml perl-local-lib perl-App-cpanminus \
@@ -38,6 +39,9 @@ RUN dnf install -y wget \
         elfutils-devel systemtap \
         openresty-${OPENRESTY_RPM_VERSION} \
         openresty-resty-${OPENRESTY_RPM_VERSION} \
+        openresty-debug \
+        openresty-debug-debuginfo \
+        openresty-pcre-debuginfo \
         openresty-opentelemetry-${OPENRESTY_RPM_VERSION} \
         openresty-opentracing-${OPENRESTY_RPM_VERSION} \
         opentracing-cpp-devel-1.3.0 \

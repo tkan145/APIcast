@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+### Added
+
 ## [3.15.0] 2024-04-04
 
 ### Fixed
@@ -48,6 +52,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update luacheck settings and fix issues reported [PR #1451](https://github.com/3scale/APIcast/pull/1451)
 
 - Disable \_G write guard warning [PR #1454](https://github.com/3scale/APIcast/pull/1454)
+
+- Fixed APIcast send request through proxy server even when `NO_PROXY` is used [PR #1478](https://github.com/3scale/APIcast/pull/1478) [THREESCALE-11128](https://issues.redhat.com/browse/THREESCALE-11128)
 
 ### Added
 

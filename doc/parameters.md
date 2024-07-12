@@ -529,7 +529,7 @@ Sets the maximum size of shared memory used by batcher policy. The accepted [siz
 **Default:** 4k|8k;
 **Value:** string
 
-Sets the size of the buffer used for handling the response received from the proxied server. This variable will set both [`proxy_buffer` NGINX directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffers) and [`proxy_buffer_size` NGINX directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size). By default, the buffer size is equal to one memory page. This is either 4K or 8K, depending on a platform.
+Sets the size of the buffer used for handling the response received from the proxied server. This variable sets both [`proxy_buffer` NGINX directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffers) and [`proxy_buffer_size` NGINX directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size). By default, the buffer size is equal to one memory page. This is either 4 KiB or 8 KiB, depending on a platform.
 
 ### `OPENTELEMETRY`
 

@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Support Financial-grade API (FAPI) - Baseline profile [PR #1465](https://github.com/3scale/APIcast/pull/1465) [THREESCALE-10973](https://issues.redhat.com/browse/THREESCALE-10973)
 
-- Added `APICAST_PROXY_BUFFER_SIZE` variable to allow configure the size of the buffer used for handling the response received from the proxied server. [PR #1473](https://github.com/3scale/APIcast/pull/1473), [THREESCALE-8410](https://issues.redhat.com/browse/THREESCALE-8410)
+- Added the `APICAST_PROXY_BUFFER_SIZE` variable to allow configuration of the buffer size for handling response from the proxied servers. [PR #1473](https://github.com/3scale/APIcast/pull/1473), [THREESCALE-8410](https://issues.redhat.com/browse/THREESCALE-8410)
 
 ## [3.15.0] 2024-04-04
 

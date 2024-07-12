@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fixed confusing log display when APIcast listens on HTTPS and path routing is enabled [PR #1486](https://github.com/3scale/APIcast/pull/1486/files) [THREESCALE #8486](https://issues.redhat.com/browse/THREESCALE-8486)
 
+- Fixed Conditional policy evaluating incorrectly: second policy in policy chain that implement export() always triggers [PR #1485](https://github.com/3scale/APIcast/pull/1485) [THREESCALE-9320](https://issues.redhat.com/browse/THREESCALE-9320)
+
 ### Added
 
 - Bump openresty to 1.21.4.3 [PR #1461](https://github.com/3scale/APIcast/pull/1461) [THREESCALE-10601](https://issues.redhat.com/browse/THREESCALE-10601)

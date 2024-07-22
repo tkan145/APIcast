@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fixed APIcast send request through proxy server even when `NO_PROXY` is used [PR #1478](https://github.com/3scale/APIcast/pull/1478) [THREESCALE-11128](https://issues.redhat.com/browse/THREESCALE-11128)
 
+- Fixed config reloading even when reloading is disabled [PR #1468](https://github.com/3scale/APIcast/pull/1468)
+
 ### Added
 
 - Bump openresty to 1.21.4.3 [PR #1461](https://github.com/3scale/APIcast/pull/1461) [THREESCALE-10601](https://issues.redhat.com/browse/THREESCALE-10601)
 
 - Support Financial-grade API (FAPI) - Baseline profile [PR #1465](https://github.com/3scale/APIcast/pull/1465) [THREESCALE-10973](https://issues.redhat.com/browse/THREESCALE-10973)
+
+- Token Introspection Policy - Support `private_key_jwt` and `client_secret_jwt` authentication mode [PR #1464](https://github.com/3scale/APIcast/pull/1464) [THREESCALE-11015](https://issues.redhat.com/browse/THREESCALE-11015)
 
 ## [3.15.0] 2024-04-04
 

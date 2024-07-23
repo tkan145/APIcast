@@ -41,7 +41,7 @@ The FAPI policy supports various features of the Financial-grade API (FAPI) stan
     {
       "name": "apicast.policy.fapi",
       "configuration": {
-        "enable_oauth2_mtls": true
+        "validate_oauth2_certificate_bound_access_token": true
       }
     },
     {

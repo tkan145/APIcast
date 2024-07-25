@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Token Introspection Policy - Support `private_key_jwt` and `client_secret_jwt` authentication mode [PR #1464](https://github.com/3scale/APIcast/pull/1464) [THREESCALE-11015](https://issues.redhat.com/browse/THREESCALE-11015)
 
+- Added the `APICAST_PROXY_BUFFER_SIZE` variable to allow configuration of the buffer size for handling response from the proxied servers. [PR #1473](https://github.com/3scale/APIcast/pull/1473), [THREESCALE-8410](https://issues.redhat.com/browse/THREESCALE-8410)
+
 ## [3.15.0] 2024-04-04
 
 ### Fixed

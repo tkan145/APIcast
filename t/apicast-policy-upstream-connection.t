@@ -421,9 +421,9 @@ should receive the whole response back
                 {
                   "name": "apicast.policy.upstream_connection",
                   "configuration": {
-                    "connect_timeout": 1,
-                    "send_timeout": 1,
-                    "read_timeout": 1
+                    "connect_timeout": 0.1,
+                    "send_timeout": 0.1,
+                    "read_timeout": 0.1
                   }
                 }
               ]
@@ -449,7 +449,7 @@ should receive the whole response back
     content_by_lua_block {
       ngx.say("first part")
       ngx.flush(true)
-      ngx.sleep(3)
+      ngx.sleep(0.2)
       ngx.say("yay, second part")
     }
   }

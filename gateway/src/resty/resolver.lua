@@ -18,10 +18,8 @@ local dns_client = require 'resty.resolver.dns_client'
 local resty_env = require 'resty.env'
 local upstream = require 'ngx.upstream'
 local re = require('ngx.re')
-local semaphore = require "ngx.semaphore"
+local semaphore = require "ngx.semaphore".new(1)
 local synchronization = require('resty.synchronization').new(1)
-
-local init = semaphore.new(1)
 
 local default_resolver_port = 53
 
@@ -171,14 +169,14 @@ function _M.init_nameservers(path)
 end
 
 function _M.nameservers()
-  local ok, _ = init:wait(0)
+  local ok, _ = semaphore:wait(0)
 
   if ok and #(_M._nameservers) == 0 then
     _M.init()
   end
 
   if ok then
-    init:post()
+    semaphore:post()
   end
 
   return _M._nameservers

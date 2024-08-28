@@ -69,15 +69,17 @@ function _M:access()
 
   local store = self.x509_store
 
-  local ok, err = store:validate_cert(cert)
+  -- err is printed inside validate_cert method
+  -- so no need capture the err here
+  local ok, _ = store:validate_cert(cert)
 
   if not ok then
     ngx.status = self.error_status
-    ngx.say(err)
+    ngx.say("TLS certificate validation failed")
     return ngx.exit(ngx.status)
   end
 
-  return ok, err
+  return ok, nil
 end
 
 return _M

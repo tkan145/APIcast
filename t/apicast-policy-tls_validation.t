@@ -119,7 +119,7 @@ proxy_pass https://$server_addr:$apicast_port/t;
 proxy_set_header Host test;
 log_by_lua_block { collectgarbage() }
 --- response_body
-unable to get local issuer certificate
+TLS certificate validation failed
 --- error_code: 400
 --- no_error_log
 [error]

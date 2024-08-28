@@ -235,7 +235,9 @@ local function lazy_load_config(configuration, host)
     if not config then
       ngx.log(ngx.WARN, 'failed to get config for host: ', host)
     end
-    _M.configure(configuration, config, host)
+    -- Lazy load will never returned stale data, so no need to reset the
+    -- cache
+    _M.configure(configuration, config)
 end
 
 function lazy.rewrite(configuration, host)

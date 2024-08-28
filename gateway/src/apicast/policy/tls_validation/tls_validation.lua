@@ -61,6 +61,12 @@ end
 
 function _M:access()
   local cert = X509.parse_pem_cert(ngx.var.ssl_client_raw_cert)
+  if not cert then
+    ngx.status = self.error_status
+    ngx.say("No required TLS certificate was sent")
+    return ngx.exit(ngx.status)
+  end
+
   local store = self.x509_store
 
   local ok, err = store:validate_cert(cert)

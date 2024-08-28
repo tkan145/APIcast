@@ -154,7 +154,7 @@ proxy_pass https://$server_addr:$apicast_port/t;
 proxy_set_header Host test;
 log_by_lua_block { collectgarbage() }
 --- response_body
-Invalid certificate verification context
+No required TLS certificate was sent
 --- error_code: 400
 --- no_error_log
 [error]

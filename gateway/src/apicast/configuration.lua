@@ -140,7 +140,8 @@ end
 
 function _M.filter_services(services, subset)
   local selected_services = {}
-  local service_regexp_filter  = env.value("APICAST_SERVICES_FILTER_BY_URL")
+  local filtered_services = {}
+  local service_regexp_filter = env.value("APICAST_SERVICES_FILTER_BY_URL")
 
   if service_regexp_filter then
     -- Checking that the regexp sent is correct, if not an empty service list
@@ -163,9 +164,20 @@ function _M.filter_services(services, subset)
     if service:match_host(service_regexp_filter) or subset[service.id] then
       insert(selected_services, service)
     else
-      ngx.log(ngx.WARN, 'filtering out service ', service.id)
+      table.insert(filtered_services, service.id)
     end
   end
+
+  -- Log all filtered services in a single log
+  if #filtered_services > 0 then  
+    local filtered_services_str = {}
+    for _, service_id in ipairs(filtered_services) do
+      table.insert(filtered_services_str, tostring(service_id))
+    end
+  
+    ngx.log(ngx.WARN, "filtering out services: " .. table.concat(filtered_services_str, ", "))
+  end
+
   return selected_services
 end
 

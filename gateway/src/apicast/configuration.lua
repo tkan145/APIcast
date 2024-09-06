@@ -169,13 +169,8 @@ function _M.filter_services(services, subset)
   end
 
   -- Log all filtered services in a single log
-  if #filtered_services > 0 then  
-    local filtered_services_str = {}
-    for _, service_id in ipairs(filtered_services) do
-      table.insert(filtered_services_str, tostring(service_id))
-    end
-  
-    ngx.log(ngx.WARN, "filtering out services: " .. table.concat(filtered_services_str, ", "))
+  if #filtered_services > 0 then
+    ngx.log(ngx.WARN, "filtering out services: ", table.concat(filtered_services, ", "))
   end
 
   return selected_services

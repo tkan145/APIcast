@@ -2,9 +2,10 @@ local configuration = require 'apicast.configuration'
 local env = require 'resty.env'
 local captured_logs = {}
 
-local function capture_log(level, message)
-  print("Captured log level: ", level, " message: ", message)
-  table.insert(captured_logs, {level = level, message = message})
+local function capture_log(level, ...)
+  local message_parts = {...}  -- Capture all message parts
+  local full_message = table.concat(message_parts, "")  -- Concatenate the parts into a full string
+  table.insert(captured_logs, {level = level, message = full_message})
 end
 
 describe('Configuration object', function()
@@ -156,9 +157,9 @@ describe('Configuration object', function()
         env.set('APICAST_SERVICES_LIST', '42,21')
       
         ngx.log = capture_log
-        local filtered_services = filter_services(mockservices, {"21"})
+        local services_returned = filter_services(mockservices, {"21"})
         
-        assert.same(filtered_services, {mockservices[1], mockservices[3]})
+        assert.same(services_returned, {mockservices[1], mockservices[3]})
 
         -- Inspect the captured logs
         assert.is_not_nil(captured_logs)

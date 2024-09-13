@@ -18,10 +18,16 @@ Running custom apicast image
 make gateway IMAGE_NAME=quay.io/3scale/apicast:latest
 ```
 
-Traffic between the proxy and upstream can be inspected looking at logs from `example.com` service
+Traffic between apicast and upstream can be inspected looking at logs from `example.com` service
 
 ```
 docker compose -p plain-http-upstream logs -f example.com
+```
+
+Traffic between apicast and backend can be inspected looking at logs from `backend` service
+
+```
+docker compose -p plain-http-upstream logs -f backend
 ```
 
 ## Testing

@@ -62,6 +62,7 @@ function _M:set_keepalive()
       return nil, err
     end
     if count >= tonumber(keepalive_request) then
+      resty_http.close(self)
       return true
     end
   end

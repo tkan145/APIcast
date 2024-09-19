@@ -483,8 +483,11 @@ to [75 seconds](http://nginx.org/en/docs/http/ngx_http_core_module.html#keepaliv
 **Value:** positive integers
 **Example:** "1"
 
-Sets the maximum number of requests that can be served through one keepalive connection.
-After the maximum number of requests is made, the connection is closed.
+Sets the maximum number of requests that one keepalive connection can serve.
+After reaching the limit, the connection closes.
+
+NOTE: This value affects connections opened by APIcast and will not have any
+impact on requests proxied via APIcast.
 
 ### `APICAST_CACHE_STATUS_CODES`
 

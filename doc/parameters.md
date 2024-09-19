@@ -478,6 +478,13 @@ connections.
 By default Gateway does not enable it, and the keepalive timeout on nginx is set
 to [75 seconds](http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout)
 
+### `APICAST_LUA_SOCKET_KEEPALIVE_REQUESTS`
+
+**Value:** positive integers
+**Example:** "1"
+
+Sets the maximum number of requests that can be served through one keepalive connection.
+After the maximum number of requests is made, the connection is closed.
 
 ### `APICAST_CACHE_STATUS_CODES`
 

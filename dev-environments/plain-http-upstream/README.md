@@ -49,3 +49,12 @@ curl --resolve post.example.com:8080:127.0.0.1 -v -X POST "http://post.example.c
 ```sh
 make clean
 ```
+
+## Echo API
+
+Using EchoAPI `quay.io/kuadrant/authorino-examples:talker-api` docker image.
+
+Based on Ruby's [rack](https://github.com/rack/rack) / [rackup](https://github.com/rack/rackup/blob/main/lib/rackup.rb) 
+HTTP server framework uses [WebRick](https://github.com/ruby/webrick) server engine.
+
+Github: https://github.com/Kuadrant/authorino-examples/tree/main/talker-api

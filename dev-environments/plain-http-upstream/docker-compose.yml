@@ -31,7 +31,7 @@ services:
       - "80"
     restart: unless-stopped
   two.upstream:
-    image: quay.io/3scale/authorino:echo-api
+    image: quay.io/kuadrant/authorino-examples:talker-api
     environment:
       PORT: 3000
     expose:
@@ -44,7 +44,7 @@ services:
       - "80"
     restart: unless-stopped
   3scale.backend:
-    image: quay.io/3scale/authorino:echo-api
+    image: quay.io/kuadrant/authorino-examples:talker-api
     container_name: 3scale.backend
     environment:
       PORT: 3000

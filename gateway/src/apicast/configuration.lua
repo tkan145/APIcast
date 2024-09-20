@@ -9,6 +9,7 @@ local tostring = tostring
 local next = next
 local lower = string.lower
 local insert = table.insert
+local concat = table.concat
 local setmetatable = setmetatable
 local null = ngx.null
 
@@ -164,13 +165,13 @@ function _M.filter_services(services, subset)
     if service:match_host(service_regexp_filter) or subset[service.id] then
       insert(selected_services, service)
     else
-      table.insert(filtered_services, service.id)
+      insert(filtered_services, service.id)
     end
   end
 
   -- Log all filtered services in a single log
   if #filtered_services > 0 then
-    ngx.log(ngx.WARN, "filtering out services: ", table.concat(filtered_services, ", "))
+    ngx.log(ngx.WARN, "filtering out services: ", concat(filtered_services, ", "))
   end
 
   return selected_services

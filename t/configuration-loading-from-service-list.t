@@ -360,13 +360,12 @@ location /transactions/authrep.xml {
   location ~ / {
      echo 'yay, api backend';
   }
---- pipelined_requests eval
-["GET /?user_key=1"]
---- more_headers eval
-["Host: one"]
---- response_body eval
-["yay, api backend\n"]
---- error_code eval
-[200]
---- error_log eval
-[qr/filtering out services: 11, 33, 999/]
+--- request
+GET /?user_key=1
+--- more_headers
+Host: one
+--- response_body
+yay, api backend
+--- error_code: 200
+--- error_log
+filtering out services: 11, 33, 999

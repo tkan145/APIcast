@@ -136,10 +136,10 @@ The policy is now executing. You must provide the secret header in the request t
 
 ```shell
 $ curl "http://localhost:8080/?user_key=" -H 'secret: mysecret' -H "Host: one"
-GET / HTTP/1.1
+GET /?user_key= HTTP/1.1
 X-Real-IP: 127.0.0.1
-Host: echo
-User-Agent: curl/7.29.0
+Host: echo:8081
+User-Agent: curl/8.2.1
 Accept: */*
 secret: mysecret
 ```
@@ -150,8 +150,8 @@ You should receive a valid 200 response from the echo server. The rewrite of que
 $ curl localhost:8080?user_key=myvalue -H 'secret: mysecret'
 GET /?userkey=myvalue HTTP/1.1
 X-Real-IP: 127.0.0.1
-Host: echo
-User-Agent: curl/7.29.0
+Host: echo:8081
+User-Agent: curl/8.2.1
 Accept: */*
 secret: mysecret
 user_key: myvalue

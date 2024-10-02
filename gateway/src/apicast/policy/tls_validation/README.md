@@ -10,9 +10,9 @@ For example you can add to the whitelist just leaf client certificates without t
 
 For this policy to work, APIcast need to be setup to listen for TLS connection.
 
-By default, client certificates are requested during the TLS handshake, however, APIcast will not verify the certificate or terminate the request unless a TLS Validation Policy is in the chain. In most cases, the client not presenting a client certificate will not affect a service that does not have TLS Validation policy configured. The only exception is when the service is used by a browser or front-end application, which will cause the browser to always prompt the end user to select a client certificate to send if they have ANY client certificates configured when browsing the service.
+By default, during the TLS handshake, APIcast requests client certificates, but will not verify the certificate or terminate the request unless a TLS Validation Policy is in the chain. In most cases, the client not presenting a client certificate will not affect a service that does not have TLS Validation policy configured. The only exception is when a browser or front-end application uses the service. In this case, the browser will always prompt the user to choose a client certificate to send if they have any client certificates set up while accessing the service.
 
-To work around this, the environment variable `APICAST_HTTPS_VERIFY_CLIENT` can be set to `off` to instruct APIcast to request a client certificate ONLY when the policy is in the chain.
+To work around this, set the environment variable `APICAST_HTTPS_VERIFY_CLIENT` to `off`. This instructs APIcast to request a client certificate only when the policy is in the chain.
 
 NOTE: This policy is not compatible with `APICAST_PATH_ROUTING` or `APICAST_PATH_ROUTING_ONLY` when `APICAST_HTTPS_VERIFY_CLIENT` is set to `off`.
 

@@ -1,27 +1,14 @@
 -- This policy enables MTLS with the upstream API endpoint
 
 local ssl = require('ngx.ssl')
-local ffi = require "ffi"
-local base = require "resty.core.base"
 local data_url = require('resty.data_url')
 local util = require 'apicast.util'
+local tls = require 'resty.tls'
 
-local C = ffi.C
-local get_request = base.get_request
 local pairs = pairs
 
 local X509_STORE = require('resty.openssl.x509.store')
 local X509 = require('resty.openssl.x509')
-
-ffi.cdef([[
-  int ngx_http_apicast_ffi_set_proxy_cert_key(
-    ngx_http_request_t *r, void *cdata_chain, void *cdata_key);
-  int ngx_http_apicast_ffi_set_proxy_ca_cert(
-    ngx_http_request_t *r, void *cdata_ca);
-  int ngx_http_apicast_ffi_set_ssl_verify(
-    ngx_http_request_t *r, int verify, int verify_deph);
-]])
-
 
 local policy = require('apicast.policy')
 local _M = policy.new('mtls', "builtin")
@@ -104,46 +91,21 @@ function _M.new(config)
   return self
 end
 
-
--- Set the certs for the upstream connection. Need to receive the pointers from
--- parse_* functions.
---- Public function to be able to unittest this.
-function _M.set_certs(r, cert, key)
-  local val = C.ngx_http_apicast_ffi_set_proxy_cert_key(r, cert, key)
-  if val ~= ngx.OK then
-    ngx.log(ngx.ERR, "Certificate cannot be set correctly")
-  end
-end
-
-function _M.set_ca_cert(r, store)
-  local val = C.ngx_http_apicast_ffi_set_proxy_ca_cert(r, store)
-  if val ~= ngx.OK then
-    ngx.log(ngx.WARN, "Cannot set a valid trusted CA store")
-    return
-  end
-end
-
 -- All of this happens on balancer because this is subrequest inside APICAst
 --to @upstream, so the request need to be the one that connects to the
 --upstream0
 function _M:balancer(context)
-  local r = get_request()
-  if not r then
-    ngx.log(ngx.WARN, "Invalid request")
-    return
-  end
-
   if self.cert and self.cert_key then
-    self.set_certs(r, self.cert, self.cert_key)
+    self.set_certs(self.cert, self.cert_key)
   end
 
   if not self.verify then
     return
   end
 
-  local val = C.ngx_http_apicast_ffi_set_ssl_verify(r, ffi.new("int", 1), ffi.new("int", 1))
-  if val ~= ngx.OK then
-    ngx.log(ngx.WARN, "Cannot verify SSL upstream connection")
+  local ok, err = tls.set_upstream_ssl_verify(true, 1)
+  if ok ~= nil then
+    ngx.log(ngx.WARN, "Cannot verify SSL upstream connection, err: ", err)
   end
 
   if not self.ca_store then
@@ -151,7 +113,7 @@ function _M:balancer(context)
     return
   end
 
-  self.set_ca_cert(r, self.ca_store)
+  self.set_ca_cert(self.ca_store)
 end
 
 return _M

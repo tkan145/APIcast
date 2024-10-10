@@ -3,7 +3,6 @@
 local ssl = require('ngx.ssl')
 local data_url = require('resty.data_url')
 local util = require 'apicast.util'
-local tls = require 'resty.tls'
 
 local pairs = pairs
 
@@ -91,29 +90,11 @@ function _M.new(config)
   return self
 end
 
--- All of this happens on balancer because this is subrequest inside APICAst
---to @upstream, so the request need to be the one that connects to the
---upstream0
-function _M:balancer(context)
-  if self.cert and self.cert_key then
-    self.set_certs(self.cert, self.cert_key)
-  end
-
-  if not self.verify then
-    return
-  end
-
-  local ok, err = tls.set_upstream_ssl_verify(true, 1)
-  if ok ~= nil then
-    ngx.log(ngx.WARN, "Cannot verify SSL upstream connection, err: ", err)
-  end
-
-  if not self.ca_store then
-    ngx.log(ngx.WARN, "Set verify without including CA certificates")
-    return
-  end
-
-  self.set_ca_cert(self.ca_store)
+function _M:access(context)
+  context.upstream_certificate = self.cert
+  context.upstream_key = self.cert_key
+  context.upstream_verify = self.verify
+  context.upstream_ca_store = self.ca_store
 end
 
 return _M

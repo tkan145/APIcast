@@ -1,3 +1,12 @@
+-- DNS Resolver
+--
+-- _NOTES_:
+--
+-- 1. Parsing the config file (/etc/resolv.conf) use blocking I/O, so it should
+--    be called in init phase. See `init` for details
+-- 2. TTL for records is the TTL returned by DNS server and won't be updated
+--    while the client serves the records from its cache
+
 local setmetatable = setmetatable
 local next = next
 local open = io.open
@@ -9,15 +18,17 @@ local find = string.find
 local insert = table.insert
 local concat = table.concat
 local io_type = io.type
+local table_new = require("table.new")
 
 require('resty.core.regex') -- to allow use of ngx.re.match in the init phase
 
+local ngx_re = require('ngx.re')
+local re_split = ngx_re.split
 local re_match = ngx.re.match
 local resolver_cache = require 'resty.resolver.cache'
 local dns_client = require 'resty.resolver.dns_client'
 local resty_env = require 'resty.env'
 local upstream = require 'ngx.upstream'
-local re = require('ngx.re')
 local semaphore = require "ngx.semaphore".new(1)
 local synchronization = require('resty.synchronization').new(1)
 
@@ -126,7 +137,7 @@ function _M.parse_nameservers(path)
     insert(nameservers, resolver)
   end
 
-  for _,line in ipairs(re.split(resolv_conf, "\n+")) do
+  for _,line in ipairs(re_split(resolv_conf, "\n+")) do
 
     local domains = match(line, '^search%s+([^\n]+)')
 
@@ -182,6 +193,8 @@ function _M.nameservers()
   return _M._nameservers
 end
 
+--- Initialize the resolver.
+-- @param path to resolve.conf file
 function _M.init(path)
   _M.init_nameservers(path)
 end
@@ -285,41 +298,49 @@ local function valid_answers(answers)
   return answers and not answers.errcode and #answers > 0 and (not answers.addresses or #answers.addresses > 0)
 end
 
+-- construct search list from resolv options: search
+-- @param search table of search domain
+-- @param qname the name to query for
+-- @return table with search names
+local function search_list(search, qname)
+  -- FQDN
+  if sub(qname, -1) == "." then
+    return {qname}
+  end
+
+  local names = table_new(#search +1, 0)
+  for i=1, #search do
+    names[i] = qname .. "." .. search[i]
+  end
+  return names
+end
+
 local function search_dns(self, qname, stale)
 
   local search = self.search
   local dns = self.dns
   local options = self.options
   local cache = self.cache
+  local answers, err
+  local names = search_list(search, qname)
 
-  local function get_answer(query)
-    local answers, err
+  -- Search the cache first
+  for _, query in ipairs(names) do
     answers, err = cache:get(query, stale)
     if valid_answers(answers) then
       return answers, err
     end
+  end
+
+  -- Nothing found, send DNS queries to resolve all `names` and return the
+  -- first valid answers
+  for _, query in ipairs(names) do
+    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' query: ', query)
 
     answers, err = dns:query(query, options)
     if valid_answers(answers) then
       cache:save(answers)
       return answers, err
-    end
-    return nil, err
-  end
-
-  if sub(qname, -1) == "." then
-    local query = sub(qname, 1 ,-2)
-    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' query: ', query)
-    return get_answer(query)
-  end
-
-  local answer, err
-  for i=1, #search do
-    local query = qname .. '.' .. search[i]
-    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' search: ', search[i], ' query: ', query)
-    answer, err = get_answer(query)
-    if answer then
-      return answer, err
     end
   end
 
@@ -334,7 +355,7 @@ local function resolve_upstream(qname)
   end
 
   for i=1, #peers do
-    local m = re.split(peers[i].name, ':', 'oj')
+    local m = re_split(peers[i].name, ':', 'oj')
 
     peers[i] = new_answer(m[1], m[2])
   end
@@ -342,6 +363,13 @@ local function resolve_upstream(qname)
   return peers
 end
 
+-- Queries the DNS for this qname. If nothing is in the cache, a new DNS query
+-- will be sent. If stale data is available in the cache, first query is going
+-- to refresh the query while all others use stale cache data.
+--
+-- @param qname the name to look for
+-- @param stale if true return stale data
+-- @return dns `answers + nil`, or `nil + error
 function _M.lookup(self, qname, stale)
   local cache = self.cache
 

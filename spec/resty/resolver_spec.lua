@@ -1,5 +1,6 @@
 local resty_resolver = require 'resty.resolver'
 local resolver_cache = require 'resty.resolver.cache'
+local string_byte = string.byte
 
 describe('resty.resolver', function()
 
@@ -127,13 +128,23 @@ describe('resty.resolver', function()
 
   describe(':lookup', function()
     local  resolver
+    local dns
 
     before_each(function()
-      local dns = {
+      dns = {
         query = spy.new(function(_, name)
-          return {
-            { name = name , address = '127.0.0.1' }
-          }
+          -- FQDN, drop the last '.' as the answer does not contain it
+
+          if string_byte(name, -1) == string_byte(".") then
+            name = name:sub(1, -2)
+          end
+          if name == '3scale' then
+            return { errcode = 3, errstr = 'name error' }
+          else
+            return {
+              { name = name , address = '127.0.0.1' }
+            }
+          end
         end)
       }
       resolver = resty_resolver.new(dns, { cache = resolver_cache.new(), search = {"foo.com"}})
@@ -151,6 +162,38 @@ describe('resty.resolver', function()
       assert.same(err, nil)
     end)
 
+    it("search entry in cache before sending new request", function()
+      local dns = {
+        query = spy.new(function(_, name)
+          -- FQDN, drop the last '.' as the answer does not contain it
+
+          if string_byte(name, -1) == string_byte(".") then
+            name = name:sub(1, -2)
+          end
+          if name == '3scale' then
+            return { errcode = 3, errstr = 'name error' }
+          else
+            return {
+              { name = name , address = '127.0.0.1' }
+            }
+          end
+        end)
+      }
+      resolver = resty_resolver.new(dns, { cache = resolver_cache.new(), search = {"foo.com"}})
+      -- First populate the cache with new entry
+      local answer, err = resolver:lookup('3scale.foo.com.')
+      assert.same("3scale.foo.com", answer[1].name)
+      assert.same(err, nil)
+
+      -- Now search for shortname, it should append the name with search
+      -- domain and lookup in cache first.
+      local answer, err = resolver:lookup('3scale')
+      assert.same("3scale.foo.com", answer[1].name)
+      assert.same(err, nil)
+
+      -- Should only called 1 time
+      assert.spy(dns.query).was_called(1)
+    end)
   end)
 
   describe('.parse_resolver', function()

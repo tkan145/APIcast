@@ -13,10 +13,10 @@ local debug = ngx.config.debug
 
 local function init_trusted_store(store, certificates)
   for _,certificate in ipairs(certificates) do
-    local cert, err = X509.parse_pem_cert(certificate.pem_certificate) -- TODO: handle errors
+    local cert, err = X509.new(certificate.pem_certificate) -- TODO: handle errors
 
     if cert then
-      store:add_cert(cert)
+      store:add(cert)
 
       if debug then
         ngx.log(ngx.DEBUG, 'adding certificate to the tls validation ', tostring(cert:subject_name()), ' SHA1: ', cert:hexdigest('SHA1'))
@@ -60,7 +60,7 @@ function _M:ssl_certificate()
 end
 
 function _M:access()
-  local cert = X509.parse_pem_cert(ngx.var.ssl_client_raw_cert)
+  local cert = X509.new(ngx.var.ssl_client_raw_cert)
   if not cert then
     ngx.status = self.error_status
     ngx.say("No required TLS certificate was sent")
@@ -71,7 +71,7 @@ function _M:access()
 
   -- err is printed inside validate_cert method
   -- so no need capture the err here
-  local ok, _ = store:validate_cert(cert)
+  local ok, _ = store:verify(cert)
 
   if not ok then
     ngx.status = self.error_status

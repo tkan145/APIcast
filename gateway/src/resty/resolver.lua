@@ -284,6 +284,21 @@ local empty = {}
 local function valid_answers(answers)
   return answers and not answers.errcode and #answers > 0 and (not answers.addresses or #answers.addresses > 0)
 end
+local function resolve_upstream(qname)
+  local peers, err = upstream.get_primary_peers(qname)
+
+  if not peers then
+    return nil, err
+  end
+
+  for i=1, #peers do
+    local m = re.split(peers[i].name, ':', 'oj')
+
+    peers[i] = new_answer(m[1], m[2])
+  end
+
+  return peers
+end
 
 local function search_dns(self, qname, stale)
 
@@ -326,21 +341,6 @@ local function search_dns(self, qname, stale)
   return nil, err
 end
 
-local function resolve_upstream(qname)
-  local peers, err = upstream.get_primary_peers(qname)
-
-  if not peers then
-    return nil, err
-  end
-
-  for i=1, #peers do
-    local m = re.split(peers[i].name, ':', 'oj')
-
-    peers[i] = new_answer(m[1], m[2])
-  end
-
-  return peers
-end
 
 function _M.lookup(self, qname, stale)
   local cache = self.cache
@@ -353,20 +353,19 @@ function _M.lookup(self, qname, stale)
     ngx.log(ngx.DEBUG, 'host is ip address: ', qname)
     answers = { new_answer(qname) }
   else
-    if is_fqdn(qname) then
-      answers, err = cache:get(qname, stale)
-    else
+    answers, err = cache:get(qname, stale)
+    if valid_answers(answers) then
+      return answers, nil
+    end
+
+    if not is_fqdn(qname) then
       answers, err = resolve_upstream(qname)
     end
 
     if not valid_answers(answers) then
-      answers, err = search_dns(self, qname, stale)
+      return search_dns(self, qname, stale)
     end
-
   end
-
-  ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' finished with ', #(answers or empty), ' answers')
-
   return answers, err
 end
 
@@ -388,6 +387,8 @@ function _M.get_servers(self, qname, opts)
   local ok = sema:wait(0)
 
   local answers, err = self:lookup(qname, not ok)
+
+  ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' finished with ', #(answers or empty), ' answers')
 
   if ok then
     -- cleanup the key so we don't have unbounded growth of this table

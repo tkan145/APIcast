@@ -28,6 +28,8 @@ local _M = {
   _VERSION = '0.1',
 }
 
+local TYPE_A = 1
+
 local mt = { __index = _M }
 
 local function read_resolv_conf(path)
@@ -321,25 +323,21 @@ local function search_list(search, qname)
   return names
 end
 
-local function search_dns(self, qname, stale)
+local function search_dns(self, qname)
 
   local search = self.search
   local dns = self.dns
   local options = self.options
-  local cache = self.cache
   local queries = search_list(search, qname)
   local answers, err
 
+  -- Nothing found, append search domain and query DNS server
+  -- Return the first valid answer
   for _, query in ipairs(queries) do
     ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' query: ', query)
-    answers, err = cache:get(query, stale)
-    if valid_answers(answers) then
-      return answers, err
-    end
 
     answers, err = dns:query(query, options)
     if valid_answers(answers) then
-      cache:save(answers)
       return answers, err
     end
   end
@@ -350,6 +348,8 @@ end
 
 function _M.lookup(self, qname, stale)
   local cache = self.cache
+  local options = self.options
+  local qtype = options.qtype or TYPE_A
 
   ngx.log(ngx.DEBUG, 'resolver query: ', qname)
 
@@ -359,19 +359,28 @@ function _M.lookup(self, qname, stale)
     ngx.log(ngx.DEBUG, 'host is ip address: ', qname)
     answers = { new_answer(qname) }
   else
-    answers, err = cache:get(qname, stale)
+    local key = qname .. ":" .. qtype
+
+    -- Check cache first
+    answers, err = cache:get(key, stale)
     if valid_answers(answers) then
       return answers, nil
     end
 
     if not is_fqdn(qname) then
       answers, err = resolve_upstream(qname)
+
+      if valid_answers(answers) then
+        return answers, nil
+      end
     end
 
-    if not valid_answers(answers) then
-      return search_dns(self, qname, stale)
+    answers, err = search_dns(self, qname)
+    if answers then
+      cache:save(qname, qtype, answers)
     end
   end
+
   return answers, err
 end
 
@@ -393,7 +402,6 @@ function _M.get_servers(self, qname, opts)
   local ok = sema:wait(0)
 
   local answers, err = self:lookup(qname, not ok)
-
   ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' finished with ', #(answers or empty), ' answers')
 
   if ok then

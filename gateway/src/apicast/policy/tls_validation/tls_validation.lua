@@ -60,10 +60,18 @@ function _M:ssl_certificate()
 end
 
 function _M:access()
-  local cert = X509.new(ngx.var.ssl_client_raw_cert)
-  if not cert then
+  local client_cert = ngx.var.ssl_client_raw_cert
+  if not client_cert then
     ngx.status = self.error_status
     ngx.say("No required TLS certificate was sent")
+    return ngx.exit(ngx.status)
+  end
+
+  local cert, err = X509.new(client_cert)
+  if not cert then
+    ngx.status = self.error_status
+    ngx.log(ngx.WARN, "Invalid TLS certificate, err: ", err)
+    ngx.say("Invalid TLS certificate")
     return ngx.exit(ngx.status)
   end
 

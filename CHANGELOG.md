@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed Conditional policy evaluating incorrectly: second policy in policy chain that implement export() always triggers [PR #1485](https://github.com/3scale/APIcast/pull/1485) [THREESCALE-9320](https://issues.redhat.com/browse/THREESCALE-9320)
 - Fix APIcast using stale configuration for deleted products [PR #1488](https://github.com/3scale/APIcast/pull/1488) [THREESCALE-10130](https://issues.redhat.com/browse/THREESCALE-10130)
 - Fixed Mutual TLS between APIcast and the Backend API fails when using a Forward Proxy [PR #1499](https://github.com/3scale/APIcast/pull/1499) [THREESCALE-5105](https://issues.redhat.com/browse/THREESCALE-5105)
+- Fixed dns cache miss [PR #1500](https://github.com/3scale/APIcast/pull/1500) [THEESCALE-9301](https://issues.redhat.com/browse/THREESCALE-9301)
 
 ### Added
 

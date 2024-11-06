@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix APIcast using stale configuration for deleted products [PR #1488](https://github.com/3scale/APIcast/pull/1488) [THREESCALE-10130](https://issues.redhat.com/browse/THREESCALE-10130)
 - Fixed Mutual TLS between APIcast and the Backend API fails when using a Forward Proxy [PR #1499](https://github.com/3scale/APIcast/pull/1499) [THREESCALE-5105](https://issues.redhat.com/browse/THREESCALE-5105)
 - Fixed dns cache miss [PR #1500](https://github.com/3scale/APIcast/pull/1500) [THEESCALE-9301](https://issues.redhat.com/browse/THREESCALE-9301)
+- Fixed APIcast panic when parsing invalid base64 encoded value [PR #1505](https://github.com/3scale/APIcast/pull/1505) [THEESCALE-11435](https://issues.redhat.com/browse/THREESCALE-11435)
 
 ### Added
 

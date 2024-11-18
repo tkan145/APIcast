@@ -46,3 +46,33 @@ With Certificate Revocation List (CRL)
   }
 }
 ```
+
+Checking certificate status with Online Certificate Status Protocol (OCSP). The responder url is
+extracted from the certificate
+
+```
+{
+  "name": "apicast.policy.tls_validation",
+  "configuration": {
+    "whitelist": [
+      { "pem_certificate": ""-----BEGIN CERTIFICATE----- XXXXXX -----END CERTIFICATE-----"}
+    ],
+    "revocation_check_type": "ocsp",
+  }
+}
+```
+
+Overwrite OCSP responder URL
+
+```
+{
+  "name": "apicast.policy.tls_validation",
+  "configuration": {
+    "whitelist": [
+      { "pem_certificate": ""-----BEGIN CERTIFICATE----- XXXXXX -----END CERTIFICATE-----"}
+    ],
+    "revocation_check_type": "ocsp",
+    "ocsp_responder_url": "http://<ocsp-server>:<port>"
+  }
+}
+```

@@ -52,7 +52,10 @@ ENV PATH="./lua_modules/bin:/usr/local/openresty/luajit/bin/:${PATH}" \
 RUN yum install -y luarocks-${LUAROCKS_VERSION} && \
     luarocks install luaossl 20200709 --tree ${APP_ROOT}/lua_modules CFLAGS="-O2 -fPIC -DHAVE_EVP_KDF_CTX=1" && \
     luarocks install http --tree ${APP_ROOT}/lua_modules && \
-    luarocks install --server=http://luarocks.org/dev lua-rover && \
+    curl -fSL https://github.com/3scale/lua-rover/archive/refs/tags/v0.1.0.tar.gz -o lua-rover-v0.1.0.tar.gz && \
+    tar xzf lua-rover-v0.1.0.tar.gz && \
+    cd lua-rover-0.1.0 && \
+    luarocks make && \
     rover -v && \
     yum -y remove luarocks && \
     ln -s /usr/bin/rover /usr/local/openresty/luajit/bin/ && \

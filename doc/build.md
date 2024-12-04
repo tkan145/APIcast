@@ -4,7 +4,7 @@ APIcast is an application based on [OpenResty](https://openresty.org/en/). APIca
 
 ## Release
 
-APIcast is released as [Docker image](https://docs.docker.com/engine/tutorials/dockerimages/). 
+APIcast is released as [Docker image](https://docs.docker.com).
 
 ## Dependencies
 

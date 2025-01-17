@@ -1,11 +1,11 @@
 %global version_release 1
-%global commitid 189070e331150d40d360b77699ccd8e38bc1ae05
+%global commitid 9e87cac9f5d30f56d1ba0d6ac51fca64360b3d5b
 %global apicastModule apicast-nginx-module-v0.4
 %global meadalpha %{nil}
 %global meadrel %{nil}
 %global version_major 1
-%global version_minor 19
-%global version_micro 3
+%global version_minor 21
+%global version_micro 4
 
 %global grpc_version                        v1.49.2
 %global opentelemetry_proto_version         v0.19.0
@@ -28,7 +28,7 @@
 
 Name:           openresty
 Version:        %{version_major}.%{version_minor}.%{version_micro}
-Release:        123%{?dist}
+Release:        1%{?dist}
 Summary:        OpenResty, scalable web platform by extending NGINX with Lua
 Group:          System Environment/Daemons
 
@@ -38,48 +38,48 @@ License:        BSD
 URL:            https://openresty.org/
 
 Source0: openresty-%{commitid}.tar.gz
-Source1: array-var-nginx-module-v0.05.tar.gz
-Source2: drizzle-nginx-module-v0.1.11.tar.gz
-Source3: echo-nginx-module-v0.62.tar.gz
-Source4: encrypted-session-nginx-module-v0.08.tar.gz
+Source1: array-var-nginx-module-v0.06.tar.gz
+Source2: drizzle-nginx-module-v0.1.12.tar.gz
+Source3: echo-nginx-module-v0.63.tar.gz
+Source4: encrypted-session-nginx-module-v0.09.tar.gz
 Source5: form-input-nginx-module-v0.12.tar.gz
-Source6: headers-more-nginx-module-v0.33.tar.gz
+Source6: headers-more-nginx-module-v0.34.tar.gz
 Source7: iconv-nginx-module-v0.14.tar.gz
-Source8: lua-cjson-2.1.0.8.tar.gz
-Source9: luajit2-v2.1-20201027-product-zfixes.tar.gz
-Source10: lua-nginx-module-v0.10.19.tar.gz
+Source8: lua-cjson-2.1.0.11.tar.gz
+Source9: luajit2-v2.1-20230410.tar.gz
+Source10: lua-nginx-module-v0.10.25.tar.gz
 Source11: lua-rds-parser-v0.06.tar.gz
 Source12: lua-redis-parser-v0.13.tar.gz
-Source13: lua-resty-core-v0.1.21.tar.gz
-Source14: lua-resty-dns-v0.21.tar.gz
-Source15: lua-resty-limit-traffic-v0.07.tar.gz
-Source16: lua-resty-lock-v0.08.tar.gz
-Source17: lua-resty-lrucache-v0.10.tar.gz
-Source18: lua-resty-memcached-v0.15.tar.gz
-Source19: lua-resty-mysql-v0.23.tar.gz
-Source20: lua-resty-redis-v0.29.tar.gz
+Source13: lua-resty-core-v0.1.27.tar.gz
+Source14: lua-resty-dns-v0.22.tar.gz
+Source15: lua-resty-limit-traffic-v0.08.tar.gz
+Source16: lua-resty-lock-v0.09.tar.gz
+Source17: lua-resty-lrucache-v0.13.tar.gz
+Source18: lua-resty-memcached-v0.17.tar.gz
+Source19: lua-resty-mysql-v0.26.tar.gz
+Source20: lua-resty-redis-v0.30.tar.gz
 Source21: lua-resty-shell-v0.03.tar.gz
-Source22: lua-resty-signal-v0.02.tar.gz
-Source23: lua-resty-string-v0.12.tar.gz
-Source24: lua-resty-upload-v0.10.tar.gz
-Source25: lua-resty-upstream-healthcheck-v0.06.tar.gz
-Source26: lua-resty-websocket-v0.08.tar.gz
-Source27: lua-tablepool-v0.01.tar.gz
+Source22: lua-resty-signal-v0.03.tar.gz
+Source23: lua-resty-string-v0.15.tar.gz
+Source24: lua-resty-upload-v0.11.tar.gz
+Source25: lua-resty-upstream-healthcheck-v0.08.tar.gz
+Source26: lua-resty-websocket-v0.10.tar.gz
+Source27: lua-tablepool-v0.02.tar.gz
 Source28: lua-upstream-nginx-module-v0.07.tar.gz
 Source29: memc-nginx-module-v0.19.tar.gz
-Source30: nginx-release-1.19.3-product-4.tar.gz
+Source30: nginx-release-1.21.4-product-1.tar.gz
 Source31: ngx_coolkit-0.2.tar.gz
-Source32: ngx_devel_kit-v0.3.1.tar.gz
-Source33: ngx_http_redis-0.3.7.tar.gz
+Source32: ngx_devel_kit-v0.3.2.tar.gz
+Source33: ngx_http_redis-0.3.9.tar.gz
 Source34: ngx_postgres-1.0.tar.gz
-Source35: opm-v0.0.5.tar.gz
+Source35: opm-v0.0.7.tar.gz
 Source36: rds-csv-nginx-module-v0.09.tar.gz
-Source37: rds-json-nginx-module-v0.15.tar.gz
+Source37: rds-json-nginx-module-v0.16.tar.gz
 Source38: redis2-nginx-module-v0.15.tar.gz
-Source39: resty-cli-v0.27.tar.gz
-Source40: set-misc-nginx-module-v0.32.tar.gz
-Source41: srcache-nginx-module-v0.32.tar.gz
-Source42: stream-lua-nginx-module-v0.0.9.tar.gz
+Source39: resty-cli-v0.29.tar.gz
+Source40: set-misc-nginx-module-v0.33.tar.gz
+Source41: srcache-nginx-module-v0.33.tar.gz
+Source42: stream-lua-nginx-module-v0.0.13.tar.gz
 Source43: xss-nginx-module-v0.06.tar.gz
 Source44: %{apicastModule}.tar.gz
 Source45: grpc-%{grpc_version}.tar.gz
@@ -312,7 +312,7 @@ ls -lah bundle/
     --with-threads \
     --add-module="../%{apicastModule}/" \
     --add-dynamic-module="../opentelemetry-cpp-contrib-%{opentelemetry_cpp_contrib_version}/instrumentation/nginx" \
-    --with-luajit-target-strip="Q='' CFLAGS='' TARGET_XCFLAGS='-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE' TARGET_FLAGS='%{optflags}' HOST_CC='%{__cc}' STATIC_CC='%{__cc}' DYNAMIC_CC='%{__cc} -fPIC' HOST_CFLAGS='%{optflags}' HOST_LDFLAGS='%{?__global_ldflags}'"
+    --with-luajit-target-strip="Q='' CFLAGS='' TARGET_FLAGS='%{optflags}' HOST_CC='%{__cc}' STATIC_CC='%{__cc}' DYNAMIC_CC='%{__cc} -fPIC' HOST_CFLAGS='%{optflags}' HOST_LDFLAGS='%{?__global_ldflags}'"
 
 make %{?_smp_mflags}
 

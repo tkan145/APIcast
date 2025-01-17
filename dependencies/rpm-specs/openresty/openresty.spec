@@ -81,12 +81,11 @@ Source40: set-misc-nginx-module-v0.32.tar.gz
 Source41: srcache-nginx-module-v0.32.tar.gz
 Source42: stream-lua-nginx-module-v0.0.9.tar.gz
 Source43: xss-nginx-module-v0.06.tar.gz
-Source44: nginx-opentracing-v0.3.0.tar.gz
-Source45: %{apicastModule}.tar.gz
-Source46: grpc-%{grpc_version}.tar.gz
-Source47: opentelemetry-cpp-%{opentelemetry_cpp_version}.tar.gz
-Source48: opentelemetry-cpp-contrib-%{opentelemetry_cpp_contrib_version}.tar.gz
-Source49: opentelemetry-proto-%{opentelemetry_proto_version}.tar.gz
+Source44: %{apicastModule}.tar.gz
+Source45: grpc-%{grpc_version}.tar.gz
+Source46: opentelemetry-cpp-%{opentelemetry_cpp_version}.tar.gz
+Source47: opentelemetry-cpp-contrib-%{opentelemetry_cpp_contrib_version}.tar.gz
+Source48: opentelemetry-proto-%{opentelemetry_proto_version}.tar.gz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -96,7 +95,6 @@ BuildRequires:  gcc, gcc-c++
 BuildRequires:  gcc-toolset-12-gcc, gcc-toolset-12-gcc-c++
 BuildRequires:  openresty-zlib-devel >= 1.2.11-3
 BuildRequires:  openresty-pcre-devel >= 8.42-1
-BuildRequires:  opentracing-cpp-devel = 1.3.0
 Requires:       openresty-zlib >= 1.2.11-3
 Requires:       openresty-pcre >= 8.42-1
 
@@ -165,14 +163,6 @@ BuildArch:      noarch
 %description opm
 This package provides the client side tool, opm, for OpenResty Pakcage Manager (OPM).
 
-%package opentracing
-
-Summary:        Opentracing module
-
-
-%description opentracing
-This package provides the opentracing module in Openresty.
-
 %package opentelemetry
 
 Summary:        Opentelemetry module
@@ -183,10 +173,10 @@ This package provides the opentelemetry module in Openresty.
 %prep
 ls -la %{_sourcedir}
 %setup -q -n "openresty-%{commitid}"
+%setup -q -D -T -b 45 -n "openresty-%{commitid}"
 %setup -q -D -T -b 46 -n "openresty-%{commitid}"
-%setup -q -D -T -b 47 -n "openresty-%{commitid}"
-%setup -q -D -T -a 48 -n "openresty-%{commitid}"
-%setup -q -D -T -b 49 -n "openresty-%{commitid}"
+%setup -q -D -T -a 47 -n "openresty-%{commitid}"
+%setup -q -D -T -b 48 -n "openresty-%{commitid}"
 cp %{SOURCE0} .
 cp %{SOURCE1} .
 cp %{SOURCE2} .
@@ -231,8 +221,7 @@ cp %{SOURCE40} .
 cp %{SOURCE41} .
 cp %{SOURCE42} .
 cp %{SOURCE43} .
-tar xzf %{SOURCE44}
-tar xzfv %{SOURCE45}
+tar xzfv %{SOURCE44}
 
 %build
 ls -al %{_builddir}
@@ -322,7 +311,6 @@ ls -lah bundle/
     --with-http_gunzip_module \
     --with-threads \
     --add-module="../%{apicastModule}/" \
-    --add-dynamic-module="../nginx-opentracing-v0.3.0/opentracing" \
     --add-dynamic-module="../opentelemetry-cpp-contrib-%{opentelemetry_cpp_contrib_version}/instrumentation/nginx" \
     --with-luajit-target-strip="Q='' CFLAGS='' TARGET_XCFLAGS='-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE' TARGET_FLAGS='%{optflags}' HOST_CC='%{__cc}' STATIC_CC='%{__cc}' DYNAMIC_CC='%{__cc} -fPIC' HOST_CFLAGS='%{optflags}' HOST_LDFLAGS='%{?__global_ldflags}'"
 
@@ -395,11 +383,6 @@ rm -rf %{buildroot}
 %{orprefix}/site/manifest/
 %{orprefix}/site/pod/
 
-%files opentracing
-%defattr(-,root,root,-)
-
-%{orprefix}/nginx/modules/ngx_http_opentracing_module.so
-
 %files opentelemetry
 %defattr(-,root,root,-)
 
@@ -407,6 +390,11 @@ rm -rf %{buildroot}
 %{lib_path}
 
 %changelog
+* Fri Nov 29 2024 An Tran <atra@redhat.com> - 1.21.4-1
+- Upgraded openresty to 1.21.4.3.
+- Build openresty from local patches
+- Remove opentracing
+
 * Tue Oct 24 2023 Eguzki Astiz Lezaun <eastizle@redhat.com> - 1.19.3-123
 - CVE-2023-44487
 

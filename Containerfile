@@ -29,22 +29,11 @@ RUN yum-builddep --assumeyes SPECS/openresty-zlib.spec
 COPY dependencies/git/zlib ${RPMBUILD_ROOT}/SOURCES/zlib-1.2.11
 RUN rpmbuild -ba SPECS/openresty-zlib.spec
 
-
-FROM rpm-builder as opentracing-cpp
-
-COPY dependencies/rpm-specs/opentracing-cpp/opentracing-cpp.spec ${RPMBUILD_ROOT}/SPECS/opentracing-cpp.spec
-RUN yum-builddep --assumeyes SPECS/opentracing-cpp.spec
-
-COPY dependencies/git/opentracing-cpp ${RPMBUILD_ROOT}/SOURCES/opentracing-cpp-1.3.0
-RUN rpmbuild -ba SPECS/opentracing-cpp.spec
-
-
 FROM rpm-builder as openresty
 
 # Copy *.rpm files from earlier stages to /tmp/ so we can install RPMs
 COPY --from=openresty-pcre /root/rpmbuild/RPMS /tmp/openresty-pcre/RPMS
 COPY --from=openresty-zlib /root/rpmbuild/RPMS /tmp/openresty-zlib/RPMS
-COPY --from=opentracing-cpp /root/rpmbuild/RPMS /tmp/opentracing-cpp/RPMS
 
 # TODO: fix this later - uncomment for local build
 #COPY dependencies/rpm-specs/tmp/annobin-annocheck-10.67-3.el8.x86_64.rpm /tmp/annobin-annocheck-10.67-3.el8.x86_64.rpm
@@ -55,9 +44,7 @@ RUN yum localinstall --assumeyes \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-devel-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-1.2.11-122.el8.`arch`.rpm  \
-    /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/libopentracing-cpp1-1.3.0-132.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/opentracing-cpp-devel-1.3.0-132.el8.`arch`.rpm
+    /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm
 
 COPY dependencies/rpm-specs/openresty/openresty.spec ${RPMBUILD_ROOT}/SPECS/openresty.spec
 RUN yum-builddep --assumeyes SPECS/openresty.spec
@@ -105,7 +92,6 @@ COPY dependencies/git/set-misc-nginx-module ${RPMBUILD_ROOT}/SOURCES/set-misc-ng
 COPY dependencies/git/srcache-nginx-module ${RPMBUILD_ROOT}/SOURCES/srcache-nginx-module-v0.32
 COPY dependencies/git/stream-lua-nginx-module ${RPMBUILD_ROOT}/SOURCES/stream-lua-nginx-module-v0.0.9
 COPY dependencies/git/xss-nginx-module ${RPMBUILD_ROOT}/SOURCES/xss-nginx-module-v0.06
-COPY dependencies/git/nginx-opentracing ${RPMBUILD_ROOT}/SOURCES/nginx-opentracing-v0.3.0
 COPY dependencies/git/apicast-nginx-module ${RPMBUILD_ROOT}/SOURCES/apicast-nginx-module-v0.4
 COPY dependencies/git/grpc ${RPMBUILD_ROOT}/SOURCES/grpc-v1.49.2
 COPY dependencies/git/opentelemetry-proto ${RPMBUILD_ROOT}/SOURCES/opentelemetry-proto-v0.19.0
@@ -136,19 +122,15 @@ COPY dependencies/rpm-specs/luarocks/luarocks.spec ${RPMBUILD_ROOT}/SPECS/luaroc
 ARG OPENRESTY_RPM_VERSION="1.19.3-123.el8"
 COPY --from=openresty-pcre /root/rpmbuild/RPMS /tmp/openresty-pcre/RPMS
 COPY --from=openresty-zlib /root/rpmbuild/RPMS /tmp/openresty-zlib/RPMS
-COPY --from=opentracing-cpp /root/rpmbuild/RPMS /tmp/opentracing-cpp/RPMS
 COPY --from=openresty /root/rpmbuild/RPMS /tmp/openresty/RPMS
 RUN yum localinstall --assumeyes \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-devel-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-1.2.11-122.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/libopentracing-cpp1-1.3.0-132.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/opentracing-cpp-devel-1.3.0-132.el8.`arch`.rpm \
     /tmp/openresty/RPMS/noarch/openresty-resty-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/noarch/openresty-opm-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-opentelemetry-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
-    /tmp/openresty/RPMS/`arch`/openresty-opentracing-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-${OPENRESTY_RPM_VERSION}.`arch`.rpm
 
 RUN yum-builddep --assumeyes SPECS/luarocks.spec
@@ -178,7 +160,6 @@ ARG LUAROCKS_VERSION="2.3.0-105.el8"
 ARG OPENRESTY_RPM_VERSION="1.19.3-123.el8"
 COPY --from=openresty-pcre /root/rpmbuild/RPMS /tmp/openresty-pcre/RPMS
 COPY --from=openresty-zlib /root/rpmbuild/RPMS /tmp/openresty-zlib/RPMS
-COPY --from=opentracing-cpp /root/rpmbuild/RPMS /tmp/opentracing-cpp/RPMS
 COPY --from=openresty /root/rpmbuild/RPMS /tmp/openresty/RPMS
 COPY --from=luarocks /root/rpmbuild/RPMS /tmp/luarocks/RPMS
 
@@ -187,12 +168,9 @@ RUN yum localinstall --assumeyes \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-devel-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-1.2.11-122.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/libopentracing-cpp1-1.3.0-132.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/opentracing-cpp-devel-1.3.0-132.el8.`arch`.rpm \
     /tmp/openresty/RPMS/noarch/openresty-resty-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/noarch/openresty-opm-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-opentelemetry-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
-    /tmp/openresty/RPMS/`arch`/openresty-opentracing-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/luarocks/RPMS/`arch`/luarocks-${LUAROCKS_VERSION}.`arch`.rpm
 
@@ -219,7 +197,6 @@ ARG GATEWAY_ROCKSPECS_NATIVE_VERSION="1.0.0-123.el8"
 
 COPY --from=openresty-pcre /root/rpmbuild/RPMS /tmp/openresty-pcre/RPMS
 COPY --from=openresty-zlib /root/rpmbuild/RPMS /tmp/openresty-zlib/RPMS
-COPY --from=opentracing-cpp /root/rpmbuild/RPMS /tmp/opentracing-cpp/RPMS
 COPY --from=openresty /root/rpmbuild/RPMS /tmp/openresty/RPMS
 COPY --from=luarocks /root/rpmbuild/RPMS /tmp/luarocks/RPMS
 COPY --from=gateway-rockspecs-native /root/rpmbuild/RPMS /tmp/gateway-rockspecs-native/RPMS
@@ -229,12 +206,9 @@ RUN yum localinstall --assumeyes \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-devel-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-1.2.11-122.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/libopentracing-cpp1-1.3.0-132.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/opentracing-cpp-devel-1.3.0-132.el8.`arch`.rpm \
     /tmp/openresty/RPMS/noarch/openresty-resty-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/noarch/openresty-opm-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-opentelemetry-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
-    /tmp/openresty/RPMS/`arch`/openresty-opentracing-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/luarocks/RPMS/`arch`/luarocks-${LUAROCKS_VERSION}.`arch`.rpm \
     /tmp/gateway-rockspecs-native/RPMS/`arch`/gateway-rockspecs-native-${GATEWAY_ROCKSPECS_NATIVE_VERSION}.`arch`.rpm
@@ -274,7 +248,6 @@ ARG OPENRESTY_RPM_VERSION="1.19.3-123.el8"
 ARG LUAROCKS_VERSION="2.3.0-105.el8"
 ARG GATEWAY_ROCKSPECS_VERSION="2.10.0-102.el8"
 ARG GATEWAY_ROCKSPECS_NATIVE_VERSION="1.0.0-123.el8"
-ARG JAEGERTRACING_CPP_CLIENT_RPM_VERSION="0.3.1-16.el8"
 
 # Copy the upstream sources from cachito integration
 COPY gateway /opt/app-root/src
@@ -294,7 +267,6 @@ RUN yum install --assumeyes gcc-toolset-12-annobin-annocheck
 # Copy *.rpm files from earlier stages to /tmp/ so we can install RPMs
 COPY --from=openresty-pcre /root/rpmbuild/RPMS /tmp/openresty-pcre/RPMS
 COPY --from=openresty-zlib /root/rpmbuild/RPMS /tmp/openresty-zlib/RPMS
-COPY --from=opentracing-cpp /root/rpmbuild/RPMS /tmp/opentracing-cpp/RPMS
 COPY --from=openresty /root/rpmbuild/RPMS /tmp/openresty/RPMS
 COPY --from=luarocks /root/rpmbuild/RPMS /tmp/luarocks/RPMS
 COPY --from=gateway-rockspecs-native /root/rpmbuild/RPMS /tmp/gateway-rockspecs-native/RPMS
@@ -305,23 +277,13 @@ RUN yum localinstall --assumeyes \
     /tmp/openresty-pcre/RPMS/`arch`/openresty-pcre-devel-8.44-126.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-1.2.11-122.el8.`arch`.rpm  \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/libopentracing-cpp1-1.3.0-132.el8.`arch`.rpm  \
-    /tmp/opentracing-cpp/RPMS/`arch`/opentracing-cpp-devel-1.3.0-132.el8.`arch`.rpm \
     /tmp/openresty/RPMS/noarch/openresty-resty-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/noarch/openresty-opm-${OPENRESTY_RPM_VERSION}.noarch.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-opentelemetry-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
-    /tmp/openresty/RPMS/`arch`/openresty-opentracing-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/openresty/RPMS/`arch`/openresty-${OPENRESTY_RPM_VERSION}.`arch`.rpm \
     /tmp/luarocks/RPMS/`arch`/luarocks-${LUAROCKS_VERSION}.`arch`.rpm \
     /tmp/gateway-rockspecs-native/RPMS/`arch`/gateway-rockspecs-native-${GATEWAY_ROCKSPECS_NATIVE_VERSION}.`arch`.rpm \
     /tmp/gateway-rockspecs/RPMS/noarch/gateway-rockspecs-${GATEWAY_ROCKSPECS_VERSION}.noarch.rpm
-
-# FIXME/Yorgos: see if this is still required
-#RUN PKGS="jaegertracing-cpp-client-${JAEGERTRACING_CPP_CLIENT_RPM_VERSION}" && \
-#    mkdir -p "$HOME" && \
-#    yum -y --setopt=tsflags=nodocs install $PKGS && \
-#    rpm -V $PKGS && \
-#    yum clean all -y
 
 RUN mkdir -p /opt/app-root/src/logs && \
     useradd -u 1001 -r -g 0 -d ${HOME} -s /sbin/nologin -c "Default Application User" default && \

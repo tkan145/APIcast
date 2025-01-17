@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added the `APICAST_HTTPS_VERIFY_CLIENT` variable to allow configuration of the `ssl_verify_client` directive. [PR #1491](https://github.com/3scale/APIcast/pull/1491) [THREESCALE-10156](https://issues.redhat.com/browse/THREESCALE-10156)
 - Add `APICAST_LUA_SOCKET_KEEPALIVE_REQUESTS` to limit the number of requests a single keepalive socket can handle [PR #1496](https://github.com/3scale/APIcast/pull/1496) [THREESCALE-11321](https://issues.redhat.com/browse/THREESCALE-11321)
 - Replace internal OPENSSL module with lua-resty-openssl [PR #1502](https://github.com/3scale/APIcast/pull/1502) [THREESCALE-11412](https://issues.redhat.com/browse/THREESCALE-11412)
+- Remove opentracing support [PR #1520](https://github.com/3scale/APIcast/pull/1520) [THREESCALE-11603](https://issues.redhat.com/browse/THREESCALE-11603)
 
 ## [3.15.0] 2024-04-04
 

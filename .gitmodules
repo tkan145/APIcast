@@ -136,7 +136,7 @@
 [submodule "dependencies/git/ngx_http_redis"]
 	path = dependencies/git/ngx_http_redis
 	url = https://github.com/osokin/ngx_http_redis
-[submodule "dependencies/git/apicas-nginx-module"]
+[submodule "dependencies/git/apicast-nginx-module"]
 	path = dependencies/git/apicast-nginx-module
 	url = https://github.com/3scale/apicast-nginx-module
 [submodule "dependencies/git/grpc"]

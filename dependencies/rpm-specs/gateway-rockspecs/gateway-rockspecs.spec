@@ -56,7 +56,7 @@ for source in "%{_sourcedir}"/*.src.rock; do
   luarocks install --deps-mode=none --tree %{buildroot}/usr/local "$source"
 done
 # Remove manifest (will be re-created at post to avoid owning it
-rm -f %{buildroot}/usr/local/lib64/luarocks/rocks/manifest
+rm -f %{buildroot}/usr/local/lib/luarocks/rocks-5.1/manifest
 
 # Install licenses in standard location
 cp "%{_sourcedir}"/licenses.xml .
@@ -65,7 +65,7 @@ cp "%{_sourcedir}"/licenses.xml .
 sed -i 's|%{buildroot}||g' %{buildroot}/usr/local/bin/rover
 
 %post
-export LUA_PATH="/usr/lib64/lua/5.1/?.lua"
+export LUA_PATH="/usr/local/lib64/lua/5.1/?.lua"
 luarocks-admin --tree=/usr/local  make_manifest --local-tree
 
 %clean
@@ -73,7 +73,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-/usr/local/lib64/luarocks/
+/usr/local/lib/luarocks/
 /usr/local/share/lua/
 /usr/local/bin/rover
 /etc/profile.d/lua_path.sh

@@ -117,6 +117,7 @@ RUN rpmbuild -ba SPECS/openresty.spec
 FROM rpm-builder as luarocks
 
 COPY dependencies/rpm-specs/luarocks/luarocks.spec ${RPMBUILD_ROOT}/SPECS/luarocks.spec
+COPY dependencies/luarocks/luarocks-3.9.1-dynamic_libdir.patch ${RPMBUILD_ROOT}/SOURCES/
 
 # install package dependencies
 ARG OPENRESTY_RPM_VERSION="1.21.4-1.el8"
@@ -135,7 +136,7 @@ RUN yum localinstall --assumeyes \
 
 RUN yum-builddep --assumeyes SPECS/luarocks.spec
 
-ARG LUAROCKS_VERSION="2.3.0-105.el8"
+ARG LUAROCKS_VERSION="3.11.1-100.el8"
 
 COPY dependencies/git/luarocks ${RPMBUILD_ROOT}/SOURCES/luarocks-${LUAROCKS_VERSION}
 WORKDIR ${RPMBUILD_ROOT}/SOURCES
@@ -156,7 +157,7 @@ RUN yum install -y libyaml-devel
 # RUN yum localinstall -y https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/rpmdevtools-8.10-8.el8.noarch.rpm
 
 # install luarocks from previous build stage
-ARG LUAROCKS_VERSION="2.3.0-105.el8"
+ARG LUAROCKS_VERSION="3.11.1-100.el8"
 ARG OPENRESTY_RPM_VERSION="1.21.4-1.el8"
 COPY --from=openresty-pcre /root/rpmbuild/RPMS /tmp/openresty-pcre/RPMS
 COPY --from=openresty-zlib /root/rpmbuild/RPMS /tmp/openresty-zlib/RPMS
@@ -191,7 +192,7 @@ COPY dependencies/rpm-specs/gateway-rockspecs/source_rocks/* ${RPMBUILD_ROOT}/SO
 # RUN yum localinstall -y https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/rpmdevtools-8.10-8.el8.noarch.rpm
 
 # install RPMs from previous build stages
-ARG LUAROCKS_VERSION="2.3.0-105.el8"
+ARG LUAROCKS_VERSION="3.11.1-100.el8"
 ARG OPENRESTY_RPM_VERSION="1.21.4-1.el8"
 ARG GATEWAY_ROCKSPECS_NATIVE_VERSION="1.0.0-123.el8"
 
@@ -245,7 +246,7 @@ WORKDIR /tmp
 
 ARG BUILD_TYPE=brew
 ARG OPENRESTY_RPM_VERSION="1.21.4-1.el8"
-ARG LUAROCKS_VERSION="2.3.0-105.el8"
+ARG LUAROCKS_VERSION="3.11.1-100.el8"
 ARG GATEWAY_ROCKSPECS_VERSION="2.10.0-102.el8"
 ARG GATEWAY_ROCKSPECS_NATIVE_VERSION="1.0.0-123.el8"
 

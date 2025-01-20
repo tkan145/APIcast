@@ -47,6 +47,11 @@ RUN yum localinstall --assumeyes \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm
 
 COPY dependencies/rpm-specs/openresty/openresty.spec ${RPMBUILD_ROOT}/SPECS/openresty.spec
+COPY dependencies/openresty/patches/openresty-1.21.4_01-use-local-dependencies.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/openresty/patches/openresty-1.21.4_02-add-extra-flags.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/openresty/patches/openresty-1.21.4_03-add-TARGET_STRIP-for-luajit.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/openresty/patches/openresty-1.21.4_04-bump-nginx-version.patch ${RPMBUILD_ROOT}/SOURCES
+
 RUN yum-builddep --assumeyes SPECS/openresty.spec
 
 COPY dependencies/git/array-var-nginx-module ${RPMBUILD_ROOT}/SOURCES/array-var-nginx-module-v0.06
@@ -97,7 +102,7 @@ COPY dependencies/git/grpc ${RPMBUILD_ROOT}/SOURCES/grpc-v1.49.2
 COPY dependencies/git/opentelemetry-proto ${RPMBUILD_ROOT}/SOURCES/opentelemetry-proto-v0.19.0
 COPY dependencies/git/opentelemetry-cpp ${RPMBUILD_ROOT}/SOURCES/opentelemetry-cpp-v1.8.1
 COPY dependencies/git/opentelemetry-cpp-contrib ${RPMBUILD_ROOT}/SOURCES/opentelemetry-cpp-contrib-1ec94c82095bab61f06c7393b6f3272469d285af
-COPY dependencies/git/openresty ${RPMBUILD_ROOT}/SOURCES/openresty-9e87cac9f5d30f56d1ba0d6ac51fca64360b3d5b
+COPY dependencies/git/openresty ${RPMBUILD_ROOT}/SOURCES/openresty-5099de1c426fd831c6db0109d6c134a3ecc08404
 
 WORKDIR ${RPMBUILD_ROOT}/SOURCES
 

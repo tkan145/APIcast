@@ -1,5 +1,5 @@
 %global version_release 1
-%global commitid 9e87cac9f5d30f56d1ba0d6ac51fca64360b3d5b
+%global commitid 5099de1c426fd831c6db0109d6c134a3ecc08404
 %global apicastModule apicast-nginx-module-v0.4
 %global meadalpha %{nil}
 %global meadrel %{nil}
@@ -86,6 +86,11 @@ Source45: grpc-%{grpc_version}.tar.gz
 Source46: opentelemetry-cpp-%{opentelemetry_cpp_version}.tar.gz
 Source47: opentelemetry-cpp-contrib-%{opentelemetry_cpp_contrib_version}.tar.gz
 Source48: opentelemetry-proto-%{opentelemetry_proto_version}.tar.gz
+
+Patch0:         openresty-1.21.4_01-use-local-dependencies.patch
+Patch1:         openresty-1.21.4_02-add-extra-flags.patch
+Patch2:         openresty-1.21.4_03-add-TARGET_STRIP-for-luajit.patch
+Patch3:         openresty-1.21.4_04-bump-nginx-version.patch
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -222,6 +227,11 @@ cp %{SOURCE41} .
 cp %{SOURCE42} .
 cp %{SOURCE43} .
 tar xzfv %{SOURCE44}
+
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 %build
 ls -al %{_builddir}

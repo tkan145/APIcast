@@ -1,6 +1,6 @@
 %global version_release 1
 %global commitid 5099de1c426fd831c6db0109d6c134a3ecc08404
-%global apicastModule apicast-nginx-module-v0.4
+%global apicastModule apicast-nginx-module-v0.5
 %global meadalpha %{nil}
 %global meadrel %{nil}
 %global version_major 1

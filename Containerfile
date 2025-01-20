@@ -97,7 +97,7 @@ COPY dependencies/git/set-misc-nginx-module ${RPMBUILD_ROOT}/SOURCES/set-misc-ng
 COPY dependencies/git/srcache-nginx-module ${RPMBUILD_ROOT}/SOURCES/srcache-nginx-module-v0.33
 COPY dependencies/git/stream-lua-nginx-module ${RPMBUILD_ROOT}/SOURCES/stream-lua-nginx-module-v0.0.13
 COPY dependencies/git/xss-nginx-module ${RPMBUILD_ROOT}/SOURCES/xss-nginx-module-v0.06
-COPY dependencies/git/apicast-nginx-module ${RPMBUILD_ROOT}/SOURCES/apicast-nginx-module-v0.4
+COPY dependencies/git/apicast-nginx-module ${RPMBUILD_ROOT}/SOURCES/apicast-nginx-module-v0.5
 COPY dependencies/git/grpc ${RPMBUILD_ROOT}/SOURCES/grpc-v1.49.2
 COPY dependencies/git/opentelemetry-proto ${RPMBUILD_ROOT}/SOURCES/opentelemetry-proto-v0.19.0
 COPY dependencies/git/opentelemetry-cpp ${RPMBUILD_ROOT}/SOURCES/opentelemetry-cpp-v1.8.1

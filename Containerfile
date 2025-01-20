@@ -320,6 +320,10 @@ USER 1001
 ENV LUA_CPATH "./?.so;/usr/lib64/lua/5.1/?.so;/usr/lib64/lua/5.1/loadall.so;/usr/local/lib64/lua/5.1/?.so"
 ENV LUA_PATH "/usr/lib64/lua/5.1/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/*/?.lua;"
 
+# Use SIGQUIT instead of default SIGTERM to cleanly drain requests
+# See https://docs.nginx.com/nginx/admin-guide/basic-functionality/runtime-control/
+STOPSIGNAL SIGQUIT
+
 WORKDIR /opt/app-root
 ENTRYPOINT ["container-entrypoint"]
 CMD ["scripts/run"]

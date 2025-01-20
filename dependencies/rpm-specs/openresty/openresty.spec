@@ -67,7 +67,7 @@ Source26: lua-resty-websocket-v0.10.tar.gz
 Source27: lua-tablepool-v0.02.tar.gz
 Source28: lua-upstream-nginx-module-v0.07.tar.gz
 Source29: memc-nginx-module-v0.19.tar.gz
-Source30: nginx-release-1.21.4-product-1.tar.gz
+Source30: nginx-release-1.21.4-product-2.tar.gz
 Source31: ngx_coolkit-0.2.tar.gz
 Source32: ngx_devel_kit-v0.3.2.tar.gz
 Source33: ngx_http_redis-0.3.9.tar.gz

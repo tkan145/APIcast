@@ -83,7 +83,7 @@ COPY dependencies/git/lua-resty-websocket ${RPMBUILD_ROOT}/SOURCES/lua-resty-web
 COPY dependencies/git/lua-tablepool ${RPMBUILD_ROOT}/SOURCES/lua-tablepool-v0.02
 COPY dependencies/git/lua-upstream-nginx-module ${RPMBUILD_ROOT}/SOURCES/lua-upstream-nginx-module-v0.07
 COPY dependencies/git/memc-nginx-module ${RPMBUILD_ROOT}/SOURCES/memc-nginx-module-v0.19
-COPY dependencies/git/nginx ${RPMBUILD_ROOT}/SOURCES/nginx-release-1.21.4-product-1
+COPY dependencies/git/nginx ${RPMBUILD_ROOT}/SOURCES/nginx-release-1.21.4-product-2
 COPY dependencies/git/ngx_coolkit ${RPMBUILD_ROOT}/SOURCES/ngx_coolkit-0.2
 COPY dependencies/git/ngx_devel_kit ${RPMBUILD_ROOT}/SOURCES/ngx_devel_kit-v0.3.2
 COPY dependencies/git/ngx_http_redis ${RPMBUILD_ROOT}/SOURCES/ngx_http_redis-0.3.9

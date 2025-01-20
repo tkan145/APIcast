@@ -30,6 +30,7 @@ Source14: net-url-0.9-1.src.rock
 Source15: jsonschema-0.8-0.src.rock
 Source16: lua-rover-scm-1.src.rock
 Source17: date-2.2-2.src.rock
+Source18: lua-resty-ipmatcher-0.6.1-0.src.rock
 
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root

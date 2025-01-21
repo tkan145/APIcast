@@ -12,7 +12,6 @@
     "definitions": {
       "operation": {
         "type": "object",
-        "$id": "#/definitions/operation",
         "properties": {
           "left": {
             "type": "string"

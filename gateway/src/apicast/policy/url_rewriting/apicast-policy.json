@@ -17,7 +17,6 @@
     "definitions": {
       "methods": {
         "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
-        "$id": "#/definitions/methods",
         "type": "array",
         "items": {
           "type": "string",

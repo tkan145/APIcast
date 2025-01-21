@@ -10,7 +10,6 @@
     "type": "object",
     "definitions": {
       "certificate": {
-        "$id": "#/definitions/certificate",
         "type": "object",
         "properties": {
           "pem_certificate": {
@@ -21,7 +20,6 @@
         }
       },
       "store": {
-        "$id": "#/definitions/store",
         "type": "array",
         "items": {
           "$ref": "#/definitions/certificate"

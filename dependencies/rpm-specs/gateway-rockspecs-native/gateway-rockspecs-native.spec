@@ -41,11 +41,11 @@ for source in "%{_sourcedir}"/*.src.rock; do
   luarocks install --deps-mode=none --tree %{buildroot}/usr/local "$source" \
     CFLAGS="-O2 -g -fpic -Wl,-z,now ${RPM_OPT_FLAGS}"
 done
-rm -f %{buildroot}/usr/local/%{_lib}/luarocks/rocks/manifest
+rm -f %{buildroot}/usr/local/lib/luarocks/rocks-5.1/manifest
 cp "%{_sourcedir}"/licenses.xml .
 
 %post
-export LUA_PATH="/usr/lib64/lua/5.1/?.lua"
+export LUA_PATH="/usr/local/lib64/lua/5.1/?.lua"
 luarocks-admin --tree=/usr/local  make_manifest --local-tree
 
 %clean
@@ -53,7 +53,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-/usr/local/%{_lib}/luarocks/
+/usr/local/lib/luarocks/
 /usr/local/share/lua/
 /usr/local/%{_lib}/lua/5.1/
 %license licenses.xml

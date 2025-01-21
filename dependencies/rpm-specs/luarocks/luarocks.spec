@@ -1,18 +1,21 @@
-%global commitid f29297f6f3185158fc81d6137e21ea7e14e43b74
+%global commitid fa2736e7c68094710643577b0153dac72ce4bcdc
 %global meadalpha %{nil}
 %global meadrel %{nil}
-%global version_major 2
-%global version_minor 3
-%global version_micro 0
+%global version_major 3
+%global version_minor 11
+%global version_micro 1
 
 %define __debug_install_post : > %{_builddir}/%{?buildsubdir}/debugfiles.list
 %define debug_package %{nil}
 
 %global luaver  5.1
 
-%global luapkgdir %{_libdir}/lua/%{luaver}
+%global lualibdir %{_libdir}/lua/%{luaver}
+%global luapkgdir %{_datadir}/lua/%{luaver}
 #global prever rc2
 
+# Use /usr/lib64 as default LUA_LIBDIR
+Patch0:         luarocks-3.9.1-dynamic_libdir.patch
 
 %if 0%{?el5}
 # For some reason find-debuginfo.sh is still triggered on RHEL 5, despite
@@ -22,7 +25,7 @@
 
 Name:           luarocks
 Version:        %{version_major}.%{version_minor}.%{version_micro}
-Release:        105%{?dist}
+Release:        100%{?dist}
 Summary:        A deployment and management system for Lua modules
 Source:         luarocks-%{version}-%{release}.tar.gz
 BuildRequires:  openresty
@@ -63,16 +66,10 @@ repositories, and multiple local rocks trees.
 ls -la %{_sourcedir}
 cp -R ../SOURCES/%{name}-%{version}-%{release} %{name}-%{version}-%{release}
 %setup -q -T -D -n %{name}-%{version}-%{release}
+%patch0 -p1
 
-# Remove DOS line endings
-for file in ; do
- sed "s|\r||g" $file > $file.new && \
- touch -r $file $file.new && \
- mv $file.new $file
-done
-
-sed -i 's|LUAROCKS_ROCKS_SUBDIR=/lib/luarocks/rocks|LUAROCKS_ROCKS_SUBDIR=/%{_lib}/luarocks/rocks|g' configure
-sed -i 's|lib_modules_path = "/lib/lua/"..cfg.lua_version,|lib_modules_path = "/%{_lib}/lua/"..cfg.lua_version,|g' src/luarocks/cfg.lua
+# sed -i 's|LUAROCKS_ROCKS_SUBDIR=/lib/luarocks/rocks|LUAROCKS_ROCKS_SUBDIR=/%{_lib}/luarocks/rocks|g' configure
+# sed -i 's|lib_modules_path = "/lib/lua/"..cfg.lua_version,|lib_modules_path = "/%{_lib}/lua/"..cfg.lua_version,|g' src/luarocks/cfg.lua
 
 %build
 ./configure \
@@ -95,6 +92,7 @@ make install DESTDIR=$RPM_BUILD_ROOT LUADIR=%{luapkgdir}
 #  mv -f $RPM_BUILD_ROOT%{_bindir}/$f{-%{luaver},}
 #done
 
+mkdir -p %{buildroot}%{_prefix}/lib64/luarocks/rocks-%{lua_version}
 
 %check
 # TODO - find how to run this without having to pre-download entire rocks tree
@@ -107,13 +105,15 @@ make install DESTDIR=$RPM_BUILD_ROOT LUADIR=%{luapkgdir}
 %dir %{_sysconfdir}/luarocks
 %config(noreplace) %{_sysconfdir}/luarocks/config-%{luaver}.lua
 %{_bindir}/luarocks
-%{_bindir}/luarocks-%{luaver}
 %{_bindir}/luarocks-admin
-%{_bindir}/luarocks-admin-%{luaver}
+%{_prefix}/lib64/luarocks
 %{luapkgdir}/luarocks
 
 
 %changelog
+* Wed Nov 27 2024 An Tran <atra@redhat.com> - 3.11.1-100
+- Update to luarocks 3.11.1
+
 * Tue Jan 14 2020 Yorgos Saslis <yorgos@redhat.com> - 2.3.0-5
 - Uses openresty luajit version (lua 5.1)
 - Has build dependency on openresty

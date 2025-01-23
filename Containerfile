@@ -47,10 +47,10 @@ RUN yum localinstall --assumeyes \
     /tmp/openresty-zlib/RPMS/`arch`/openresty-zlib-devel-1.2.11-122.el8.`arch`.rpm
 
 COPY dependencies/rpm-specs/openresty/openresty.spec ${RPMBUILD_ROOT}/SPECS/openresty.spec
-COPY dependencies/openresty/patches/openresty-1.21.4_01-use-local-dependencies.patch ${RPMBUILD_ROOT}/SOURCES/
-COPY dependencies/openresty/patches/openresty-1.21.4_02-add-extra-flags.patch ${RPMBUILD_ROOT}/SOURCES/
-COPY dependencies/openresty/patches/openresty-1.21.4_03-add-TARGET_STRIP-for-luajit.patch ${RPMBUILD_ROOT}/SOURCES/
-COPY dependencies/openresty/patches/openresty-1.21.4_04-bump-nginx-version.patch ${RPMBUILD_ROOT}/SOURCES
+COPY dependencies/rpm-specs/openresty/patches/openresty-1.21.4_01-use-local-dependencies.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/rpm-specs/openresty/patches/openresty-1.21.4_02-add-extra-flags.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/rpm-specs/openresty/patches/openresty-1.21.4_03-add-TARGET_STRIP-for-luajit.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/rpm-specs/openresty/patches/openresty-1.21.4_04-bump-nginx-version.patch ${RPMBUILD_ROOT}/SOURCES
 
 RUN yum-builddep --assumeyes SPECS/openresty.spec
 
@@ -122,7 +122,7 @@ RUN rpmbuild -ba SPECS/openresty.spec
 FROM rpm-builder as luarocks
 
 COPY dependencies/rpm-specs/luarocks/luarocks.spec ${RPMBUILD_ROOT}/SPECS/luarocks.spec
-COPY dependencies/luarocks/luarocks-3.9.1-dynamic_libdir.patch ${RPMBUILD_ROOT}/SOURCES/
+COPY dependencies/rpm-specs/luarocks/luarocks-3.9.1-dynamic_libdir.patch ${RPMBUILD_ROOT}/SOURCES/
 
 # install package dependencies
 ARG OPENRESTY_RPM_VERSION="1.21.4-1.el8"

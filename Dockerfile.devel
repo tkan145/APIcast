@@ -44,7 +44,7 @@ COPY config-*.lua /usr/local/openresty/config-5.1.lua
 
 ENV PATH="./lua_modules/bin:/usr/local/openresty/luajit/bin/:${PATH}" \
     LUA_PATH="./lua_modules/share/lua/5.1/?.lua;./lua_modules/share/lua/5.1/?/init.lua;/usr/lib64/lua/5.1/?.lua;/usr/share/lua/5.1/?.lua;/opt/app-root/lua_modules/share/lua/5.1/?.lua;/opt/app-root/lua_modules/share/lua/5.1/?/?.lua" \
-    LUA_CPATH="./lua_modules/lib/lua/5.1/?.so;/opt/app-root/lua_modules/lib64/lua/5.1/?.so;/opt/app-root/lua_modules/lib64/lua/5.1/?/?.so;;" \
+    LUA_CPATH="./lua_modules/lib/lua/5.1/?.so;/opt/app-root/lua_modules/lib/lua/5.1/?.so;/opt/app-root/lua_modules/lib/lua/5.1/?/?.so;;" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/app-root/lib"
 
 RUN cd /tmp \
@@ -57,6 +57,8 @@ RUN cd /tmp \
         --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
     && make build \
     && make install \
+    && luarocks install luaossl 20200709 --tree ${APP_ROOT}/lua_modules CFLAGS="-O2 -fPIC -DHAVE_EVP_KDF_CTX=1" \
+    && luarocks install http --tree ${APP_ROOT}/lua_modules \
     && cd /tmp \
     && rm -rf luarocks-${LUAROCKS_VERSION} luarocks-${LUAROCKS_VERSION}.tar.gz \
     && curl -fSL https://github.com/3scale/lua-rover/archive/refs/tags/v${LUAROVER_VERSION}.tar.gz -o lua-rover-v${LUAROVER_VERSION}.tar.gz \

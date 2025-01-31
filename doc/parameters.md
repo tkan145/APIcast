@@ -94,7 +94,7 @@ that improve the performance of the whole gateway.
 
 ### `APICAST_OIDC_LOG_LEVEL`
 
-**Values:** debug | info | notice | warn | error | crit | alert | emerg
+**Values:** debug | info | notice | warn | err | crit | alert | emerg
 **Default:** err
 
 Allows to set the log level for the logs related to OpenID Connect integration

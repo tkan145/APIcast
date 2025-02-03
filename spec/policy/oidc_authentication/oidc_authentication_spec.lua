@@ -1,6 +1,6 @@
 local _M = require('apicast.policy.oidc_authentication')
 local JWT = require('resty.jwt')
-local rsa = require('fixtures.rsa')
+local certs = require('fixtures.certs')
 local OIDC = require('apicast.oauth.oidc')
 local http_ng = require 'resty.http_ng'
 
@@ -12,7 +12,7 @@ local access_token = setmetatable({
     aud = 'one',
     exp = ngx.now() + 3600,
   },
-}, { __tostring = function(jwt) return JWT:sign(rsa.private, jwt) end })
+}, { __tostring = function(jwt) return JWT:sign(certs.rsa_private_key, jwt) end })
 
 describe('oidc_authentication policy', function()
   describe('.new', function()
@@ -92,7 +92,7 @@ describe('oidc_authentication policy', function()
       ngx.var.http_authorization = 'Bearer ' .. tostring(access_token)
 
       policy.oidc.alg_whitelist = { RS256 = true }
-      policy.oidc.keys = { [access_token.header.kid] = { pem = rsa.pub } }
+      policy.oidc.keys = { [access_token.header.kid] = { pem = certs.rsa_public_key } }
 
       policy:rewrite(context)
 
@@ -185,7 +185,7 @@ describe('oidc_authentication policy', function()
       local oidc = OIDC.new{
         issuer = access_token.payload.iss,
         config = { id_token_signing_alg_values_supported = { access_token.header.alg } },
-        keys = { [access_token.header.kid] = { pem = rsa.pub, alg = access_token.header.alg }  },
+        keys = { [access_token.header.kid] = { pem = certs.rsa_public_key, alg = access_token.header.alg }  },
       }
       local policy = _M.new{ oidc = oidc }
       local jwt = oidc:parse(access_token)

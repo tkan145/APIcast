@@ -16,7 +16,7 @@ Source0: licenses.xml
 Source1: lua-resty-http-0.17.1-0.src.rock
 Source2: router-2.1-0.src.rock
 Source3: inspect-3.1.1-0.src.rock
-Source4: lua-resty-jwt-0.2.0-0.src.rock
+Source4: lua-resty-jwt-0.2.3-1.src.rock
 Source5: lua-resty-url-0.3.5-1.src.rock
 Source6: lua-resty-env-0.4.0-1.src.rock
 Source7: liquid-0.2.0-2.src.rock
@@ -80,6 +80,8 @@ rm -rf %{buildroot}
 %license licenses.xml
 
 %changelog
+* Mon Jan 03 2025 An Tran <atra@redhat.com> - 2.10.0-2
+- Upgrade lua-resty-jwt to v0.2.3-1
 
 * Fri Dec 02 2022 Yorgos Saslis <gsaslisl@redhat.com> - 2.10.0-1
 - Minor version bump to clarify lua-liquid dependency bump that already happened in 2.9.6-12

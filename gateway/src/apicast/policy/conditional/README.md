@@ -4,6 +4,10 @@
 - [**Conditions**](#conditions)
 - [**Example config**](#example-config)
 
+## NOTE
+This is policy is not available in the admin portal UI, however, you still be
+able to configure it via 3scale [Product CR](https://github.com/3scale/3scale-operator/blob/master/doc/product-reference.md#user-content-policyconfigspec)
+
 ## Description
 
 The conditional policy is a bit different from the rest because it contains a
@@ -86,9 +90,6 @@ the one above plus the value of the `Backend` header:
   "combine_op": "and"
 }
 ```
-
-To know more about the details of what is exactly supported please check the
-[policy config schema](apicast-policy.json).
 
 These are the variables supported in liquid:
 * uri

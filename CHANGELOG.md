@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Replace internal OPENSSL module with lua-resty-openssl [PR #1502](https://github.com/3scale/APIcast/pull/1502) [THREESCALE-11412](https://issues.redhat.com/browse/THREESCALE-11412)
 - Remove opentracing support [PR #1520](https://github.com/3scale/APIcast/pull/1520) [THREESCALE-11603](https://issues.redhat.com/browse/THREESCALE-11603)
 - JWT signature verification, support for ES256/ES512 #1533 [PR #1533](https://github.com/3scale/APIcast/pull/1533) [THREESCALE-11474](https://issues.redhat.com/browse/THREESCALE-11474)
+- Add `enable_extended_context` to allow JWT Claim Check access full request context [PR #1535](https://github.com/3scale/APIcast/pull/1535) [THREESCALE-9510](https://issues.redhat.com/browse/THREESCALE-9510)
 
 ## [3.15.0] 2024-04-04
 

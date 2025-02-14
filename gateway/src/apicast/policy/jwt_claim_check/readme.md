@@ -179,12 +179,13 @@ allow you to do interesting thing such as checking the claim agains the value of
               "resource": "/resource",
               "resource_type": "plain"
           }
-      ]
+      ],
+      "enable_extended_context": true
   }
 }
 ```
 
-NOTE: when `enable_extended_context` is set, JWT claim value is access via `jwt` prefix.
+NOTE: when `enable_extended_context` is set and `jwt_claim_type`/`value_type` is set to liquid ,the JWT claim value is accessible using the `jwt` prefix.
 
 ```json
 {
@@ -201,7 +202,29 @@ NOTE: when `enable_extended_context` is set, JWT claim value is access via `jwt`
               "resource": "/resource",
               "resource_type": "plain"
           }
-      ]
+      ],
+      "enable_extended_context": true
+  }
+}
+```
+
+```json
+{
+  "name": "apicast.policy.jwt_claim_check",
+  "configuration": {
+      "error_message": "Invalid JWT check",
+      "rules": [
+          {
+              "operations": [
+                  {"op": "==", "jwt_claim": "{{jwt.role}}", "jwt_claim_type": "liquid", "value": "{{jwt.role}}", "value_type": "liquid"}
+              ],
+              "combine_op": "and",
+              "methods": ["ANY"],
+              "resource": "/resource",
+              "resource_type": "plain"
+          }
+      ],
+      "enable_extended_context": true
   }
 }
 ```

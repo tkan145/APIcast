@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed APIcast panic when parsing invalid base64 encoded value [PR #1505](https://github.com/3scale/APIcast/pull/1505) [THEESCALE-11435](https://issues.redhat.com/browse/THREESCALE-11435)
 - Remove "$id" from the policy schema [PR #1525](https://github.com/3scale/APIcast/pull/1525) [THEESCALE-11610](https://issues.redhat.com/browse/THREESCALE-11610)
 - Fixed Financial-grade API (FAPI) policy not showing up in the admin portal [PR #1528](https://github.com/3scale/APIcast/pull/1528) [THREESCALE-11620](https://issues.redhat.com/browse/THREESCALE-11620)
+- Remove Conditional Policy from the UI [PR #1534](https://github.com/3scale/APIcast/pull/1534) [THREESCALE-6116](https://issues.redhat.com/browse/THREESCALE-6116)
 
 ### Added
 

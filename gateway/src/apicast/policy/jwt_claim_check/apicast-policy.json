@@ -81,7 +81,7 @@
                 "type": "object",
                 "properties": {
                   "jwt_claim": {
-                    "description": "String to get JWT claim", 
+                    "description": "String to get JWT claim",
                     "type": "string"
                   },
                   "jwt_claim_type": {
@@ -110,6 +110,11 @@
             }
           }
         }
+      },
+      "enable_extended_context": {
+        "description": "Whether to enable extened context when evaluate the condition",
+        "type": "boolean",
+        "default": false
       }
     }
   }

@@ -799,7 +799,7 @@ log_by_lua_block { collectgarbage() }
 
 
 
-=== TEST 17: TLS Client Certificate with OCSP and revoked OCSP respond
+=== TEST 17: TLS Client Certificate with OCSP and revoked OCSP response
 --- init eval
 $Test::Nginx::Util::ENDPOINT_SSL_PORT = Test::APIcast::get_random_port();
 --- env eval

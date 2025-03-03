@@ -72,8 +72,8 @@ function _M.new(config)
   if self.revocation_type == "crl" then
     init_crl_list(store, config and config.revoke_list or {})
   elseif self.revocation_type == "ocsp" then
-    -- TODO: should we set empty string as default value?
     self.ocsp_responder_url = config and config.ocsp_responder_url
+    self.cache_ttl = config and config.cache_ttl
   end
 
   return self
@@ -81,9 +81,6 @@ end
 
 function _M:ssl_certificate()
   -- Request client certificate
-  --
-  -- We don't validate the certificate during the handshake, thus set `depth` to 0 (default is 1)
-  -- value here in order to save CPU cycles
   --
   -- TODO:
   -- provide ca_certs: See https://github.com/openresty/lua-resty-core/blob/master/lib/ngx/ssl.md#verify_client
@@ -104,7 +101,7 @@ function _M:access()
   local cert, err = X509.new(client_cert)
   if not cert then
     ngx.status = self.error_status
-    ngx.log(ngx.WARN, "Invalid TLS certificate, err: ", err)
+    ngx.log(ngx.WARN, "Unable to load client certificate, err: ", err)
     ngx.say("Invalid TLS certificate")
     return ngx.exit(ngx.status)
   end
@@ -128,7 +125,7 @@ function _M:access()
   end
 
   if self.revocation_type == "ocsp" then
-    ok, err = ocsp.check_revocation_status(self.ocsp_responder_url)
+    ok, err = ocsp.check_revocation_status(self.ocsp_responder_url, cert.digest, self.cache_ttl)
     if not ok then
       ngx.status = self.error_status
       ngx.log(ngx.WARN, "TLS certificate validation failed, err: ", err)

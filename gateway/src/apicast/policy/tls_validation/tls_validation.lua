@@ -5,6 +5,7 @@ local _M = policy.new('tls_validation')
 local X509_STORE = require('resty.openssl.x509.store')
 local X509 = require('resty.openssl.x509')
 local X509_CRL = require('resty.openssl.x509.crl')
+local tls = require "resty.tls"
 local ngx_ssl = require "ngx.ssl"
 local ocsp = require ("ocsp_validation")
 
@@ -90,6 +91,19 @@ function _M:ssl_certificate()
   return ngx_ssl.verify_client()
 end
 
+local function handle_ocsp(ocsp_responder_url, digest, ttl)
+    -- Nginx supports leaf mode, that is only verify the client ceritificate, however
+    -- until we have a way to detect which CA certificate is being used to verify the
+    -- client certificate we need to get the full certificate chain here to construct
+    -- the OCSP request.
+    local client_cert_chain, err = tls.get_full_client_certificate_chain()
+    if not client_cert_chain then
+      return err or "failed to retrieve client certificate chain"
+    end
+
+    return ocsp.check_revocation_status(client_cert_chain, ocsp_responder_url, digest, ttl)
+end
+
 function _M:access()
   local client_cert = ngx.var.ssl_client_raw_cert
   if not client_cert then
@@ -125,7 +139,7 @@ function _M:access()
   end
 
   if self.revocation_type == "ocsp" then
-    ok, err = ocsp.check_revocation_status(self.ocsp_responder_url, cert.digest, self.cache_ttl)
+    ok, err = handle_ocsp(self.ocsp_responder_url, cert.digest, self.cache_ttl)
     if not ok then
       ngx.status = self.error_status
       ngx.log(ngx.WARN, "TLS certificate validation failed, err: ", err)

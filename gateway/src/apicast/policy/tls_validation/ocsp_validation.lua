@@ -1,7 +1,6 @@
 local user_agent = require "apicast.user_agent"
 local http_ng = require "resty.http_ng"
 local resty_env = require "resty.env"
-local tls = require "resty.tls"
 local ngx_ssl = require "ngx.ssl"
 local ocsp = require "ngx.ocsp"
 
@@ -41,18 +40,12 @@ local function do_ocsp_request(ocsp_url, ocsp_request)
   return res.body
 end
 
-function _M.check_revocation_status(ocsp_responder_url, digest, ttl)
-  -- Nginx supports leaf mode, that is only verify the client ceritificate, however
-  -- until we have a way to detect which CA certificate is being used to verify the
-  -- client certificate we need to get the full certificate chain here to construct
-  -- the OCSP request.
-  local cert_chain, err = tls.get_full_client_certificate_chain()
+function _M.check_revocation_status(cert_chain, ocsp_responder_url, digest, ttl)
   if not cert_chain then
-    return nil, err or "no client certificate"
+    return false, "invalid client certificate chain"
   end
 
-  local der_cert
-  der_cert, err = ngx_ssl.cert_pem_to_der(cert_chain)
+  local der_cert, err = ngx_ssl.cert_pem_to_der(cert_chain)
   if not der_cert then
     return nil, "failed to convert certificate chain from PEM to DER " ..  err
   end

@@ -2,9 +2,10 @@
 
 local policy = require('apicast.policy')
 local _M = policy.new('tls_validation')
-local X509_STORE = require('resty.openssl.x509.store')
 local X509 = require('resty.openssl.x509')
+local X509_STORE = require('resty.openssl.x509.store')
 local X509_CRL = require('resty.openssl.x509.crl')
+local tls = require('resty.tls')
 local ngx_ssl = require "ngx.ssl"
 local ocsp = require ("ocsp_validation")
 
@@ -15,20 +16,25 @@ local debug = ngx.config.debug
 
 local function init_trusted_store(store, certificates)
   for _,certificate in ipairs(certificates) do
-    local cert, err = X509.new(certificate.pem_certificate) -- TODO: handle errors
+    local normalized_cert = tls.normalize_pem_cert(certificate.pem_certificate)
+    if normalized_cert then
+      local cert, err = X509.new(normalized_cert) -- TODO: handle errors
 
-    if cert then
-      store:add(cert)
+      if cert then
+        store:add(cert)
 
-      if debug then
-        ngx.log(ngx.DEBUG, 'adding certificate to the tls validation ', tostring(cert:subject_name()), ' SHA1: ', cert:hexdigest('SHA1'))
+        if debug then
+          ngx.log(ngx.DEBUG, 'adding certificate to the tls validation ', tostring(cert:subject_name()), ' SHA1: ', cert:hexdigest('SHA1'))
+        end
+      else
+        ngx.log(ngx.WARN, 'error whitelisting certificate, err: ', err)
+
+        if debug then
+          ngx.log(ngx.DEBUG, 'certificate: ', certificate.pem_certificate)
+        end
       end
     else
-      ngx.log(ngx.WARN, 'error whitelisting certificate, err: ', err)
-
-      if debug then
-        ngx.log(ngx.DEBUG, 'certificate: ', certificate.pem_certificate)
-      end
+      ngx.log(ngx.WARN, "invalid cert")
     end
   end
 
@@ -39,20 +45,24 @@ local function init_crl_list(store, crl_certificates)
   local ok, err
   local crl
   for _, certificate in ipairs(crl_certificates) do
-    -- add crl to store, but skip setting the flag
-    crl, err = X509_CRL.new(certificate.pem_certificate)
-    if crl then
-      ok, err = store:add(crl)
+    local normalized_cert = tls.normalize_pem_cert(certificate.pem_certificate)
+    if normalized_cert then
+      crl, err = X509_CRL.new(normalized_cert)
+      if crl then
+        ok, err = store:add(crl)
 
-      if debug then
-        ngx.log(ngx.DEBUG, 'adding crl certificate to the tls validation ', tostring(crl:subject_name()), ' SHA1: ', crl:hexdigest('SHA1'))
+        if debug then
+          ngx.log(ngx.DEBUG, 'adding crl certificate to the tls validation ', tostring(crl:subject_name()), ' SHA1: ', crl:hexdigest('SHA1'))
+        end
+      else
+        ngx.log(ngx.WARN, 'failed to add crl certificate, err: ', err)
+
+        if debug then
+          ngx.log(ngx.DEBUG, 'certificate: ', certificate.pem_certificate)
+        end
       end
     else
-      ngx.log(ngx.WARN, 'failed to add crl certificate, err: ', err)
-
-      if debug then
-        ngx.log(ngx.DEBUG, 'certificate: ', certificate.pem_certificate)
-      end
+      ngx.log(ngx.WARN, "invalid CRL cert")
     end
   end
   return store

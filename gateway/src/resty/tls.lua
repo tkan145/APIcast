@@ -2,6 +2,7 @@ local base = require "resty.core.base"
 
 local type = type
 local tostring = tostring
+local re_gsub = ngx.re.gsub
 
 local get_request = base.get_request
 local get_size_ptr = base.get_size_ptr
@@ -9,6 +10,7 @@ local ffi = require "ffi"
 local ffi_new = ffi.new
 local ffi_str = ffi.string
 local C = ffi.C
+
 
 local _M = {}
 
@@ -122,6 +124,14 @@ function _M.get_full_client_certificate_chain()
   if rc == NGX_DECLINED then
       return nil
   end
+end
+
+function _M.normalize_pem_cert(str)
+  if not str then return end
+  if #(str) == 0 then return end
+
+  -- using also jit compiler (j) will result in a segfault with some certificates
+  return re_gsub(str, [[\s(?!(CERTIFICATE|X509|CRL))]], '\n', 'o')
 end
 
 return _M

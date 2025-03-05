@@ -374,8 +374,7 @@ No required TLS certificate was sent
 
 
 
-=== TEST 9: TLS Client Certificate with intermediate certificate fails when
-allow_partial_chain set to false
+=== TEST 9: TLS Client Certificate is whitelisted but allow_partial_chain set to false
 --- configuration eval
 use JSON qw(to_json);
 use File::Slurp qw(read_file);

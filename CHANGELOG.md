@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `enable_extended_context` to allow JWT Claim Check access full request context [PR #1535](https://github.com/3scale/APIcast/pull/1535) [THREESCALE-9510](https://issues.redhat.com/browse/THREESCALE-9510)
 - JWT signature verification, support for ES256/ES512 [PR #1533](https://github.com/3scale/APIcast/pull/1533) [THREESCALE-11474](https://issues.redhat.com/browse/THREESCALE-11474)
 - JWT Parser policy [PR #1536](https://github.com/3scale/APIcast/pull/1536) [THREESCALE-10708](https://issues.redhat.com/browse/THREESCALE-10708)
+- TLS Validation Policy - add support to validate client certificate with CRL and OCSP [PR #1503](https://github.com/3scale/APIcast/pull/1503) [THREESCALE-11404](https://issues.redhat.com/browse/THREESCALE-11404)
 
 ## [3.15.0] 2024-04-04
 

@@ -24,13 +24,6 @@
         "items": {
           "$ref": "#/definitions/certificate"
         }
-      },
-      "revoke": {
-        "$id": "#/definitions/revoke",
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/certificate"
-        }
       }
     },
     "properties": {

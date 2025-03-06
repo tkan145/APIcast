@@ -49,7 +49,8 @@ local function init_crl_list(store, crl_certificates)
     if normalized_cert then
       crl, err = X509_CRL.new(normalized_cert)
       if crl then
-        ok, err = store:add(crl)
+        -- add crl to store, but skip setting the flag
+        ok, err = store:add(crl, true)
 
         if debug then
           ngx.log(ngx.DEBUG, 'adding crl certificate to the tls validation ', tostring(crl:subject_name()), ' SHA1: ', crl:hexdigest('SHA1'))
@@ -134,7 +135,15 @@ function _M:access()
     return ngx.exit(ngx.status)
   end
 
-  if self.revocation_type == "ocsp" then
+  if self.revocation_type == "crl" then
+    ok, err = store:check_revocation(chain)
+    if not ok then
+      ngx.status = self.error_status
+      ngx.log(ngx.WARN, "TLS certificate validation failed, err: ", err)
+      ngx.say("TLS certificate validation failed")
+      return ngx.exit(ngx.status)
+    end
+  elseif self.revocation_type == "ocsp" then
     ok, err = ocsp.check_revocation_status(self.ocsp_responder_url, cert.digest, self.cache_ttl)
     if not ok then
       ngx.status = self.error_status

@@ -100,6 +100,8 @@ function _M.check_revocation_status(ocsp_responder_url, digest, ttl)
     if not ok then
       ngx.log(ngx.ERR, "could not save ocsp response to cache: ", err)
     end
+  else
+    ngx.log(ngx.INFO, "using ocsp from cache")
   end
 
   local ok

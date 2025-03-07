@@ -144,7 +144,7 @@ function _M:access()
       return ngx.exit(ngx.status)
     end
   elseif self.revocation_type == "ocsp" then
-    ok, err = ocsp.check_revocation_status(self.ocsp_responder_url, cert.digest, self.cache_ttl)
+    ok, err = ocsp.check_revocation_status(self.ocsp_responder_url, cert:digest("SHA256"), self.cache_ttl)
     if not ok then
       ngx.status = self.error_status
       ngx.log(ngx.WARN, "TLS certificate validation failed, err: ", err)

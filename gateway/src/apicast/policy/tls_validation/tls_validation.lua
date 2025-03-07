@@ -78,7 +78,7 @@ function _M.new(config)
 
   self.x509_store = init_trusted_store(store, config and config.whitelist or {})
   self.error_status = config and config.error_status or 400
-  self.allow_partial_chain = config and config.allow_partial_chain
+  self.allow_partial_chain = config and config.allow_partial_chain ~= false and true or false
   self.revocation_type = config and config.revocation_check_type or "none"
   if self.revocation_type == "crl" then
     init_crl_list(store, config and config.revoke_list or {})

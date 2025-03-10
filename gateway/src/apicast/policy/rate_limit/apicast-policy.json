@@ -101,7 +101,6 @@
         "required": ["left", "op", "right"]
       },
       "condition": {
-        "$id": "#/definitions/condition",
         "type": "object",
         "description": "Condition to be evaluated",
         "properties": {

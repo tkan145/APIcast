@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed Financial-grade API (FAPI) policy not showing up in the admin portal [PR #1528](https://github.com/3scale/APIcast/pull/1528) [THREESCALE-11620](https://issues.redhat.com/browse/THREESCALE-11620)
 - Remove Conditional Policy from the UI [PR #1534](https://github.com/3scale/APIcast/pull/1534) [THREESCALE-6116](https://issues.redhat.com/browse/THREESCALE-6116)
 - Remove redis connection error message from response body in edge limiting policy [PR #1537](https://github.com/3scale/APIcast/pull/1537) [THREESCALE-11701](https://issues.redhat.com/browse/THREESCALE-11701)
+- Fix `on_failed` policy doesn't work with `conditional policy` [THREESCALE-11738](https://issues.redhat.com/browse/THREESCALE-11738) [PR #1541](https://github.com/3scale/APIcast/pull/1541)
 
 ### Added
 

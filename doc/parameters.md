@@ -112,13 +112,6 @@ Allows to set the log level for the logs related to OpenID Connect integration
 The [Management API](./management-api.md) is powerful and can control the APIcast configuration.
 You should enable the debug level only for debugging.
 
-### `APICAST_OAUTH_TOKENS_TTL`
-
-**Values:** _a number_
-**Default:** 604800
-
-When configured to authenticate using OAuth, this param specifies the TTL (in seconds) of the tokens created.
-
 ### `APICAST_PATH_ROUTING`
 
 **Values:**

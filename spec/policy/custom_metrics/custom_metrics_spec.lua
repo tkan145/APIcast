@@ -79,4 +79,53 @@ describe('custom metrics policy', function()
     end)
   end)
 
+  describe('.report', function()
+    local config
+    local backend_client = require('apicast.backend_client')
+
+    before_each(function()
+      config = {
+        rules = {
+          {
+            metric = "foo",
+            increment = "1",
+            condition = {
+              combine_op = "and",
+              operations = {
+                { left = "foo", op = "==", right = "foo" }
+              }
+            }
+          }
+        }
+      }
+    end)
+
+    it('is not called with invalid backend endpoint', function()
+      -- By default return a hit in the caches to simplify tests
+      stub(backend_client, "report")
+
+      local policy = custom_metrics.new(config)
+
+      context.service = {backend = {endpoint="invalid.com"}, id="42"}
+      policy:post_action(context)
+      assert.spy(backend_client.report).was_not_called()
+    end)
+
+    it('to backend', function()
+      -- By default return a hit in the caches to simplify tests
+      stub(backend_client, 'report').returns({ status = 200 })
+
+      local policy = custom_metrics.new(config)
+
+      context = {
+        service = {
+          backend = {endpoint="http://foo.com"},
+          id="42"
+        },
+        credentials={app_id = 'id1', metric = 'm1', value = 1 },
+      }
+      policy:post_action(context)
+      assert.spy(backend_client.report).was_called()
+    end)
+  end)
 end)

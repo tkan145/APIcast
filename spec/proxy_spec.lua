@@ -179,6 +179,20 @@ describe('Proxy', function()
 
       assert.stub(errors.limits_exceeded).was_called_with(service, retry_after)
     end)
+
+    it('exit on invalid backend url (missing scheme)', function()
+      spy.on(ngx, 'exit')
+      ngx.var = { cached_key = "uk" } -- authorize() expects creds to be set up
+      local test_service = { backend_authentication = { value = 'not_baz' }, backend = { endpoint = '0.0.0.0' } }
+
+      stub(test_backend, 'send', function() return { status = 200 } end)
+
+      local usage = Usage.new()
+      usage:add('foo', 0)
+      proxy:authorize(context, test_service, usage, { client_id = 'blah' })
+      assert.stub(test_backend.send).was_not_called()
+      assert.stub(ngx.exit).was_called_with(500)
+    end)
   end)
 
   describe('.handle_backend_response', function()

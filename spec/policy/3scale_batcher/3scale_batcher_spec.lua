@@ -158,6 +158,12 @@ describe('3scale batcher policy', function()
           stub(backend_client, 'authorize').returns({ status = 500 })
         end)
 
+        it('when backend endpoint is invalid', function()
+            context.service = {backend = {endpoint="invalid.com"}, id="42"}
+            batcher_policy:access(context)
+            assert.stub(batcher_policy.reports_batcher.add).was_not_called()
+        end)
+
         describe('and the authorization is in the downtime cache', function()
           describe('and it is OK', function()
             before_each(function()

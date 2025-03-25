@@ -103,7 +103,7 @@ local function matched_patterns(matched_rules)
 end
 
 local function build_backend_client(self, service)
-  return assert(backend_client:new(service, self.http_ng_backend), 'missing backend')
+  return backend_client:new(service, self.http_ng_backend)
 end
 
 function _M:authorize(context, service, usage, credentials, ttl)
@@ -139,7 +139,12 @@ function _M:authorize(context, service, usage, credentials, ttl)
     -- set cached_key to nil to avoid doing the authrep in post_action
     ngx.var.cached_key = nil
 
-    local backend = build_backend_client(self, service)
+    local backend, err = build_backend_client(self, service)
+    if not backend then
+      ngx.log(ngx.ERR, "failed to construct backend_client, err: ", err)
+      return ngx.exit(500)
+    end
+
     local res = backend:authrep(formatted_usage, credentials, self.extra_params_backend_authrep)
 
     local authorized, rejection_reason, retry_after = self:handle_backend_response(
@@ -319,15 +324,20 @@ local function response_codes_data(status)
 end
 
 local function post_action(self, context, cached_key, service, credentials, formatted_usage, response_status_code)
-  local backend = build_backend_client(self, service)
-  local res = backend:authrep(
-          formatted_usage,
-          credentials,
-          response_codes_data(response_status_code),
-          self.extra_params_backend_authrep
-  )
+  local backend, err = build_backend_client(self, service)
 
-  self:handle_backend_response(context, cached_key, res)
+  if backend then
+    local res = backend:authrep(
+            formatted_usage,
+            credentials,
+            response_codes_data(response_status_code),
+            self.extra_params_backend_authrep
+    )
+
+    self:handle_backend_response(context, cached_key, res)
+  else
+    ngx.log(ngx.ERR, "failed to construct backend_client, err: ", err)
+  end
 end
 
 function _M:post_action(context)

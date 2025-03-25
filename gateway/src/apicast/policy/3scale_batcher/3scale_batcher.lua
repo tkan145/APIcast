@@ -174,7 +174,11 @@ end
 -- might want to introduce a mechanism to avoid this and reduce the number of
 -- calls to backend.
 function _M:access(context)
-  local backend = assert(backend_client:new(context.service, http_ng_resty), 'missing backend')
+  local backend, err = backend_client:new(context.service, http_ng_resty)
+  if not backend then
+    ngx.log(ngx.ERR, "failed to construct backend_client, err: ", err)
+    return
+  end
   local usage = context.usage or {}
   local service = context.service
   local service_id = service.id

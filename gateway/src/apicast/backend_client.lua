@@ -51,7 +51,7 @@ function _M:new(service, http_client)
   local service_id = service.id
 
   if not endpoint then
-    ngx.log(ngx.WARN, 'service ', service_id, ' does not have backend endpoint configured')
+    return nil, "service " .. service_id .. "does not have backend endpoint configured"
   end
 
   local authentication = { service_id = service_id }

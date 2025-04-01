@@ -8,7 +8,7 @@ export HOME="/tmp"
 export PATH=$PATH:/usr/local/bin
 
 # Clone various utilities
-git clone https://github.com/openresty/stapxx.git /usr/local/stapxx || (cd /usr/local/stapxx && git pull)
+git clone https://github.com/api7/stapxx.git /usr/local/stapxx || (cd /usr/local/stapxx && git pull)
 git clone https://github.com/brendangregg/FlameGraph.git /usr/local/flamegraph || (cd /usr/local/flamegraph && git pull)
 git clone https://github.com/openresty/openresty-systemtap-toolkit.git /usr/local/openresty-systemtap-toolkit || (cd /usr/local/openresty-systemtap-toolkit && git pull)
 curl -L https://github.com/tsenart/vegeta/releases/download/v6.1.1/vegeta-v6.1.1-linux-amd64.tar.gz | tar -xz --overwrite -C /usr/local/bin/

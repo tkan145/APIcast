@@ -33,16 +33,15 @@ Vagrant.configure("2") do |config|
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "1024"
-    vb.cpus = 2
-  end
 
   config.vm.provider "libvirt" do |vb|
     vb.memory = "1024"
     vb.cpus = 2
+    vb.qemu_use_session = false
+    vb.machine_virtual_size = 40
   end
 
+  config.vm.disk :disk, name: "backup", size: "40GB"
   # Disable default sync folder
   config.vm.synced_folder ".", "/vagrant", disabled: true
 

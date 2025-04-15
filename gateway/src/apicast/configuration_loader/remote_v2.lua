@@ -370,8 +370,7 @@ end
 local function services_per_page(http_client, portal_endpoint, page, per_page)
   local encoded_args = ngx.encode_args({page = page, per_page = per_page})
   local query_args = encoded_args ~= '' and '?'..encoded_args
-  local base_url = services_index_endpoint(portal_endpoint)
-  local url = query_args and base_url..query_args or base_url
+  local url = query_args and portal_endpoint..query_args or portal_endpoint
 
   local res, err = http_client.get(url)
 
@@ -431,9 +430,10 @@ function _M:services()
   local all_results_per_page = false
   local current_page = 1
   local services = array()
+  local portal_endpoint = services_index_endpoint(endpoint)
 
   repeat
-    local page_services, err = services_per_page(http_client, endpoint, current_page, SERVICES_PER_PAGE)
+    local page_services, err = services_per_page(http_client, portal_endpoint, current_page, SERVICES_PER_PAGE)
     if not page_services and err then
       return nil, err
     end

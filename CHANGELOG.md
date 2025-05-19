@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.16.0] 2025-05-19
+
 ### Fixed
 
 - Fixed 3scale Batcher policy unable to handle `app_id`/`access_token` contains special characters [PR #1457](https://github.com/3scale/APIcast/pull/1457) [THREESCALE-10934](https://issues.redhat.com/browse/THREESCALE-10934)
@@ -1056,7 +1058,7 @@ Apart from the changes mentioned in this section, this version also includes the
 
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.15.0...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.16.0...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -1118,3 +1120,4 @@ Apart from the changes mentioned in this section, this version also includes the
 [3.13.2]: https://github.com/3scale/apicast/compare/v3.13.0..v3.13.2
 [3.14.0]: https://github.com/3scale/apicast/compare/v3.13.2..v3.14.0
 [3.15.0]: https://github.com/3scale/apicast/compare/v3.14.0..v3.15.0
+[3.16.0]: https://github.com/3scale/apicast/compare/v3.15.0..v3.16.0

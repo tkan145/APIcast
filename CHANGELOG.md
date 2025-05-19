@@ -10,13 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fixed 3scale Batcher policy unable to handle `app_id`/`access_token` contains special characters [PR #1457](https://github.com/3scale/APIcast/pull/1457) [THREESCALE-10934](https://issues.redhat.com/browse/THREESCALE-10934)
-
 - Fixed APIcast send request through proxy server even when `NO_PROXY` is used [PR #1478](https://github.com/3scale/APIcast/pull/1478) [THREESCALE-11128](https://issues.redhat.com/browse/THREESCALE-11128)
-
 - Fixed config reloading even when reloading is disabled [PR #1468](https://github.com/3scale/APIcast/pull/1468)
-
 - Fixed confusing log display when APIcast listens on HTTPS and path routing is enabled [PR #1486](https://github.com/3scale/APIcast/pull/1486/files) [THREESCALE #8486](https://issues.redhat.com/browse/THREESCALE-8486)
-
 - Fixed Conditional policy evaluating incorrectly: second policy in policy chain that implement export() always triggers [PR #1485](https://github.com/3scale/APIcast/pull/1485) [THREESCALE-9320](https://issues.redhat.com/browse/THREESCALE-9320)
 - Fix APIcast using stale configuration for deleted products [PR #1488](https://github.com/3scale/APIcast/pull/1488) [THREESCALE-10130](https://issues.redhat.com/browse/THREESCALE-10130)
 - Fixed Mutual TLS between APIcast and the Backend API fails when using a Forward Proxy [PR #1499](https://github.com/3scale/APIcast/pull/1499) [THREESCALE-5105](https://issues.redhat.com/browse/THREESCALE-5105)
@@ -27,28 +23,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Remove Conditional Policy from the UI [PR #1534](https://github.com/3scale/APIcast/pull/1534) [THREESCALE-6116](https://issues.redhat.com/browse/THREESCALE-6116)
 - Remove redis connection error message from response body in edge limiting policy [PR #1537](https://github.com/3scale/APIcast/pull/1537) [THREESCALE-11701](https://issues.redhat.com/browse/THREESCALE-11701)
 - Fix `on_failed` policy doesn't work with `conditional policy` [THREESCALE-11738](https://issues.redhat.com/browse/THREESCALE-11738) [PR #1541](https://github.com/3scale/APIcast/pull/1541)
+- Concat filtered services into a single log [THREESCALE-10894](https://issues.redhat.com/browse/THREESCALE-10894) [PR #1493](https://github.com/3scale/APIcast/pull/1493)
+- Correct boolean value in fapi schema [THREESCALE-11796](https://issues.redhat.com/browse/THREESCALE-11796) [PR #1548](https://github.com/3scale/APIcast/pull/1548)
 
 ### Added
 
 - Bump openresty to 1.21.4.3 [PR #1461](https://github.com/3scale/APIcast/pull/1461) [THREESCALE-10601](https://issues.redhat.com/browse/THREESCALE-10601)
-
 - Support Financial-grade API (FAPI) 1.0 - Baseline profile [PR #1465](https://github.com/3scale/APIcast/pull/1465) [THREESCALE-10973](https://issues.redhat.com/browse/THREESCALE-10973)
-
 - Support Financial-grade API (FAPI) 1.0 - Advance profile [PR #1465](https://github.com/3scale/APIcast/pull/1466) [THREESCALE-11019](https://issues.redhat.com/browse/THREESCALE-11019)
-
 - Token Introspection Policy - Support `private_key_jwt` and `client_secret_jwt` authentication mode [PR #1464](https://github.com/3scale/APIcast/pull/1464) [THREESCALE-11015](https://issues.redhat.com/browse/THREESCALE-11015)
-
 - Added the `APICAST_PROXY_BUFFER_SIZE` variable to allow configuration of the buffer size for handling response from the proxied servers. [PR #1473](https://github.com/3scale/APIcast/pull/1473), [THREESCALE-8410](https://issues.redhat.com/browse/THREESCALE-8410)
-
 - Added the `APICAST_HTTPS_VERIFY_CLIENT` variable to allow configuration of the `ssl_verify_client` directive. [PR #1491](https://github.com/3scale/APIcast/pull/1491) [THREESCALE-10156](https://issues.redhat.com/browse/THREESCALE-10156)
 - Add `APICAST_LUA_SOCKET_KEEPALIVE_REQUESTS` to limit the number of requests a single keepalive socket can handle [PR #1496](https://github.com/3scale/APIcast/pull/1496) [THREESCALE-11321](https://issues.redhat.com/browse/THREESCALE-11321)
 - Replace internal OPENSSL module with lua-resty-openssl [PR #1502](https://github.com/3scale/APIcast/pull/1502) [THREESCALE-11412](https://issues.redhat.com/browse/THREESCALE-11412)
-- Remove opentracing support [PR #1520](https://github.com/3scale/APIcast/pull/1520) [THREESCALE-11603](https://issues.redhat.com/browse/THREESCALE-11603)
-- JWT signature verification, support for ES256/ES512 #1533 [PR #1533](https://github.com/3scale/APIcast/pull/1533) [THREESCALE-11474](https://issues.redhat.com/browse/THREESCALE-11474)
-- Add `enable_extended_context` to allow JWT Claim Check access full request context [PR #1535](https://github.com/3scale/APIcast/pull/1535) [THREESCALE-9510](https://issues.redhat.com/browse/THREESCALE-9510)
 - JWT signature verification, support for ES256/ES512 [PR #1533](https://github.com/3scale/APIcast/pull/1533) [THREESCALE-11474](https://issues.redhat.com/browse/THREESCALE-11474)
+- Add `enable_extended_context` to allow JWT Claim Check access full request context [PR #1535](https://github.com/3scale/APIcast/pull/1535) [THREESCALE-9510](https://issues.redhat.com/browse/THREESCALE-9510)
 - JWT Parser policy [PR #1536](https://github.com/3scale/APIcast/pull/1536) [THREESCALE-10708](https://issues.redhat.com/browse/THREESCALE-10708)
 - TLS Validation Policy - add support to validate client certificate with CRL and OCSP [PR #1503](https://github.com/3scale/APIcast/pull/1503) [THREESCALE-11404](https://issues.redhat.com/browse/THREESCALE-11404)
+- Use luarocks v3 [PR #1513](https://github.com/3scale/APIcast/pull/1513)
+
+### Removed
+
+- Remove opentracing support [PR #1520](https://github.com/3scale/APIcast/pull/1520) [THREESCALE-11603](https://issues.redhat.com/browse/THREESCALE-11603)
 
 ## [3.15.0] 2024-04-04
 

@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Remove Conditional Policy from the UI [PR #1534](https://github.com/3scale/APIcast/pull/1534) [THREESCALE-6116](https://issues.redhat.com/browse/THREESCALE-6116)
 - Remove redis connection error message from response body in edge limiting policy [PR #1537](https://github.com/3scale/APIcast/pull/1537) [THREESCALE-11701](https://issues.redhat.com/browse/THREESCALE-11701)
 - Fix `on_failed` policy doesn't work with `conditional policy` [THREESCALE-11738](https://issues.redhat.com/browse/THREESCALE-11738) [PR #1541](https://github.com/3scale/APIcast/pull/1541)
-- Concat filtered services into a single log [THREESCALE-10894](https://issues.redhat.com/browse/THREESCALE-10894) [PR #1493](https://github.com/3scale/APIcast/pull/1493)
+- Concatenated filtered services into a single log [THREESCALE-10894](https://issues.redhat.com/browse/THREESCALE-10894) [PR #1493](https://github.com/3scale/APIcast/pull/1493)
 - Correct boolean value in fapi schema [THREESCALE-11796](https://issues.redhat.com/browse/THREESCALE-11796) [PR #1548](https://github.com/3scale/APIcast/pull/1548)
 
 ### Added
@@ -39,14 +39,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `APICAST_LUA_SOCKET_KEEPALIVE_REQUESTS` to limit the number of requests a single keepalive socket can handle [PR #1496](https://github.com/3scale/APIcast/pull/1496) [THREESCALE-11321](https://issues.redhat.com/browse/THREESCALE-11321)
 - Replace internal OPENSSL module with lua-resty-openssl [PR #1502](https://github.com/3scale/APIcast/pull/1502) [THREESCALE-11412](https://issues.redhat.com/browse/THREESCALE-11412)
 - JWT signature verification, support for ES256/ES512 [PR #1533](https://github.com/3scale/APIcast/pull/1533) [THREESCALE-11474](https://issues.redhat.com/browse/THREESCALE-11474)
-- Add `enable_extended_context` to allow JWT Claim Check access full request context [PR #1535](https://github.com/3scale/APIcast/pull/1535) [THREESCALE-9510](https://issues.redhat.com/browse/THREESCALE-9510)
+- Added `enable_extended_context` to allow JWT Claim Check access full request context [PR #1535](https://github.com/3scale/APIcast/pull/1535) [THREESCALE-9510](https://issues.redhat.com/browse/THREESCALE-9510)
 - JWT Parser policy [PR #1536](https://github.com/3scale/APIcast/pull/1536) [THREESCALE-10708](https://issues.redhat.com/browse/THREESCALE-10708)
 - TLS Validation Policy - add support to validate client certificate with CRL and OCSP [PR #1503](https://github.com/3scale/APIcast/pull/1503) [THREESCALE-11404](https://issues.redhat.com/browse/THREESCALE-11404)
-- Use luarocks v3 [PR #1513](https://github.com/3scale/APIcast/pull/1513)
+- Used luarocks v3 [PR #1513](https://github.com/3scale/APIcast/pull/1513)
 
 ### Removed
 
-- Remove opentracing support [PR #1520](https://github.com/3scale/APIcast/pull/1520) [THREESCALE-11603](https://issues.redhat.com/browse/THREESCALE-11603)
+- Removed OpenTracing support [PR #1520](https://github.com/3scale/APIcast/pull/1520) [THREESCALE-11603](https://issues.redhat.com/browse/THREESCALE-11603)
 
 ## [3.15.0] 2024-04-04
 

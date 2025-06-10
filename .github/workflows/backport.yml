@@ -20,7 +20,7 @@ jobs:
           pull_title: '[backport -> ${target_branch}] ${pull_title}'
           merge_commits: 'skip'
           copy_labels_pattern: ^(?!backport ).* # copies all labels except those starting with "backport "
-          label_pattern: ^backport (3scale\/[^ ]+)$ # filters for labels starting with "backport " and extracts the branch name
+          label_pattern: ^backport (3scale-[^ ]+)$ # filters for labels starting with "backport " and extracts the branch name
           pull_description: |-
             Automated backport to `${target_branch}`, triggered by a label in #${pull_number}.
 

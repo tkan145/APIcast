@@ -2,10 +2,10 @@ name: Backport
 on:
   pull_request:
     types: [closed, labeled]
-  permissions:
-    contents: write # so it can comment
-    pull-requests: write # so it can create pull requests
-    actions: write
+permissions:
+  contents: write # so it can comment
+  pull-requests: write # so it can create pull requests
+  actions: write
 jobs:
   backport:
     name: Backport

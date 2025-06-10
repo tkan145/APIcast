@@ -20,7 +20,7 @@ Lua Dependencies are defined in [`apicast-VERSION.rockspec`](https://github.com/
 
 ## Components
 
-SOmething
+Blabla
 
 APIcast is using [docker](https://www.docker.com/) to build the APIcast runtime image.
 You must have docker installed and available on your system.

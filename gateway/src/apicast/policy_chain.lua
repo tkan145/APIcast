@@ -87,7 +87,7 @@ end
 -- @tparam string|table module the module or its name
 -- @tparam ?table ... params needed to initialize the module
 -- @treturn object|nil, nil|string The module instantiated or an error message.
-function _M.load_policy(module, version, ...)
+local function load_policy(module, version, ...)
     if type(module) == 'string' then
         if sub(module, 1, 14) == 'apicast.policy' then
             module = sub(module, 16)
@@ -111,6 +111,7 @@ function _M.load_policy(module, version, ...)
         return module
     end
 end
+_M.load_policy = load_policy
 
 --- Initialize new @{PolicyChain}.
 -- @treturn PolicyChain
@@ -191,6 +192,41 @@ function _M:add_policy(name, version, ...)
         ngx.log(ngx.DEBUG, err)
         return false, err
     end
+end
+
+--- Build policy chain from policy spec array (optimized batch version)
+-- This is significantly faster than calling add_policy in a loop
+function _M.build_from_specs(policy_specs)
+    if not policy_specs or #policy_specs == 0 then
+        return _M.new()
+    end
+
+    local policies = {}
+    local had_errors = false
+
+    -- Load all policies in batch
+    for i=1, #policy_specs do
+        local spec = policy_specs[i]
+        local policy, err = load_policy(spec.name, spec.version, spec.configuration)
+
+        if policy then
+            policies[i] = policy
+        else
+            had_errors = true
+            ngx.log(ngx.WARN, 'failed to load policy: ', spec.name,
+                    ' version: ', spec.version or 'builtin', ' err: ', err)
+        end
+    end
+
+    -- Create chain with all policies at once
+    local chain = _M.new(policies)
+
+    -- Mark if we had errors during loading
+    if had_errors then
+        chain.init_failed = true
+    end
+
+    return chain
 end
 
 -- Checks if there are any policies placed in the wrong place in the chain.

@@ -64,14 +64,7 @@ end
 local function build_policy_chain(policies)
   if not value(policies) then return nil, 'no policy chain' end
 
-  local built_chain = policy_chain.new()
-  for i=1, #policies do
-    local _, err = built_chain:add_policy(policies[i].name, policies[i].version, policies[i].configuration)
-    if err then
-      ngx.log(ngx.WARN, 'failed to load policy: ', policies[i].name, ' version: ', policies[i].version, ' err: ', err)
-    end
-  end
-
+  local  built_chain = policy_chain.build_from_specs(policies)
   built_chain:check_order()
   return built_chain
 end

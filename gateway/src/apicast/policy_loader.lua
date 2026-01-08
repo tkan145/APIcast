@@ -15,6 +15,7 @@ local insert = table.insert
 local concat = table.concat
 local setmetatable = setmetatable
 local pcall = pcall
+local manifests_cache = require('apicast.policy_manifests_cache')
 
 local _M = {}
 
@@ -54,7 +55,11 @@ if policy_config_validation_is_enabled() then
   policy_config_validator = require('apicast.policy_config_validator')
 end
 
-local function read_manifest(path)
+local function read_manifest(name, version, path)
+  local cached_manifest = manifests_cache.get_manifest(name, version)
+  if cached_manifest then
+    return cached_manifest
+  end
   local handle = io.open(format('%s/%s', path, 'apicast-policy.json'))
 
   if handle then
@@ -62,7 +67,9 @@ local function read_manifest(path)
 
     handle:close()
 
-    return cjson.decode(contents)
+    local manifest = cjson.decode(contents)
+    manifests_cache.set_manifest(name, version, manifest)
+    return manifest
   end
 end
 
@@ -71,7 +78,7 @@ local function lua_load_path(load_path)
 end
 
 local function load_manifest(name, version, path)
-  local manifest = read_manifest(path)
+  local manifest = read_manifest(name, version, path)
 
   if manifest then
       if manifest.version ~= version then
@@ -110,6 +117,16 @@ end
 function _M:load_path(name, version, paths)
   local failures = {}
 
+  if version == 'builtin' then
+    local manifest, load_path = load_manifest(name, version, format('%s/%s', self.builtin_policy_load_path(), name) )
+
+    if manifest then
+      return load_path, manifest.configuration
+    else
+      insert(failures, load_path)
+    end
+  end
+
   for _, path in ipairs(paths or self.policy_load_paths()) do
     local manifest, load_path = load_manifest(name, version, format('%s/%s/%s', path, name, version) )
 
@@ -120,15 +137,6 @@ function _M:load_path(name, version, paths)
     end
   end
 
-  if version == 'builtin' then
-    local manifest, load_path = load_manifest(name, version, format('%s/%s', self.builtin_policy_load_path(), name) )
-
-    if manifest then
-      return load_path, manifest.configuration
-    else
-      insert(failures, load_path)
-    end
-  end
 
   return nil, nil, failures
 end

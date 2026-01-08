@@ -16,6 +16,7 @@ local ipairs = ipairs
 local pairs = pairs
 local insert = table.insert
 local policy_loader = require('apicast.policy_loader')
+local manifest_cache = require('apicast.policy_manifests_cache')
 
 local _M = {}
 
@@ -44,23 +45,38 @@ local function all_builtin_policy_manifests()
   local manifests = setmetatable({}, manifests_mt)
 
   for _, policy_dir in dir_iter(builtin_policy_load_path()) do
-    local manifest_file = format('%s/%s', policy_dir, policy_manifest_name)
-    local manifest = pl_file.read(manifest_file)
     local policy_name = extract_policy_name(policy_dir)
-    if manifest then insert(manifests[policy_name], cjson.decode(manifest)) end
+    local cached_manifest = manifest_cache.get_manifest(policy_name, 'builtin')
+    if cached_manifest then
+      insert(manifests[policy_name], cached_manifest)
+    else
+      local manifest_file = format('%s/%s', policy_dir, policy_manifest_name)
+      local manifest = pl_file.read(manifest_file)
+      if manifest then
+        local decoded_manifest = cjson.decode(manifest)
+        manifest_cache.set_manifest(policy_name, 'builtin', decoded_manifest)
+        insert(manifests[policy_name], decoded_manifest)
+      end
+    end
   end
 
   return manifests
 end
 
 local function get_manifest_of_builtin_policy(name)
+  local cached_manifest = manifest_cache.get_manifest(name, 'builtin')
+  if cached_manifest then
+    return cached_manifest
+  end
   for _, policy_dir in dir_iter(builtin_policy_load_path()) do
-    local manifest_file = format('%s/%s', policy_dir, policy_manifest_name)
-    local manifest = pl_file.read(manifest_file)
     local policy_name = extract_policy_name(policy_dir)
 
     if policy_name == name then
-      return cjson.decode(manifest)
+      local manifest_file = format('%s/%s', policy_dir, policy_manifest_name)
+      local manifest = pl_file.read(manifest_file)
+      local decoded_manifest = cjson.decode(manifest)
+      manifest_cache.set_manifest(policy_name, 'builtin', decoded_manifest)
+      return decoded_manifest
     end
   end
 end
@@ -73,21 +89,30 @@ end
 -- Returns the manifest when found. When it's not present or there's a version
 -- mismatch, it returns nil.
 local function get_manifest_from_version_dir(version_dir)
-  local manifest_file = format('%s/%s', version_dir, policy_manifest_name)
-  local manifest = pl_file.read(manifest_file)
+  local version_in_path = pl_path.basename(version_dir)
+  -- Extract policy name from parent directory
+  local parent_dir = pl_path.dirname(version_dir)
+  local policy_name = extract_policy_name(parent_dir)
 
-  if manifest then
-    local decoded_manifest = cjson.decode(manifest)
-    local version_in_manifest = decoded_manifest.version
-    local version_in_path = pl_path.basename(version_dir)
+  local cached_manifest = manifest_cache.get_manifest(policy_name, version_in_path)
+  if cached_manifest then
+    return cached_manifest
+  else
+    local manifest_file = format('%s/%s', version_dir, policy_manifest_name)
+    local manifest = pl_file.read(manifest_file)
+    if manifest then
+      local decoded_manifest = cjson.decode(manifest)
+      local version_in_manifest = decoded_manifest.version
 
-    if version_in_path == version_in_manifest then
-      return decoded_manifest
-    else
-      ngx.log(ngx.WARN,
-        'Could not load ', decoded_manifest.name,
-        ' version in manifest is ', version_in_manifest,
-        ' but version in path is ', version_in_path)
+      if version_in_path == version_in_manifest then
+        manifest_cache.set_manifest(policy_name, version_in_path, decoded_manifest)
+        return decoded_manifest
+      else
+        ngx.log(ngx.WARN,
+          'Could not load ', decoded_manifest.name,
+          ' version in manifest is ', version_in_manifest,
+          ' but version in path is ', version_in_path)
+      end
     end
   end
 end
@@ -113,6 +138,10 @@ local function all_loaded_policy_manifests()
 end
 
 local function get_manifest_of_non_builtin_policy(policy_name, policy_version)
+  local cached_manifest = manifest_cache.get_manifest(policy_name, policy_version)
+  if cached_manifest then
+    return cached_manifest
+  end
   for _, load_path in ipairs(policy_load_paths()) do
     for _, policy_dir in dir_iter(load_path) do
       local name = extract_policy_name(policy_dir)

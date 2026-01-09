@@ -229,12 +229,25 @@ function _M.build_from_specs(policy_specs)
     return chain
 end
 
+local function build_default_policy_order_checker()
+  return PolicyOrderChecker.new(
+      policy_manifests_loader.get_all()
+  )
+end
+
+--Cache for the PolicyOrderChecker instance (module-level, per-worker)
+-- Since manifests are static (only change on worker restart), we can safely
+-- cache the checker to avoid rebuilding OrderRestrictions on every call
+local default_order_checker = build_default_policy_order_checker()
+
 -- Checks if there are any policies placed in the wrong place in the chain.
 -- It doesn't return anything, it prints error messages when there's a problem.
 function _M:check_order(manifests)
-    PolicyOrderChecker.new(
-        manifests or policy_manifests_loader.get_all()
-    ):check(self)
+  -- If manifests are explicitly provided, create a new checker
+  if manifests then
+    return PolicyOrderChecker.new(manifests):check(self)
+  end
+  default_order_checker:check(self)
 end
 
 local function call_chain(phase_name)

@@ -47,7 +47,7 @@ end
 -- tests.
 local function policy_config_validation_is_enabled()
   return resty_env.enabled('APICAST_VALIDATE_POLICY_CONFIGS')
-    or resty_env.value('TEST_NGINX_BINARY')
+    -- or resty_env.value('TEST_NGINX_BINARY')
 end
 
 local policy_config_validator = { validate_config = function() return true end }

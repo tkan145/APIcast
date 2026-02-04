@@ -8,7 +8,7 @@ on:
 
 jobs:
   require-changelog:
-    if: ${{ !contains(github.event.*.labels.*.name, 'skip-changelog') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
     name: Requires changelog
     runs-on: ubuntu-latest
     steps:

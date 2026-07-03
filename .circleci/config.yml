@@ -271,7 +271,6 @@ ignore-forks: &ignore-forks
     ignore: '/pull\/\d+/' # forks branch name is pull/PR_NUMBER
 
 workflows:
-  version: 2
   build-test-deploy:
     jobs:
       - build-lua:

@@ -60,7 +60,24 @@ local function cpu_shares()
       local weight = file:read('*n')
       file:close()
 
-      shares = (((weight - 1) * 262142) / 9999) + 2
+    -- Recent version of runc/crun change the formula to calculate CPU weight
+    -- https://github.com/kubernetes/website/blob/main/content/en/blog/_posts/2026-01-30-new-cgroup-v1-to-v2-conversion-formula/index.md#new-conversion-formula
+    -- Old formula:
+    --     cpu.weight = (1 + ((cpu.shares - 2) * 9999) / 262142)
+    --
+    -- New formula:
+    --     cpu.weight = ⌈ 10 ^ (L^2 / 612 + 125 * L / 612 − 7 / 34)
+    -- where: L=log2⁡(cpu.shares) (Please verify this with the code)
+    --
+    -- So now we need to calculate CPU shares as follow:
+    -- cpu.shares = 2^L
+    -- L = (sqrt(16129 + 2448 * log10(cpu.weight)) - 125) / 2
+    local a = math.log(weight, 10)
+    local b = 2448 * a
+    local c = 16129 + b
+    local d = math.sqrt(c)
+    local l = (d - 125)/2
+    shares = math.ceil(2^l)
     end
   else
     -- Cgroups v1

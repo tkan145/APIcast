@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Reduce memory consumption when returning large response that has been routed through a proxy server. [PR #1572](https://github.com/3scale/APIcast/pull/1572) [THREESCALE-12258](https://issues.redhat.com/browse/THREESCALE-12258)
 - Fix proxy policy doesn't send headers set by APIcast to the API Backend. [PR #1588](https://github.com/3scale/APIcast/pull/1588) [THREESCALE-10151](https://redhat.atlassian.net/browse/THREESCALE-10151)
 - Ensure the synchronization key is released correctly. [PR #1591](https://github.com/3scale/APIcast/pull/1590)
+- Use new cpu.requests formula from Kubernetes. [PR #1595](https://github.com/3scale/APIcast/pull/1595) [THREESCALE-15465](https://redhat.atlassian.net/browse/THREESCALE-15465)
 
 ### Added
 - Update APIcast schema manifest [PR #1550](https://github.com/3scale/APIcast/pull/1550)

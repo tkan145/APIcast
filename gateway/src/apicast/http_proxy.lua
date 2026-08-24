@@ -1,4 +1,3 @@
-local format = string.format
 local tostring = tostring
 local ngx = ngx
 local ngx_get_method = ngx.req.get_method
@@ -150,6 +149,7 @@ local function forward_https_request(proxy_uri, uri, proxy_opts)
         path = (ngx.var.uri or '') .. (ngx.var.is_args or '') .. (ngx.var.query_string or ''),
         body = body,
         proxy_uri = proxy_uri,
+        timeout = opts.upstream_connection_opts,  -- Extract timeouts to top level
         proxy_options = opts
     }
 

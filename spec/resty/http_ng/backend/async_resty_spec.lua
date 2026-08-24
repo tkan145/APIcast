@@ -31,7 +31,7 @@ describe('resty backend', function()
     end)
 
     it('returns proper error on connect timeout', function()
-      local req = { method = method, url = 'http://httpbin.org:81/', timeout = { connect = 1 } }
+      local req = { method = method, url = 'http://httpbin.org:81/', timeout = { connect_timeout = 1 } }
 
       local response = backend:send(req)
 
@@ -42,7 +42,7 @@ describe('resty backend', function()
     end)
 
     it('returns proper error on read timeout', function()
-      local req = { method = method, url = 'http://httpbin.org/delay/1', timeout = { read = 1 } }
+      local req = { method = method, url = 'http://httpbin.org/delay/1', timeout = { read_timeout = 1 } }
 
       local response = backend:send(req)
 

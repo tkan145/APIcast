@@ -32,21 +32,23 @@ end
 local function connect(request)
     request = request or { }
     local httpc = http.new()
-    local proxy_options = request.proxy_options or {}
 
-    if proxy_options.upstream_connection_opts then
-      local con_opts = request.proxy_options.upstream_connection_opts
-      ngx.log(ngx.DEBUG, 'setting timeouts (secs), connect_timeout: ', con_opts.connect_timeout,
-        ' send_timeout: ', con_opts.send_timeout, ' read_timeout: ', con_opts.read_timeout)
-      -- lua-resty-http uses nginx API for lua sockets
-      -- in milliseconds
+    local timeout = request.timeout or (request.options and request.options.timeout)
+    if type(timeout) == 'number' then
+      httpc:set_timeout(timeout*1000)
+    elseif type(timeout) == 'table' then
+      ngx.log(ngx.DEBUG, 'setting timeouts (secs), connect: ', timeout.connect_timeout,
+        ' send: ', timeout.send_timeout, ' read: ', timeout.read_timeout)
+      -- lua-resty-http uses nginx API for lua sockets in milliseconds
       -- https://github.com/openresty/lua-nginx-module?tab=readme-ov-file#tcpsocksettimeouts
-      local connect_timeout = con_opts.connect_timeout and con_opts.connect_timeout * 1000
-      local send_timeout = con_opts.send_timeout and con_opts.send_timeout * 1000
-      local read_timeout = con_opts.read_timeout and con_opts.read_timeout * 1000
+      local connect_timeout = timeout.connect_timeout and timeout.connect_timeout * 1000
+      local send_timeout = timeout.send_timeout and timeout.send_timeout * 1000
+      local read_timeout = timeout.read_timeout and timeout.read_timeout * 1000
+
       httpc:set_timeouts(connect_timeout, send_timeout, read_timeout)
     end
 
+    local proxy_options = request.proxy_options or {}
     local proxy_uri = find_proxy_url(request)
     local uri = request.uri
     local scheme = uri.scheme

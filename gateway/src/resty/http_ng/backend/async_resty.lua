@@ -34,9 +34,9 @@ _M.async = function(request)
   if type(timeout) == 'number' then
     httpc:set_timeout(timeout)
   elseif type(timeout) == 'table' then
-    local connect_timeout = timeout.connect
-    local send_timeout = timeout.send
-    local read_timeout = timeout.read
+    local connect_timeout = timeout.connect_timeout
+    local send_timeout = timeout.send_timeout
+    local read_timeout = timeout.read_timeout
 
     if httpc.set_timeouts then -- lua-resty-http >= 0.10
       httpc:set_timeouts(connect_timeout, send_timeout, read_timeout)

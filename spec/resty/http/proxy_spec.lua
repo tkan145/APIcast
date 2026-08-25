@@ -65,7 +65,7 @@ describe('resty.http.proxy', function()
           local request = {
             url = 'http://upstream:8091/request',
             method = 'GET',
-            upstream_connection_opts = {
+            timeout = {
               connect_timeout = 1,
               send_timeout = 1,
               read_timeout = 1
@@ -78,6 +78,122 @@ describe('resty.http.proxy', function()
 
           assert.same(200, res.status)
           assert.match('GET http://upstream:8091/request HTTP/1.1', res:read_body())
+      end)
+    end)
+
+    context('.timeout', function()
+      before_each(function()
+        _M:reset({ http_proxy = 'http://127.0.0.1:1984' })
+      end)
+
+      describe('timeout field names', function()
+          local http, httpc_mock, set_timeouts_spy
+
+          -- Helper function to create mock httpc with spy
+          local function create_httpc_mock()
+              return {
+                  set_timeouts = function() end,
+                  connect = function() return true end,
+                  request = function() return { status = 200, read_body = function() return 'ok' end } end,
+                  close = function() end,
+                  set_keepalive = function() end,
+                  pool = 'test',
+                  get_reused_times = function() return 0 end,
+                  host = 'example.com',
+                  port = 443
+              }
+          end
+
+          before_each(function()
+              http = require('resty.resolver.http')
+              httpc_mock = create_httpc_mock()
+              set_timeouts_spy = spy.new(function() end)
+              httpc_mock.set_timeouts = set_timeouts_spy
+              stub(http, 'new', function() return httpc_mock end)
+          end)
+
+          it('should accept timeouts with connect_timeout, send_timeout, read_timeout fields', function()
+              -- This test verifies the actual structure passed from http_proxy.lua
+              local request = {
+                  url = 'http://upstream:8091/request',
+                  method = 'GET',
+                  -- This mimics the actual structure from http_proxy.lua:152
+                  -- timeouts = opts.upstream_connection_opts
+                  timeout = {
+                      connect_timeout = 1,
+                      send_timeout = 2,
+                      read_timeout = 3
+                  }
+              }
+
+              local proxy = assert(_M.new(request))
+
+              -- Verify set_timeouts was called with milliseconds (timeout * 1000)
+              assert.spy(set_timeouts_spy).was_called()
+              assert.spy(set_timeouts_spy).was_called_with(
+                  match.is_table(),  -- self (httpc)
+                  1000,  -- connect_timeout: 1 sec -> 1000 ms
+                  2000,  -- send_timeout: 2 sec -> 2000 ms
+                  3000   -- read_timeout: 3 sec -> 3000 ms
+              )
+          end)
+
+          it('should handle nil timeout values', function()
+              local request = {
+                  url = 'http://upstream:8091/request',
+                  method = 'GET',
+                  timeout = {
+                      connect_timeout = 1,
+                      send_timeout = nil,  -- nil timeout should be handled
+                      read_timeout = 3
+                  }
+              }
+
+              assert(_M.new(request))
+
+              -- Verify set_timeouts handles nil correctly
+              assert.spy(set_timeouts_spy).was_called()
+              assert.spy(set_timeouts_spy).was_called_with(
+                  match.is_table(),
+                  1000,
+                  nil,   -- send_timeout is nil
+                  3000
+              )
+          end)
+
+          it('should skip timeout setting when timeouts is nil', function()
+              local request = {
+                  url = 'http://upstream:8091/request',
+                  method = 'GET',
+                  timeout = nil  -- No timeouts specified
+              }
+
+              assert(_M.new(request))
+
+              -- set_timeouts should NOT be called when timeouts is nil
+              assert.spy(set_timeouts_spy).was_not_called()
+          end)
+
+          it('should convert seconds to milliseconds correctly', function()
+              local request = {
+                  url = 'http://upstream:8091/request',
+                  method = 'GET',
+                  timeout = {
+                      connect_timeout = 0.5,   -- 500ms
+                      send_timeout = 1.5,      -- 1500ms
+                      read_timeout = 10        -- 10000ms
+                  }
+              }
+
+              assert(_M.new(request))
+
+              assert.spy(set_timeouts_spy).was_called_with(
+                  match.is_table(),
+                  500,    -- 0.5 * 1000
+                  1500,   -- 1.5 * 1000
+                  10000   -- 10 * 1000
+              )
+          end)
       end)
     end)
 end)

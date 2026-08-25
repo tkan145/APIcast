@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix proxy policy doesn't send headers set by APIcast to the API Backend. [PR #1588](https://github.com/3scale/APIcast/pull/1588) [THREESCALE-10151](https://redhat.atlassian.net/browse/THREESCALE-10151)
 - Ensure the synchronization key is released correctly. [PR #1591](https://github.com/3scale/APIcast/pull/1590)
 - Use new cpu.requests formula from Kubernetes. [PR #1595](https://github.com/3scale/APIcast/pull/1595) [THREESCALE-15465](https://redhat.atlassian.net/browse/THREESCALE-15465)
+- Fix batcher policy fails silently when configured with string values instead of integers. [PR #1597](https://github.com/3scale/APIcast/pull/1597) [THREESCALE-15547](https://redhat.atlassian.net/browse/THREESCALE-15547)
 
 ### Added
 - Update APIcast schema manifest [PR #1550](https://github.com/3scale/APIcast/pull/1550)

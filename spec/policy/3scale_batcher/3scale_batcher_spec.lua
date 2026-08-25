@@ -1,4 +1,5 @@
 local ThreescaleBatcher = require('apicast.policy.3scale_batcher')
+local policy_config_validator = require('apicast.policy_config_validator')
 local AuthsCache = require('apicast.policy.3scale_batcher.auths_cache')
 local Transaction = require('apicast.policy.3scale_batcher.transaction')
 local Usage = require('apicast.usage')
@@ -25,6 +26,55 @@ describe('3scale batcher policy', function()
       local batcher_policy = ThreescaleBatcher.new({})
 
       assert.equals(10, batcher_policy.batch_reports_seconds)
+    end)
+
+    it('converts string batch_report_seconds to number', function()
+      stub(policy_config_validator, 'validate_config').returns(true)
+      local config = { batch_report_seconds = '5' }
+      local batcher_policy = ThreescaleBatcher.new(config)
+
+      assert.equals(5, batcher_policy.batch_reports_seconds)
+      policy_config_validator.validate_config:revert()
+    end)
+
+    it('uses default when batch_report_seconds is a non-numeric string', function()
+      stub(policy_config_validator, 'validate_config').returns(true)
+      local config = { batch_report_seconds = 'invalid' }
+      local batcher_policy = ThreescaleBatcher.new(config)
+
+      assert.equals(10, batcher_policy.batch_reports_seconds)
+      policy_config_validator.validate_config:revert()
+    end)
+
+    it('allows to configure the auths TTL', function()
+      local config = { auths_ttl = 30 }
+      local batcher_policy = ThreescaleBatcher.new(config)
+
+      assert.equals(30, batcher_policy.auths_cache.ttl)
+    end)
+
+    it('assigns a default of 10s for the auths TTL', function()
+      local batcher_policy = ThreescaleBatcher.new({})
+
+      assert.equals(10, batcher_policy.auths_cache.ttl)
+    end)
+
+    it('converts string auths_ttl to number', function()
+      stub(policy_config_validator, 'validate_config').returns(true)
+      local config = { auths_ttl = '20' }
+      local batcher_policy = ThreescaleBatcher.new(config)
+
+      assert.equals(20, batcher_policy.auths_cache.ttl)
+      policy_config_validator.validate_config:revert()
+    end)
+
+    it('uses default when auths_ttl is a non-numeric string', function()
+      stub(policy_config_validator, 'validate_config').returns(true)
+      local config = { auths_ttl = 'invalid' }
+      local batcher_policy = ThreescaleBatcher.new(config)
+
+      assert.equals(10, batcher_policy.auths_cache.ttl)
+      policy_config_validator.validate_config:revert()
     end)
   end)
 

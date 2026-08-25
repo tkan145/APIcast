@@ -9,8 +9,9 @@ local Transaction = require('transaction')
 local http_ng_resty = require('resty.http_ng.backend.resty')
 local semaphore = require('ngx.semaphore')
 local TimerTask = require('resty.concurrent.timer_task')
-
 local metrics = require('apicast.policy.3scale_batcher.metrics')
+
+local tonumber = tonumber
 
 local default_auths_ttl = 10
 local default_batch_reports_seconds = 10
@@ -32,13 +33,13 @@ end
 function _M.new(config)
   local self = new(config)
 
-  local auths_ttl = config.auths_ttl or default_auths_ttl
+  local auths_ttl = tonumber(config.auths_ttl) or default_auths_ttl
   self.auths_cache = AuthsCache.new(ngx.shared.cached_auths, auths_ttl)
 
   self.reports_batcher = ReportsBatcher.new(
     ngx.shared.batched_reports, 'batched_reports_locks')
 
-  self.batch_reports_seconds = config.batch_report_seconds or
+  self.batch_reports_seconds = tonumber(config.batch_report_seconds) or
                                default_batch_reports_seconds
 
   -- Semaphore used to ensure that only one TimerTask is started per worker.

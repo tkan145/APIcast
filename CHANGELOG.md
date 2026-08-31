@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Use new cpu.requests formula from Kubernetes. [PR #1595](https://github.com/3scale/APIcast/pull/1595) [THREESCALE-15465](https://redhat.atlassian.net/browse/THREESCALE-15465)
 - Fix batcher policy fails silently when configured with string values instead of integers. [PR #1597](https://github.com/3scale/APIcast/pull/1597) [THREESCALE-15547](https://redhat.atlassian.net/browse/THREESCALE-15547)
 - Unify timeout options between http clients library [PR #1600](https://github.com/3scale/APIcast/pull/1600)
+- Certificate is never verified in API request for https backend via proxy [PR #1573](https://github.com/3scale/APIcast/pull/1568) [THREESCALE-11944](https://redhat.atlassian.net/browse/THREESCALE-11944)
 
 ### Added
 - Update APIcast schema manifest [PR #1550](https://github.com/3scale/APIcast/pull/1550)

@@ -34,7 +34,7 @@ local function load_service(service)
     if err then
         ngx.log(ngx.ERR, 'OIDC discovery failed for service ', service.id,
                 ' (issuer: ', service.proxy.oidc_issuer_endpoint or 'nil', '): ',
-                result)
+                err)
         return nil
     end
 

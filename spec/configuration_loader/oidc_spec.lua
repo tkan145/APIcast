@@ -213,6 +213,39 @@ describe('OIDC Configuration loader', function()
       assert.equals("https://working.example.com", decoded.oidc[2].issuer)
     end)
 
+    it('logs the discovery error on failure', function()
+      local config = {
+        services = {
+          { id = 21, proxy = { oidc_issuer_endpoint = 'https://unreachable.example.com', authentication_method = 'oidc' }},
+        }
+      }
+
+      test_backend
+        .expect{ url = "https://unreachable.example.com/.well-known/openid-configuration" }
+        .respond_with{ status = 0, error = "timeout" }
+
+      local original_log = ngx.log
+      ngx.log = spy.new(function() end)
+
+      loader.call(cjson.encode(config))
+
+      assert.spy(ngx.log).was_called()
+
+      local logged
+      for _, call in ipairs(ngx.log.calls) do
+        local line = table.concat(call.vals, '', 2)
+        if line:find('OIDC discovery failed for service', 1, true) then
+          logged = line
+          break
+        end
+      end
+
+      assert.is_not_nil(logged)
+      assert.is_not_nil(logged:find('could not get OpenID Connect configuration', 1, true))
+
+      ngx.log = original_log
+    end)
+
     it('handles connection timeout gracefully', function()
       local config = {
         services = {
